@@ -100,7 +100,8 @@ If you'd like to contribute artwork (crests, backgrounds) - PRs or issues very w
 ### Contributing
 
 Issues and pull requests are welcome - bug fixes, new features, artwork contributions, or
-translations. For larger changes, please open an issue first to align on the approach.
+translations. For larger changes, please open an issue first to align on the approach. See
+[ROADMAP.md](ROADMAP.md) for planned features not yet built.
 
 ---
 
@@ -202,4 +203,4 @@ Wer Grafiken (Wappen, Hintergründe) beisteuern möchte - sehr gerne per PR oder
 
 Issues und Pull Requests sind willkommen - egal ob Bugfix, neues Feature, Grafik-Beitrag oder
 Übersetzung. Bei größeren Änderungen gerne vorher ein Issue eröffnen, um das Vorgehen kurz
-abzustimmen.
+abzustimmen. Geplante, noch nicht umgesetzte Features stehen in [ROADMAP.md](ROADMAP.md).
