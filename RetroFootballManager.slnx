@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="RetroFootballManager/RetroFootballManager.csproj" />
+  <Project Path="RetroFootballManager.Core/RetroFootballManager.Core.csproj" />
+  <Project Path="RetroFootballManager.Tests/RetroFootballManager.Tests.csproj" />
+</Solution>

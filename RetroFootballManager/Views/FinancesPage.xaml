@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RetroFootballManager.Views.FinancesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    x:DataType="vm:FinancesViewModel"
+    Title="Finanzen"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <Grid>
+        <Image Source="finaces.png" Opacity="0.6" Aspect="AspectFill"/>
+    
+    <ScrollView>
+        <VerticalStackLayout Opacity="0.95" Padding="20" Spacing="14">
+
+            <Border StrokeThickness="0" Padding="16" HorizontalOptions="Start"  WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="14" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Kontostand" FontSize="14" TextColor="{StaticResource RfmTextMuted}" />
+                    <Label Text="{Binding BalanceText}" FontSize="30" FontAttributes="Bold"
+                           TextColor="{StaticResource RfmAccentTeal}" />
+                    <Label Text="{Binding FinancialHealthText, StringFormat='Finanzielle Gesundheit: {0}'}"
+                           FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
+                    <Label Text="Kontostand zum Saisonende (Schätzung)" FontSize="12"
+                           TextColor="{StaticResource RfmTextMuted}" Margin="0,6,0,0" />
+                    <Label Text="{Binding SeasonEndForecastText}" FontSize="16" FontAttributes="Bold"
+                           TextColor="{StaticResource RfmAccentTeal}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="Gehälter, Sponsoreneinnahmen und Stadion-Unterhalt werden jeden 15. des Monats abgerechnet."
+                   FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+
+            <Label Text="Kredit" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8"
+                          IsVisible="{Binding HasActiveLoan}">
+                        <Label Grid.Row="0" Grid.Column="0" Text="Restschuld" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding LoanRemainingText}" TextColor="#EF4444" />
+                        <Label Grid.Row="1" Grid.Column="0" Text="Monatliche Rate" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding LoanMonthlyPaymentText}" TextColor="#EF4444" />
+                        <Label Grid.Row="2" Grid.Column="0" Text="Zinssatz" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="2" Grid.Column="1" Text="{Binding LoanInterestRateText}" TextColor="{StaticResource RfmTextMuted}" />
+                        <Label Grid.Row="3" Grid.Column="0" Text="Voraussichtlich abbezahlt" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="3" Grid.Column="1" Text="{Binding LoanPayoffEstimateText}" TextColor="{StaticResource RfmTextMuted}" />
+                    </Grid>
+                    <Label Text="Kein Kredit aufgenommen." TextColor="{StaticResource RfmTextMuted}">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding HasActiveLoan}" Value="True">
+                                <Setter Property="IsVisible" Value="False" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Label" Binding="{Binding HasActiveLoan}" Value="False">
+                                <Setter Property="IsVisible" Value="True" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                    <Button Text="Kredit aufnehmen" Command="{Binding TakeLoanCommand}"
+                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding HasActiveLoan}" Value="True">
+                                <Setter Property="IsVisible" Value="False" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Button" Binding="{Binding HasActiveLoan}" Value="False">
+                                <Setter Property="IsVisible" Value="True" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="Einnahmen" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                    <Label Grid.Row="0" Grid.Column="0" Text="Ticketeinnahmen" TextColor="{StaticResource RfmText}" />
+                    <Label Grid.Row="0" Grid.Column="1" Text="{Binding TicketIncomeText}" TextColor="{StaticResource RfmAccentTeal}" />
+                    <Label Grid.Row="1" Grid.Column="0" Text="Sponsoren" TextColor="{StaticResource RfmText}" />
+                    <Label Grid.Row="1" Grid.Column="1" Text="{Binding SponsorIncomeText}" TextColor="{StaticResource RfmAccentTeal}" />
+                    <Label Grid.Row="2" Grid.Column="0" Text="Merchandise" TextColor="{StaticResource RfmText}" />
+                    <Label Grid.Row="2" Grid.Column="1" Text="{Binding MerchandiseIncomeText}" TextColor="{StaticResource RfmAccentTeal}" />
+                </Grid>
+            </Border>
+
+            <Label Text="Aktuelle laufende Kosten/Einnahmen" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <Label Text="Wirkt sich ab dem nächsten Spieltag auf die Bilanz aus." FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+            <Border StrokeThickness="0" Padding="14" WidthRequest="800" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                    <Label Grid.Row="0" Grid.Column="0" Text="Mitarbeitergehälter" TextColor="{StaticResource RfmText}" />
+                    <Label Grid.Row="0" Grid.Column="1" Text="{Binding CurrentStaffWagesText}" TextColor="#EF4444" />
+                    <Label Grid.Row="1" Grid.Column="0" Text="Sponsoreneinnahmen" TextColor="{StaticResource RfmText}" />
+                    <Label Grid.Row="1" Grid.Column="1" Text="{Binding CurrentSponsorIncomeText}" TextColor="{StaticResource RfmAccentTeal}" />
+                    <Label Grid.Row="2" Grid.Column="0" Text="Stadion-Unterhalt" TextColor="{StaticResource RfmText}" />
+                    <Label Grid.Row="2" Grid.Column="1" Text="{Binding CurrentStadiumMaintenanceText}" TextColor="#EF4444" />
+                </Grid>
+            </Border>
+
+            <Label Text="Diese Saison bereits gebucht" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,6,0,0" />
+                <Border StrokeThickness="0" Padding="14" WidthRequest="800" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="8">
+                    <Label Grid.Row="0" Grid.Column="0" Text="Mitarbeitergehälter" TextColor="{StaticResource RfmText}" />
+                    <Label Grid.Row="0" Grid.Column="1" Text="{Binding StaffWagesText}" TextColor="#EF4444" />
+                    <Label Grid.Row="1" Grid.Column="0" Text="Stadionkosten" TextColor="{StaticResource RfmText}" />
+                    <Label Grid.Row="1" Grid.Column="1" Text="{Binding StadiumCostsText}" TextColor="#EF4444" />
+                </Grid>
+            </Border>
+
+            <Label Text="Transfers" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <Border StrokeThickness="0" Padding="14" WidthRequest="800" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="8">
+                    <Label Grid.Row="0" Grid.Column="0" Text="Einnahmen" TextColor="{StaticResource RfmText}" />
+                    <Label Grid.Row="0" Grid.Column="1" Text="{Binding TransferIncomeText}" TextColor="{StaticResource RfmAccentTeal}" />
+                    <Label Grid.Row="1" Grid.Column="0" Text="Ausgaben" TextColor="{StaticResource RfmText}" />
+                    <Label Grid.Row="1" Grid.Column="1" Text="{Binding TransferExpenseText}" TextColor="#EF4444" />
+                </Grid>
+            </Border>
+
+            <Label Text="Sonstiges" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <Border StrokeThickness="0" Padding="14" WidthRequest="800" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="8">
+                        <Label Grid.Row="0" Grid.Column="0" Text="Einnahmen (z.B. Freundschaftsspiele)" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding OtherIncomeText}" TextColor="{StaticResource RfmAccentTeal}" />
+                        <Label Grid.Row="1" Grid.Column="0" Text="Ausgaben (z.B. Trainingslager)" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding OtherExpensesText}" TextColor="#EF4444" />
+                    </Grid>
+                </Border>
+            </VerticalStackLayout>
+    </ScrollView>
+    </Grid>
+</ContentPage>

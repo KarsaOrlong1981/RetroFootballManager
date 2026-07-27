@@ -1,0 +1,50 @@
+{
+  "Germany": {
+    "FirstNames": ["Lukas", "Maximilian", "Leon", "Felix", "Jonas", "Paul", "Tim", "Niklas", "Julian", "Moritz", "Fabian", "Sebastian", "Tobias", "Daniel", "Simon", "Florian", "Alexander", "Benedikt", "Christian", "Dennis", "Erik", "Georg", "Heiko", "Ingo", "Jan", "Kai", "Lars", "Marcel", "Nico", "Oliver", "Patrick", "Rene", "Stefan", "Thorsten", "Uwe", "Wolfgang"],
+    "LastNames": ["Müller", "Schmidt", "Schneider", "Fischer", "Weber", "Wagner", "Becker", "Hoffmann", "Schäfer", "Koch", "Richter", "Klein", "Wolf", "Neumann", "Schwarz", "Zimmermann", "Braun", "Krüger", "Hofmann", "Hartmann", "Lange", "Werner", "Krause", "Meyer", "Lehmann", "Huber", "Mayer", "Herrmann", "Walter", "König", "Peters", "Möller", "Kaiser", "Fuchs", "Scholz", "Vogel"]
+  },
+  "Austria": {
+    "FirstNames": ["Lukas", "Jakob", "David", "Michael", "Thomas", "Andreas", "Christoph", "Stefan", "Markus", "Florian", "Alexander", "Manuel", "Patrick", "Bernhard", "Gerald", "Mario", "Johannes", "Matthias", "Georg", "Karl", "Franz", "Hans", "Wolfgang", "Werner", "Herbert", "Josef", "Kurt", "Anton", "Rudolf", "Otto", "Erwin", "Alfred", "Walter", "Helmut", "Ernst", "Robert"],
+    "LastNames": ["Gruber", "Huber", "Bauer", "Wagner", "Pichler", "Steiner", "Moser", "Mayer", "Hofer", "Leitner", "Berger", "Fuchs", "Eder", "Fischer", "Winkler", "Aigner", "Schmid", "Wimmer", "Schwarz", "Egger", "Wallner", "Brunner", "Maier", "Wieser", "Schneider", "Auer", "Lechner", "Reiter", "Haas", "Wolf", "Weber", "Lang", "Binder", "Kofler", "Hauser", "Kern"]
+  },
+  "England": {
+    "FirstNames": ["Jack", "Oliver", "Harry", "George", "Charlie", "Jacob", "Thomas", "William", "James", "Callum", "Ryan", "Lewis", "Josh", "Connor", "Ben", "Daniel", "Alfie", "Archie", "Freddie", "Henry", "Joseph", "Leo", "Mason", "Noah", "Oscar", "Reece", "Aaron", "Dylan", "Ethan", "Finley", "Jake", "Kai", "Liam", "Owen", "Toby", "Zachary"],
+    "LastNames": ["Smith", "Jones", "Taylor", "Williams", "Brown", "Wilson", "Johnson", "Davies", "Robinson", "Wright", "Thompson", "Evans", "Walker", "White", "Roberts", "Green", "Hall", "Wood", "Hughes", "Edwards", "Turner", "Cooper", "Ward", "Baker", "Harris", "Clarke", "James", "Morgan", "Bell", "Bailey", "Carter", "Mitchell", "Foster", "Hunt", "Palmer", "Stevens"]
+  },
+  "Italy": {
+    "FirstNames": ["Alessandro", "Matteo", "Lorenzo", "Francesco", "Andrea", "Marco", "Luca", "Davide", "Simone", "Riccardo", "Giovanni", "Antonio", "Stefano", "Federico", "Gabriele", "Nicola", "Emanuele", "Diego", "Salvatore", "Domenico", "Alberto", "Vincenzo", "Pietro", "Angelo", "Giuseppe", "Filippo", "Enrico", "Massimo", "Paolo", "Roberto", "Claudio", "Fabio", "Michele", "Raffaele", "Tommaso", "Leonardo"],
+    "LastNames": ["Rossi", "Russo", "Ferrari", "Esposito", "Bianchi", "Romano", "Colombo", "Ricci", "Marino", "Greco", "Bruno", "Gallo", "Conti", "De Luca", "Mancini", "Costa", "Fontana", "Santoro", "Mariani", "Rizzo", "Lombardi", "Moretti", "Barbieri", "Caruso", "Ferrara", "Galli", "Martini", "Leone", "Longo", "Gentile", "Serra", "Pellegrini", "Palumbo", "Sala", "Farina", "Villa"]
+  },
+  "Brazil": {
+    "FirstNames": ["Gabriel", "Lucas", "Matheus", "Rafael", "Bruno", "Felipe", "Thiago", "Diego", "Rodrigo", "Vinicius", "Leonardo", "Eduardo", "Guilherme", "Caio", "André", "Igor", "Pedro", "Paulo", "Vitor", "Marcelo", "Fernando", "Renato", "Alexandre", "Ricardo", "Fabio", "Gustavo", "Henrique", "Danilo", "Wesley", "Jefferson", "Anderson", "Roberto", "Elias", "Marcos", "Everton", "Adriano"],
+    "LastNames": ["Silva", "Santos", "Oliveira", "Souza", "Pereira", "Costa", "Rodrigues", "Almeida", "Nascimento", "Carvalho", "Araujo", "Ribeiro", "Barbosa", "Freitas", "Cardoso", "Teixeira", "Gomes", "Martins", "Lima", "Alves", "Fonseca", "Correia", "Nunes", "Machado", "Moraes", "Vieira", "Pinto", "Dias", "Cavalcanti", "Farias", "Monteiro", "Rezende", "Peixoto", "Andrade", "Campos", "Braga"]
+  },
+  "Argentina": {
+    "FirstNames": ["Juan", "Santiago", "Mateo", "Nicolas", "Franco", "Martin", "Ezequiel", "Agustin", "Diego", "Ignacio", "Federico", "Gonzalo", "Emiliano", "Lautaro", "Bruno", "Tomas", "Facundo", "Matias", "Leandro", "Maximiliano", "Cristian", "Alan", "Ivan", "Rodrigo", "Julian", "Joaquin", "Ramiro", "Sebastian", "Gaston", "Marcelo", "Fabian", "Hernan", "Adrian", "Walter", "Guillermo", "Pablo"],
+    "LastNames": ["Gonzalez", "Fernandez", "Rodriguez", "Lopez", "Martinez", "Perez", "Garcia", "Sanchez", "Romero", "Alvarez", "Torres", "Ruiz", "Diaz", "Acosta", "Benitez", "Medina", "Molina", "Ortiz", "Silva", "Nunez", "Rojas", "Aguirre", "Cabrera", "Herrera", "Godoy", "Ibanez", "Villalba", "Paez", "Ledesma", "Bravo", "Correa", "Quiroga", "Vera", "Sosa", "Maldonado", "Duarte"]
+  },
+  "Japan": {
+    "FirstNames": ["Haruto", "Yuto", "Sota", "Riku", "Ren", "Sho", "Kaito", "Yuki", "Daiki", "Hayato", "Kenta", "Takumi", "Ryo", "Shun", "Naoki", "Kazuki", "Sora", "Yamato", "Aoi", "Itsuki", "Asahi", "Minato", "Souta", "Yuma", "Rinto", "Haru", "Koki", "Yusei", "Taiga", "Tatsuki", "Sosuke", "Kohei", "Tsubasa", "Ryusei", "Hikaru", "Akira"],
+    "LastNames": ["Sato", "Suzuki", "Takahashi", "Tanaka", "Watanabe", "Ito", "Yamamoto", "Nakamura", "Kobayashi", "Saito", "Kato", "Yoshida", "Yamada", "Sasaki", "Matsumoto", "Inoue", "Kimura", "Hayashi", "Shimizu", "Yamaguchi", "Mori", "Ikeda", "Hashimoto", "Abe", "Ishikawa", "Ogawa", "Goto", "Okada", "Hasegawa", "Murakami", "Kondo", "Ishii", "Fujita", "Nakagawa", "Fujii", "Ueda"]
+  },
+  "Nigeria": {
+    "FirstNames": ["Chinedu", "Emeka", "Ifeanyi", "Obinna", "Kelechi", "Chukwuemeka", "Ayo", "Femi", "Tunde", "Segun", "Kunle", "Uche", "Ebuka", "Musa", "Yusuf", "Ibrahim", "Chidi", "Nnamdi", "Emmanuel", "Ikenna", "Godwin", "Sunday", "Adekunle", "Bayo", "Wale", "Olumide", "Damilare", "Kayode", "Abiodun", "Chibuzor", "Chukwudi", "Sammy", "Victor", "Success", "Godspower", "Ismail"],
+    "LastNames": ["Okafor", "Eze", "Nwosu", "Adeyemi", "Balogun", "Okoro", "Chukwu", "Uzoma", "Bello", "Abubakar", "Danladi", "Okonkwo", "Ojo", "Afolabi", "Nwachukwu", "Ogundipe", "Adebayo", "Olawale", "Nwankwo", "Effiong", "Suleiman", "Yakubu", "Onyekwere", "Obi", "Ekwueme", "Aliyu", "Garba", "Ndukwe", "Chukwuma", "Onwuka", "Igwe", "Nwabueze", "Sanni", "Usman", "Ayoola", "Fashola"]
+  },
+  "France": {
+    "FirstNames": ["Lucas", "Hugo", "Louis", "Gabriel", "Arthur", "Nathan", "Leo", "Thomas", "Antoine", "Maxime", "Julien", "Alexandre", "Romain", "Baptiste", "Clement", "Nicolas", "Mathieu", "Guillaume", "Pierre", "Vincent", "Sebastien", "Olivier", "Philippe", "Jerome", "Cedric", "Florian", "Damien", "Benjamin", "Quentin", "Adrien", "Sylvain", "Fabrice", "Yohan", "Kevin", "Bastien", "Theo"],
+    "LastNames": ["Martin", "Bernard", "Dubois", "Thomas", "Robert", "Richard", "Petit", "Durand", "Leroy", "Moreau", "Simon", "Laurent", "Michel", "Garcia", "David", "Bertrand", "Lefevre", "Roux", "Fournier", "Girard", "Andre", "Mercier", "Blanc", "Guerin", "Muller", "Henry", "Roussel", "Nicolas", "Perrin", "Morel", "Fontaine", "Chevalier", "Robin", "Masson", "Sauvage", "Marchand"]
+  },
+  "Spain": {
+    "FirstNames": ["Pablo", "Alejandro", "Daniel", "Adrian", "Alvaro", "David", "Javier", "Sergio", "Diego", "Carlos", "Manuel", "Ivan", "Jorge", "Miguel", "Rafael", "Antonio", "Francisco", "Jose", "Angel", "Ruben", "Victor", "Raul", "Oscar", "Fernando", "Gonzalo", "Guillermo", "Marcos", "Hugo", "Mario", "Cristian", "Emilio", "Enrique", "Julio", "Vicente", "Salvador", "Ismael"],
+    "LastNames": ["Garcia", "Fernandez", "Gonzalez", "Rodriguez", "Lopez", "Martinez", "Sanchez", "Perez", "Gomez", "Martin", "Jimenez", "Ruiz", "Hernandez", "Diaz", "Moreno", "Alvarez", "Munoz", "Romero", "Alonso", "Gutierrez", "Navarro", "Torres", "Dominguez", "Vazquez", "Ramos", "Gil", "Serrano", "Blanco", "Molina", "Morales", "Suarez", "Ortega", "Delgado", "Castro", "Ortiz", "Rubio"]
+  },
+  "Netherlands": {
+    "FirstNames": ["Daan", "Sem", "Lucas", "Milan", "Levi", "Luuk", "Bram", "Thijs", "Jesse", "Finn", "Sven", "Ruben", "Tim", "Niek", "Joris", "Stijn", "Bas", "Cas", "Dirk", "Erik", "Gijs", "Hidde", "Jarno", "Kees", "Lars", "Mees", "Noud", "Owen", "Pepijn", "Quinten", "Rick", "Sander", "Teun", "Vince", "Wouter", "Yannick"],
+    "LastNames": ["De Jong", "Jansen", "De Vries", "Van den Berg", "Van Dijk", "Bakker", "Visser", "Smit", "Meijer", "De Boer", "Mulder", "De Groot", "Bos", "Vos", "Peters", "Hendriks", "Dekker", "Brouwer", "De Wit", "Dijkstra", "Smits", "De Graaf", "Van der Meer", "Van der Linden", "Kok", "Jacobs", "De Haan", "Post", "Kuiper", "Schouten", "Verhoeven", "Kramer", "Prins", "Willems", "Blom", "Terpstra"]
+  },
+  "International": {
+    "FirstNames": ["Alex", "Chris", "Marco", "Ivan", "Erik", "Sam", "Leon", "Nico", "Tom", "Adam", "Mark", "Kevin", "Robin", "Dario", "Milan", "Nathan", "Luca", "Omar", "Sami", "Elias", "Noel", "Karim", "Amir", "Yusuf", "Aleksander", "Bogdan", "Filip", "Igor", "Damir", "Toni", "Ivo", "Emir", "Jonas", "Kristian", "Viktor", "Aleksandar"],
+    "LastNames": ["Cole", "Nowak", "Petrov", "Silva", "Berg", "Novak", "Kovac", "Horvat", "Larsen", "Andersen", "Costa", "Weiss", "Meier", "King", "Hall", "Diallo", "Keller", "Lindgren", "Petersen", "Ivanov", "Popov", "Dimitrov", "Maric", "Simic", "Jovanovic", "Vukovic", "Zoric", "Wagner", "Fischer", "Berger", "Sorensen", "Nilsson", "Karlsson", "Johansson", "Hansen", "Olsen"]
+  }
+}

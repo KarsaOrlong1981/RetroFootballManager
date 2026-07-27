@@ -1,0 +1,24 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+*.user
+
+# Visual Studio
+.vs/
+
+# Claude Code project files (session-local, not part of the repo)
+.claude/
+
+# Rider / JetBrains
+.idea/
+
+# MAUI/platform build artifacts
+*.apk
+*.aab
+*.ipa
+*.app
+
+# Local save data / logs (should never ship with the repo)
+*.db3
+*.db3-journal
+*.log

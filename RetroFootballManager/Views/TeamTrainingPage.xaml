@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RetroFootballManager.Views.TeamTrainingPage"
+    x:Name="Page"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    x:DataType="vm:TeamTrainingViewModel"
+    Title="Team-Training"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <Grid>
+        <Grid RowDefinitions="Auto,*,Auto" Padding="14" RowSpacing="10">
+
+            <Label Grid.Row="0" FontSize="13" TextColor="{StaticResource RfmTextMuted}"
+                   Text="Der Team-Fokus trainiert passende Attribute für den ganzen Kader - langsam, über die Saison verteilt." />
+
+            <CollectionView Grid.Row="1" ItemsSource="{Binding Focuses}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TeamFocusRow">
+                        <Grid Padding="3">
+                            <Border Padding="12,10" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <Label Grid.Column="0" Text="{Binding Label}" FontSize="15"
+                                           TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                    <Button Grid.Column="1" Text="{Binding ButtonText}"
+                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.SetFocusCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="{Binding ButtonColor}" TextColor="White"
+                                            Padding="10,2" FontSize="12" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <VerticalStackLayout Grid.Row="2" Spacing="8">
+                <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
+                <Button Text="Bestätigen" Command="{Binding ConfirmCommand}"
+                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Busy overlay -->
+        <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000">
+            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="12">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{StaticResource RfmAccentTeal}"
+                                   WidthRequest="48" HeightRequest="48" />
+                <Label Text="{Binding StatusText}" FontSize="14" TextColor="{StaticResource RfmText}"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

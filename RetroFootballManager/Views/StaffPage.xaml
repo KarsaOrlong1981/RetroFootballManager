@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RetroFootballManager.Views.StaffPage"
+    x:Name="Page"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    xmlns:models="clr-namespace:RetroFootballManager.Models;assembly=RetroFootballManager.Core"
+    x:DataType="vm:StaffViewModel"
+    Title="Mitarbeiter"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto,*,Auto" Padding="20" RowSpacing="8">
+
+        <Label Grid.Row="0" Text="Aktuelles Personal" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+
+        <CollectionView Grid.Row="1" ItemsSource="{Binding CurrentStaff}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Employee">
+                    <Grid Padding="3">
+                        <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="8" />
+                            </Border.StrokeShape>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <VerticalStackLayout Grid.Column="0">
+                                    <Label Text="{Binding Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                    <Label Text="{Binding EmployeeType, StringFormat='{0}'}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                    <Label Text="{Binding Salary, StringFormat='Gehalt: {0:N0} € / Jahr'}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                </VerticalStackLayout>
+                                <Button Grid.Column="1" Text="Entlassen"
+                                        Command="{Binding Source={x:Reference Page}, Path=BindingContext.FireCommand}"
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="#EF4444" TextColor="White" FontSize="12" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Grid.Row="2" Text="Kandidaten suchen" Command="{Binding GenerateCandidatesCommand}"
+                BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+
+        <Label Grid.Row="3" Text="Kandidaten" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+
+        <CollectionView Grid.Row="4" ItemsSource="{Binding Candidates}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Employee">
+                    <Grid Padding="3">
+                        <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="8" />
+                            </Border.StrokeShape>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <VerticalStackLayout Grid.Column="0">
+                                    <Label Text="{Binding Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                    <Label Text="{Binding EmployeeType, StringFormat='{0}'}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                    <Label Text="{Binding Rating, StringFormat='Rating: {0:0.0}'}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                    <Label Text="{Binding Salary, StringFormat='Gehalt: {0:N0} € / Jahr'}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                </VerticalStackLayout>
+                                <Button Grid.Column="1" Text="Einstellen"
+                                        Command="{Binding Source={x:Reference Page}, Path=BindingContext.HireCommand}"
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Label Grid.Row="5" Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
+    </Grid>
+</ContentPage>

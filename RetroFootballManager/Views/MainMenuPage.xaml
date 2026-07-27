@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RetroFootballManager.Views.MainMenuPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    x:DataType="vm:MainMenuViewModel"
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <ContentPage.Resources>
+        <Style x:Key="MenuHotspotStyle" TargetType="Border">
+            <!-- Invisible in normal operation (hit area + tooltip only).
+                 For debugging placement, temporarily set BackgroundColor="#66FFD54F" and
+                 Stroke="#FFFFD54F". -->
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="Stroke" Value="Transparent" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape">
+                <Setter.Value>
+                    <RoundRectangle CornerRadius="12" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid>
+        <Image x:Name="BackgroundImage" Source="mainmenu_no_label.png" Aspect="AspectFill"/>
+
+        <!-- Menu hotspots placed directly on the image (replace the buttons below the header card).
+             Position/size are computed in code-behind (RepositionHotspots): the coordinates
+             in the comments below are pixel rects on the original image (1536x1024) and get
+             remapped to the actual window size on load/resize using an "AspectFill cover"
+             formula, so the hit/tooltip areas land exactly on the objects at any window size. -->
+        <AbsoluteLayout x:Name="HotspotLayer" SizeChanged="HotspotLayer_SizeChanged">
+            <!-- Squad -->
+            <Border x:Name="HsAufstellung" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Aufstellung">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenLineupCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+            <Border x:Name="HsTraining" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Training - Einzelspieler">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenTrainingCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+            <Border x:Name="HsTeamTraining" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Team-Training">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenTeamTrainingCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+            <Border x:Name="HsJugend" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Jugend">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenYouthCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+
+            <!-- Statistics -->
+            <Border x:Name="HsFixtures" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Spiele &amp; Tabellen">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenFixturesCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+            <Border x:Name="HsStatistics" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Spieler-Statistiken">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenStatisticsCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+            <Border x:Name="HsCupOverview" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Pokal-Übersicht">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenCupOverviewCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+            <Border x:Name="HsTrophies" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Trophäen">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenTrophyCaseCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+            <Border x:Name="HsScouting" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Scouting">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenScoutingCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+
+            <!-- Club -->
+            <Border x:Name="HsClub" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Verein">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenClubCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+            <Border x:Name="HsStaff" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Mitarbeiter">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenStaffCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+            <Border x:Name="HsSponsors" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Sponsoren">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenSponsorsCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+            <Border x:Name="HsFinances" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Finanzen">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenFinancesCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+            <Border x:Name="HsStadium" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Stadion">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenStadiumCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+
+            <!-- Standalone (Inbox moved into the header, Options not needed for now) -->
+            <Border x:Name="HsTransferMarket" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Transfermarkt">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenTransferMarketCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+            <Border x:Name="HsBackToStart" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Zurück zum Start">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding BackToStartCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+            <Border x:Name="HsSaveGame" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Spielstand speichern">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SaveGameCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+        </AbsoluteLayout>
+
+    <ScrollView VerticalOptions="Start">
+        <VerticalStackLayout Opacity="0.85" Padding="20" Spacing="16">
+
+            <!-- Verein-Kopf -->
+                <Border StrokeThickness="0" Padding="16" BackgroundColor="{StaticResource RfmSurface}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="14" />
+                    </Border.StrokeShape>
+                    <Grid>
+                        <Grid ColumnDefinitions="150,*,*,Auto,Auto" ColumnSpacing="14">
+                            <Border Grid.Column="0" WidthRequest="150" HeightRequest="150"
+                            BackgroundColor="White"
+                            Stroke="{StaticResource RfmAccentTeal}" StrokeThickness="1.5" Padding="4"
+                            VerticalOptions="Center">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="14" />
+                                </Border.StrokeShape>
+                                <Grid>
+                                    <Image Source="{Binding ClubLogoPath, Converter={StaticResource LogoSource}}"
+                                   IsVisible="{Binding ClubLogoPath, Converter={StaticResource HasLogo}}"
+                                   Aspect="AspectFit" />
+                                    <Label Text="{Binding ClubShortName}" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}"
+                                   IsVisible="{Binding ClubLogoPath, Converter={StaticResource NoLogo}}"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Grid>
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="{Binding ClubName}" FontSize="20" FontAttributes="Bold"
+                               TextColor="{StaticResource RfmText}" />
+                                <Label Text="{Binding Season}" FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
+                                <Label Text="{Binding CurrentDate}" FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
+                                <Label Text="{Binding NextMatchInfo}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}" />
+                                <Label Text="{Binding NextCupInfo}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}"
+                               IsVisible="{Binding NextCupInfo, Converter={StaticResource StringPresence}}" />
+                                <Label Text="{Binding Budget}" FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
+                            </VerticalStackLayout>
+                            <!-- Transferfenster-Status (+ Vorbereitungsphase-Restwochen, falls zutreffend) -->
+                            <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" Spacing="4">
+                                <Label Text="{Binding PreSeasonInfo}" FontSize="12" FontAttributes="Bold"
+                               TextColor="{StaticResource RfmAccentTeal}" HorizontalOptions="Center"
+                               IsVisible="{Binding HasPreSeasonInfo}" />
+                                <Border StrokeThickness="0" Padding="10,8" BackgroundColor="{StaticResource RfmSurface}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="10" />
+                                    </Border.StrokeShape>
+                                    <Label Text="{Binding TransferWindowInfo}" FontSize="18" FontAttributes="Bold"
+                 TextColor="{Binding TransferWindowColor}" HorizontalOptions="Center" />
+                                </Border>
+                            </VerticalStackLayout>
+                            <!-- Zum Spieltag (Live-Spiel) - nur sichtbar wenn wirklich ein Spiel ansteht -->
+                            <Button Grid.Column="3"
+                            WidthRequest="220"
+                            HeightRequest="60"
+                            HorizontalOptions="End"
+                            IsVisible="{Binding HasDueMatch}"
+                        Text="Zum Spieltag" Command="{Binding OpenMatchDayCommand}" FontAttributes="Bold" FontSize="22"
+                       BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+
+                            <!-- Kein Spiel fällig: Kalender vorspulen (+ in Vorbereitung/Winterpause Trainingslager/Freundschaftsspiel) -->
+                            <VerticalStackLayout Grid.Column="3" HorizontalOptions="End" Spacing="6"
+                                         IsVisible="{Binding HasNoDueMatch}">
+                                <Button Text="Zeit vorstellen" Command="{Binding AdvanceTimeCommand}"
+                                BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" FontSize="13" />
+                                <Label Text="{Binding StatusText}" FontSize="11" TextColor="{StaticResource RfmTextMuted}"
+                               IsVisible="{Binding HasStatusText}" />
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="6" IsVisible="{Binding IsPreSeasonOrWinterBreak}">
+                                    <Button Grid.Column="0" Text="Trainingslager" Command="{Binding OpenTrainingCampDialogCommand}"
+                                    BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" FontSize="12" />
+                                    <Button Grid.Column="1" Text="Freundschaftsspiel" Command="{Binding OpenFriendlyPickerCommand}"
+                                    BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" FontSize="12" />
+                                </Grid>
+                            </VerticalStackLayout>
+
+                            <!-- Inbox: icon + badge with unread message count -->
+                            <Grid Grid.Column="4" WidthRequest="46" HeightRequest="46" VerticalOptions="End">
+                                <Border BackgroundColor="Transparent" StrokeThickness="0" Padding="4"
+                                ToolTipProperties.Text="Postfach">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding OpenInboxCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <Image Source="inbox_icon.png" WidthRequest="38" HeightRequest="38" Aspect="AspectFit" />
+                                </Border>
+                                <Border IsVisible="{Binding HasUnreadMessages}"
+                                BackgroundColor="{StaticResource RfmAccentTeal}" StrokeThickness="0"
+                                WidthRequest="20" HeightRequest="20" Padding="0"
+                                HorizontalOptions="End" VerticalOptions="Start"
+                                InputTransparent="True">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="10" />
+                                    </Border.StrokeShape>
+                                    <Label Text="{Binding UnreadMessageCount}" FontSize="11" FontAttributes="Bold"
+                                   TextColor="{StaticResource RfmBackground}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </VerticalStackLayout>
+    </ScrollView>
+
+    <!-- Overview: upcoming friendlies + active training camp - pinned to the bottom of the screen -->
+    <Border StrokeThickness="0" Padding="12,10" Margin="20" BackgroundColor="{StaticResource RfmSurface}"
+            Opacity="0.9" HorizontalOptions="End" VerticalOptions="End"
+            IsVisible="{Binding HasOverviewContent}">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="10" />
+        </Border.StrokeShape>
+        <VerticalStackLayout Spacing="4">
+            <Label Text="{Binding ActiveTrainingCampText}" FontSize="12" FontAttributes="Bold"
+                   TextColor="{StaticResource RfmAccentTeal}"
+                   IsVisible="{Binding HasActiveTrainingCamp}" />
+            <Label Text="Anstehende Freundschaftsspiele" FontSize="12" FontAttributes="Bold"
+                   TextColor="{StaticResource RfmTextMuted}"
+                   IsVisible="{Binding HasUpcomingFriendlies}" />
+            <VerticalStackLayout Spacing="2" BindableLayout.ItemsSource="{Binding UpcomingFriendlies}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <Label Text="{Binding .}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </Border>
+
+    <!-- Freundschaftsspiel ansetzen: Gegner + Termin wählen -->
+    <Grid IsVisible="{Binding IsFriendlyPickerOpen}" BackgroundColor="#B0000000">
+        <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                BackgroundColor="{StaticResource RfmBackground}"
+                Margin="20" Padding="18"
+                WidthRequest="540" HeightRequest="560"
+                HorizontalOptions="Center" VerticalOptions="Center">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="16" />
+            </Border.StrokeShape>
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="12">
+                <Label Grid.Row="0" Text="Freundschaftsspiel ansetzen" FontSize="18" FontAttributes="Bold"
+                       TextColor="{StaticResource RfmText}" />
+
+                <Picker Grid.Row="1" Title="Gegner"
+                        BackgroundColor="Blue"
+                        WidthRequest="400"
+                        ItemsSource="{Binding FriendlyOpponents}" ItemDisplayBinding="{Binding DisplayText}"
+                        SelectedItem="{Binding SelectedFriendlyOpponent, Mode=TwoWay}"
+                        TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+
+                <Picker Grid.Row="2" Title="Termin (Vorschläge)"
+                        BackgroundColor="Blue"
+                        ItemsSource="{Binding SuggestedFriendlyDates}"
+                        ItemDisplayBinding="{Binding StringFormat='{0:dd.MM.yyyy}'}"
+                        SelectedItem="{Binding SelectedFriendlyDate, Mode=TwoWay}"
+                        TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+
+                <Label Grid.Row="3" Text="{Binding FriendlyValidationText}" FontSize="12"
+                       TextColor="{StaticResource RfmAccentTeal}"
+                       IsVisible="{Binding FriendlyValidationText, Converter={StaticResource StringPresence}}" />
+
+                <Grid Grid.Row="4" ColumnDefinitions="*,*" ColumnSpacing="8">
+                    <Button Grid.Column="0" Text="Abbrechen" Command="{Binding CloseFriendlyPickerCommand}"
+                            BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+                    <Button Grid.Column="1" Text="Ansetzen" Command="{Binding ConfirmFriendlyCommand}"
+                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+
+    <!-- Trainingslager buchen: Stufe x Dauer, Kosten/Effekt-Vorschau -->
+    <Grid IsVisible="{Binding IsTrainingCampDialogOpen}" BackgroundColor="#B0000000">
+        <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                BackgroundColor="{StaticResource RfmBackground}"
+                Margin="20" Padding="18"
+                WidthRequest="540" HeightRequest="560"
+                HorizontalOptions="Center" VerticalOptions="Center">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="16" />
+            </Border.StrokeShape>
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="12">
+                <Label Grid.Row="0" Text="Trainingslager buchen" FontSize="18" FontAttributes="Bold"
+                       TextColor="{StaticResource RfmText}" />
+
+                <VerticalStackLayout Grid.Row="1" Spacing="4">
+                    <Label Text="Stufe" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="6">
+                        <Button Grid.Column="0" Text="Basic"
+                                Command="{Binding SelectTrainingCampTierCommand}" CommandParameter="Basic"
+                                BackgroundColor="{Binding IsBasicTierSelected, Converter={StaticResource SelectedGreen}}"
+                                TextColor="{StaticResource RfmText}" FontSize="12" />
+                        <Button Grid.Column="1" Text="Advanced"
+                                Command="{Binding SelectTrainingCampTierCommand}" CommandParameter="Advanced"
+                                BackgroundColor="{Binding IsAdvancedTierSelected, Converter={StaticResource SelectedGreen}}"
+                                TextColor="{StaticResource RfmText}" FontSize="12" />
+                        <Button Grid.Column="2" Text="Elite"
+                                Command="{Binding SelectTrainingCampTierCommand}" CommandParameter="Elite"
+                                BackgroundColor="{Binding IsEliteTierSelected, Converter={StaticResource SelectedGreen}}"
+                                TextColor="{StaticResource RfmText}" FontSize="12" />
+                    </Grid>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Grid.Row="2" Spacing="4">
+                    <Label Text="Dauer" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+                        <Button Grid.Column="0" Text="1 Woche"
+                                Command="{Binding SelectTrainingCampDurationCommand}" CommandParameter="1"
+                                BackgroundColor="{Binding Is1WeekSelected, Converter={StaticResource SelectedGreen}}"
+                                TextColor="{StaticResource RfmText}" FontSize="12" />
+                        <Button Grid.Column="1" Text="2 Wochen"
+                                Command="{Binding SelectTrainingCampDurationCommand}" CommandParameter="2"
+                                BackgroundColor="{Binding Is2WeeksSelected, Converter={StaticResource SelectedGreen}}"
+                                TextColor="{StaticResource RfmText}" FontSize="12" />
+                    </Grid>
+                </VerticalStackLayout>
+
+                <Label Grid.Row="3" Text="{Binding TrainingCampPreviewText}" FontSize="13" FontAttributes="Bold"
+                       TextColor="{StaticResource RfmText}" />
+
+                <Label Grid.Row="4" Text="{Binding TrainingCampValidationText}" FontSize="12"
+                       TextColor="{StaticResource RfmAccentTeal}"
+                       IsVisible="{Binding TrainingCampValidationText, Converter={StaticResource StringPresence}}" />
+
+                <Grid Grid.Row="5" ColumnDefinitions="*,*" ColumnSpacing="8">
+                    <Button Grid.Column="0" Text="Abbrechen" Command="{Binding CloseTrainingCampDialogCommand}"
+                            BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+                    <Button Grid.Column="1" Text="Buchen" Command="{Binding ConfirmTrainingCampCommand}"
+                            IsEnabled="{Binding CanConfirmTrainingCamp}"
+                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+
+    <!-- Busy overlay: Kalender-Vorspulen/Trainingslager/Freundschaftsspiel können mehrere
+         Sekunden dauern (KI-Ticks über die ganze Liga) - ohne dies wirkte es wie eingefroren. -->
+    <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000">
+        <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="12">
+            <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{StaticResource RfmAccentTeal}"
+                               WidthRequest="48" HeightRequest="48" />
+            <Label Text="{Binding BusyText}" FontSize="22" TextColor="{StaticResource RfmText}"
+                   HorizontalOptions="Center" />
+            <Button Text="Abbrechen" Command="{Binding CancelAdvanceTimeCommand}"
+                    IsVisible="{Binding IsAdvancingTime}"
+                    BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}" />
+        </VerticalStackLayout>
+    </Grid>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RetroFootballManager.Views.CupOverviewPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    x:DataType="vm:CupOverviewViewModel"
+    Title="Pokal-Übersicht"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="14">
+
+            <Picker Title="Wettbewerb"
+                    BackgroundColor="Blue"
+                    ItemsSource="{Binding Competitions}" ItemDisplayBinding="{Binding Label}"
+                    SelectedItem="{Binding SelectedCompetition, Mode=TwoWay}"
+                    TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+
+            <Picker Title="Gruppe" IsVisible="{Binding HasGroups}"
+                    BackgroundColor="Blue"
+                    ItemsSource="{Binding Groups}" ItemDisplayBinding="{Binding Group}"
+                    SelectedItem="{Binding SelectedGroup, Mode=TwoWay}"
+                    TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+
+            <!-- Grouptables -->
+            <VerticalStackLayout Spacing="8" IsVisible="{Binding HasGroups}">
+                <Label Text="Gruppentabelle" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <Border StrokeThickness="0" Padding="8" BackgroundColor="{StaticResource RfmSurface}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <VerticalStackLayout>
+                        <Grid ColumnDefinitions="26,*,28,26,26,32,30" Padding="6,4" ColumnSpacing="4">
+                            <Label Grid.Column="0" Text="#" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="1" Text="Team" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="2" Text="Sp" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="3" Text="TG" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="4" Text="TK" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="5" Text="TD" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="6" Text="Pkt" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
+                        </Grid>
+                        <CollectionView ItemsSource="{Binding GroupStandings}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="vm:CupGroupStandingDisplayRow">
+                                    <Grid BackgroundColor="{Binding RowColor}" Padding="0,1">
+                                        <Grid ColumnDefinitions="26,*,28,26,26,32,30" Padding="6,5" ColumnSpacing="4">
+                                            <Label Grid.Column="0" Text="{Binding Row.Position}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Grid.Column="1" Text="{Binding Row.TeamName}" FontSize="12" TextColor="{StaticResource RfmText}"
+                                                   LineBreakMode="TailTruncation" />
+                                            <Label Grid.Column="2" Text="{Binding Row.Played}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Grid.Column="3" Text="{Binding Row.GoalsFor}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Grid.Column="4" Text="{Binding Row.GoalsAgainst}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Grid.Column="5" Text="{Binding Row.GoalDifference}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Grid.Column="6" Text="{Binding Row.Points}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </Grid>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Ko-tree -->
+            <VerticalStackLayout Spacing="8" IsVisible="{Binding HasKoBracket}">
+                <Label Text="KO-Runden" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding KoBracket}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:KoRoundSection">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="{Binding RoundName}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmTextMuted}" />
+                                <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Ties}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:KoTieDisplayRow">
+                                            <Border StrokeThickness="0" Padding="10,6" BackgroundColor="{StaticResource RfmSurface}">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="8" />
+                                                </Border.StrokeShape>
+                                                <VerticalStackLayout Spacing="2">
+                                                    <Label FontSize="12" TextColor="{StaticResource RfmText}">
+                                                        <Label.FormattedText>
+                                                            <FormattedString>
+                                                                <Span Text="{Binding HomeTeamName}" />
+                                                                <Span Text=" – " />
+                                                                <Span Text="{Binding AwayTeamName}" />
+                                                            </FormattedString>
+                                                        </Label.FormattedText>
+                                                    </Label>
+                                                    <Label Text="{Binding ScoreText}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" />
+                                                    <Label Text="{Binding WinnerText}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+
+            <!-- Player stats -->
+            <Label Text="Statistiken" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <Picker Title="Kategorie"
+                    BackgroundColor="Blue"
+                    ItemsSource="{Binding StatCategories}" ItemDisplayBinding="{Binding Label}"
+                    SelectedItem="{Binding SelectedStatCategory, Mode=TwoWay}"
+                    TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+
+            <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding TopPlayers}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:StatRankRow">
+                        <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="8" />
+                            </Border.StrokeShape>
+                            <Grid ColumnDefinitions="28,*,Auto,Auto" ColumnSpacing="10">
+                                <Label Grid.Column="0" Text="{Binding Rank}" FontSize="13" FontAttributes="Bold"
+                                       TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1">
+                                    <Label Text="{Binding PlayerName}" FontSize="14" TextColor="{StaticResource RfmText}" />
+                                    <Label Text="{Binding TeamName}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="2" Text="{Binding PositionShort}" FontSize="12"
+                                       TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
+                                <Label Grid.Column="3" Text="{Binding Value}" FontSize="15" FontAttributes="Bold"
+                                       TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
+            <Button Text="Zurück" Command="{Binding BackCommand}"
+                    BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmTextMuted}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

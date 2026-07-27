@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RetroFootballManager.Views.SponsorsPage"
+    x:Name="Page"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    xmlns:models="clr-namespace:RetroFootballManager.Models;assembly=RetroFootballManager.Core"
+    x:DataType="vm:SponsorsViewModel"
+    Title="Sponsoren"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+
+            <Label Text="Hauptsponsor" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <Label Text="{Binding CurrentMainText}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}" />
+            <CollectionView ItemsSource="{Binding MainOffers}" HeightRequest="160">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Sponsor">
+                        <Grid Padding="3">
+                            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <VerticalStackLayout Grid.Column="0">
+                                        <Label Text="{Binding Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                        <Label Text="{Binding SeasonPayment, StringFormat='{0:N0} € / Saison'}"
+                                               FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                    </VerticalStackLayout>
+                                    <Button Grid.Column="1" Text="Unterschreiben"
+                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.SignCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label Text="Bandenwerbung" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
+            <Label Text="{Binding CurrentPerimeterText}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}" />
+            <CollectionView ItemsSource="{Binding PerimeterOffers}" HeightRequest="160">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Sponsor">
+                        <Grid Padding="3">
+                            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <VerticalStackLayout Grid.Column="0">
+                                        <Label Text="{Binding Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                        <Label Text="{Binding SeasonPayment, StringFormat='{0:N0} € / Saison'}"
+                                               FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                    </VerticalStackLayout>
+                                    <Button Grid.Column="1" Text="Unterschreiben"
+                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.SignCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label Text="Ausrüster" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0"
+                   IsVisible="{Binding KitSlotAvailable}" />
+            <Label Text="{Binding CurrentKitText}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}"
+                   IsVisible="{Binding KitSlotAvailable}" />
+            <CollectionView ItemsSource="{Binding KitOffers}" HeightRequest="160" IsVisible="{Binding KitSlotAvailable}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Sponsor">
+                        <Grid Padding="3">
+                            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <VerticalStackLayout Grid.Column="0">
+                                        <Label Text="{Binding Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                        <Label Text="{Binding SeasonPayment, StringFormat='{0:N0} € / Saison'}"
+                                               FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                    </VerticalStackLayout>
+                                    <Button Grid.Column="1" Text="Unterschreiben"
+                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.SignCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

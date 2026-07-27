@@ -1,0 +1,30 @@
+﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:RetroFootballManager"
+             xmlns:conv="clr-namespace:RetroFootballManager.Converters"
+             x:Class="RetroFootballManager.App">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <conv:BoolToOpacityConverter x:Key="LockedOpacity" TrueOpacity="1" FalseOpacity="0.4" />
+            <conv:BoolToOpacityConverter x:Key="DisabledOpacity" TrueOpacity="0.4" FalseOpacity="1" />
+            <conv:BoolToOpacityConverter x:Key="ReadOpacity" TrueOpacity="0.55" FalseOpacity="1" />
+            <conv:PitchBoundsConverter x:Key="PitchBounds" TokenWidth="84" TokenHeight="98" />
+            <conv:PitchBoundsConverter x:Key="PitchBoundsSmall" TokenWidth="68" TokenHeight="80" />
+            <conv:PositionFitColorConverter x:Key="FitColor" />
+            <conv:BoolToColorConverter x:Key="RoleToggleColor" TrueColor="{StaticResource RfmAccentTeal}" FalseColor="#40000000" />
+            <conv:BoolToColorConverter x:Key="SelectedGreen" TrueColor="#22C55E" FalseColor="{StaticResource RfmSurface}" />
+            <conv:FormationSlotBoundsConverter x:Key="ThumbDot" DotSize="7" />
+            <conv:FormationSlotBoundsConverter x:Key="PreviewDot" DotSize="22" />
+            <conv:LogoPathToImageSourceConverter x:Key="LogoSource" />
+            <conv:StringPresenceConverter x:Key="HasLogo" />
+            <conv:StringPresenceConverter x:Key="NoLogo" Invert="True" />
+            <conv:StringPresenceConverter x:Key="StringPresence" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

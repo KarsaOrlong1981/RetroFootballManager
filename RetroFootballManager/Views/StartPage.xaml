@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RetroFootballManager.Views.StartPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    x:DataType="vm:StartViewModel"
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <Grid RowDefinitions="*,Auto,*" Padding="24">
+        <Image Grid.RowSpan="3" Source="hintergrund_stadion_aussen.png" Aspect="AspectFill"/>
+        <VerticalStackLayout Grid.Row="1" Opacity="0.8" Spacing="16" MaximumWidthRequest="420" HorizontalOptions="Center" >
+
+            <Label Text="RETRO"
+                   TextColor="{StaticResource RfmText}"
+                   FontSize="40" FontAttributes="Bold"
+                   HorizontalOptions="Center" />
+            <Label Text="FOOTBALL MANAGER"
+                   TextColor="{StaticResource RfmText}"
+                   FontSize="34" FontAttributes="Bold"
+                   HorizontalOptions="Center" Margin="0,-12,0,24" />
+
+            <Button Text="Spiel fortsetzen"
+                    Command="{Binding ContinueCommand}"
+                    IsVisible="{Binding HasSaveGame}"
+                    BackgroundColor="{StaticResource RfmAccent}"
+                    TextColor="White" />
+
+            <Button Text="Spiel laden"
+                    Command="{Binding LoadCommand}"
+                    IsVisible="{Binding HasSaveGame}"
+                    BackgroundColor="{StaticResource RfmSurface}"
+                    TextColor="{StaticResource RfmText}" />
+
+            <Button Text="Neues Spiel starten"
+                    Command="{Binding NewGameCommand}"
+                    BackgroundColor="{StaticResource RfmAccent}"
+                    TextColor="White" />
+
+            <Button Text="Optionen"
+                    Command="{Binding OptionsCommand}"
+                    BackgroundColor="{StaticResource RfmSurface}"
+                    TextColor="{StaticResource RfmText}" />
+
+            <Button Text="Spielstand löschen"
+                    Command="{Binding DeleteSaveCommand}"
+                    IsVisible="{Binding HasSaveGame}"
+                    BackgroundColor="{StaticResource RfmSurfaceAlt}"
+                    TextColor="{StaticResource RfmTextMuted}" />
+
+        </VerticalStackLayout>
+
+        <!-- Delete confirmation -->
+        <Grid Grid.RowSpan="3" IsVisible="{Binding IsDeleteConfirmationOpen}" BackgroundColor="#B0000000">
+            <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                    BackgroundColor="{StaticResource RfmBackground}"
+                    Margin="20" Padding="18"
+                    MaximumWidthRequest="420"
+                    HorizontalOptions="Center" VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="Spielstand wirklich löschen?" FontSize="18" FontAttributes="Bold"
+                           TextColor="{StaticResource RfmText}" HorizontalOptions="Center" />
+                    <Label Text="Dieser Vorgang kann nicht rückgängig gemacht werden." FontSize="13"
+                           TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                    <Button Text="Ja, löschen" Command="{Binding ConfirmDeleteCommand}"
+                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+                    <Button Text="Abbrechen" Command="{Binding CancelDeleteCommand}"
+                            BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmTextMuted}" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- Overwrite confirmation -->
+        <Grid Grid.RowSpan="3" IsVisible="{Binding IsOverwriteConfirmationOpen}" BackgroundColor="#B0000000">
+            <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                    BackgroundColor="{StaticResource RfmBackground}"
+                    Margin="20" Padding="18"
+                    MaximumWidthRequest="420"
+                    HorizontalOptions="Center" VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="Bestehenden Spielstand überschreiben?" FontSize="18" FontAttributes="Bold"
+                           TextColor="{StaticResource RfmText}" HorizontalOptions="Center" />
+                    <Label Text="Ein neues Spiel ersetzt den aktuellen Spielstand unwiderruflich." FontSize="13"
+                           TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                    <Button Text="Ja, neues Spiel starten" Command="{Binding ConfirmOverwriteCommand}"
+                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+                    <Button Text="Abbrechen" Command="{Binding CancelOverwriteCommand}"
+                            BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmTextMuted}" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+    </Grid>
+</ContentPage>

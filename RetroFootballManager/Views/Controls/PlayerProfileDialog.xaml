@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="RetroFootballManager.Views.Controls.PlayerProfileDialog"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    x:Name="Root">
+
+    <Grid IsVisible="{Binding IsOpen, Source={x:Reference Root}}" BackgroundColor="#B0000000">
+        <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                BackgroundColor="{StaticResource RfmBackground}"
+                Margin="20" Padding="18"
+                MaximumWidthRequest="560" MaximumHeightRequest="620"
+                HorizontalOptions="Center" VerticalOptions="Center">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="16" />
+            </Border.StrokeShape>
+            <Grid RowDefinitions="Auto,*,Auto,Auto" RowSpacing="10">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                    <Label Grid.Column="0" Text="{Binding Title, Source={x:Reference Root}}" FontSize="20" FontAttributes="Bold"
+                           TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                    <Button Grid.Column="1" Text="✕" Command="{Binding CloseCommand, Source={x:Reference Root}}"
+                            BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}"
+                            WidthRequest="36" HeightRequest="36" Padding="0" FontSize="14" />
+                </Grid>
+
+                <!-- Not-scouted state: "?" placeholder + scout button, used by Statistics/TransferMarket/Scouting -->
+                <VerticalStackLayout x:Name="LockedContent" Grid.Row="1" Spacing="10"
+                                     HorizontalOptions="Center" VerticalOptions="Center" IsVisible="False">
+                    <Label Text="?" FontSize="48" FontAttributes="Bold"
+                           TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                    <Label Text="Spieler noch nicht gescoutet." FontSize="13"
+                           TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                    <Button Text="Spieler scouten" Command="{Binding UnlockCommand, Source={x:Reference Root}}"
+                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding IsLockedBusy, Source={x:Reference Root}}" Value="True">
+                                <Setter Property="IsVisible" Value="False" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <Label Text="{Binding LockedStatusText, Source={x:Reference Root}}" FontSize="12"
+                           TextColor="{StaticResource RfmAccentTeal}" HorizontalOptions="Center" />
+                </VerticalStackLayout>
+
+                <!-- Full profile body -->
+                <ScrollView x:Name="BodyScroll" Grid.Row="1">
+                    <VerticalStackLayout Spacing="10" BindingContext="{Binding Profile, Source={x:Reference Root}}" x:DataType="vm:PlayerProfile">
+                        <Label Text="{Binding Status}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
+
+                        <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="8">
+                                <Label Grid.Row="0" Grid.Column="0" Text="{Binding Position, StringFormat='Position: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding Nationality, StringFormat='Nation: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="1" Grid.Column="0" Text="{Binding Age, StringFormat='Alter: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding DateOfBirth, StringFormat='Geburtsdatum: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="2" Grid.Column="0" Text="{Binding Rating, StringFormat='Rating: {0:0.0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding Talent, StringFormat='Talent: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="3" Grid.Column="0" Text="{Binding Moral, StringFormat='Moral: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="3" Grid.Column="1" Text="{Binding Fitness, StringFormat='Fitness: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="4" Grid.Column="0" Text="{Binding Size, StringFormat='Größe: {0:0.00} m'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="4" Grid.Column="1" Text="{Binding Personality, StringFormat='Persönlichkeit: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="5" Grid.Column="0" Text="{Binding SecondaryPositions, StringFormat='Nebenpositionen: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                            </Grid>
+                        </Border>
+
+                        <Label Text="Fähigkeiten" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                        <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding Attributes}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AttributeChip">
+                                    <Border BackgroundColor="{StaticResource RfmSurface}" Margin="3" Padding="8,4" StrokeThickness="0">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="6" />
+                                        </Border.StrokeShape>
+                                        <Label FontSize="11" TextColor="{StaticResource RfmTextMuted}">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="{Binding Label}" />
+                                                    <Span Text=" " />
+                                                    <Span Text="{Binding Value}" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" />
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+
+                        <Label Text="Statistiken" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,6,0,0" />
+                        <Label Text="{Binding CareerAppearances, StringFormat='Karriere-Einsätze: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                        <Label Text="{Binding CareerMinutesPlayed, StringFormat='Karriere-Minuten: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                        <Label Text="{Binding SeasonMinutes, StringFormat='Minuten diese Saison: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+
+                        <Label Text="Vertrag" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,6,0,0" />
+                        <Label Text="{Binding ContractNote}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                        <Label Text="{Binding TransferStatusNote}" FontSize="11" TextColor="{StaticResource RfmAccentTeal}" />
+                    </VerticalStackLayout>
+                </ScrollView>
+
+                <!-- Optional page-specific extra row (e.g. Training's contract-renewal button) -->
+                <ContentView Grid.Row="2" x:Name="ExtraContentHost" />
+
+                <Button Grid.Row="3" Text="Schließen" Command="{Binding CloseCommand, Source={x:Reference Root}}"
+                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+            </Grid>
+        </Border>
+    </Grid>
+</ContentView>

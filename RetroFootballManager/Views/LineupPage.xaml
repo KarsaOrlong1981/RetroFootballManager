@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RetroFootballManager.Views.LineupPage"
+    x:Name="Page"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    xmlns:core="clr-namespace:RetroFootballManager.Common;assembly=RetroFootballManager.Core"
+    xmlns:controls="clr-namespace:RetroFootballManager.Views.Controls"
+    x:DataType="vm:LineupViewModel"
+    Title="Aufstellung"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <Grid>
+        <!-- Main content -->
+        <ScrollView>
+            <VerticalStackLayout Padding="14" Spacing="12">
+                <Grid ColumnDefinitions="*,*">
+                    <Label Text="Ziehe einen Spieler auf einen anderen, um sie zu tauschen (oder tippe zwei an). ℹ zeigt das Spielerprofil."
+                          FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
+                    <VerticalStackLayout Spacing="8" Grid.Column="1">
+                        <Label Text="{Binding StatusText}" FontSize="14" TextColor="{StaticResource RfmAccentTeal}" />
+                        <Button Text="Aufstellung bestätigen" HorizontalOptions="End" WidthRequest="200" Command="{Binding ConfirmCommand}"
+                              BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+                    </VerticalStackLayout>
+                </Grid>
+                
+                <!-- Formation -->
+                <Button Text="{Binding CurrentFormationName, StringFormat='Formation: {0}'}"
+                        Command="{Binding OpenFormationDialogCommand}"
+                        BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}" FontSize="22" />
+
+                <Grid ColumnDefinitions="*,*,*">
+
+                    <VerticalStackLayout>
+                        <!-- Taktik (Spielstil) -->
+                        <Label Text="Taktik" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource RfmTextMuted}" />
+                        <Picker Title="Spielstil"
+                            ItemsSource="{Binding PlayingStyles}" ItemDisplayBinding="{Binding Label}"
+                            SelectedItem="{Binding SelectedPlayingStyle, Mode=TwoWay}"
+                            TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1">
+                    <!-- Taktische Ausrichtung -->
+                        <Label Text="Taktische Ausrichtung" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource RfmTextMuted}" />
+                        <Picker Title="Ausrichtung"
+                                ItemsSource="{Binding Orientations}" ItemDisplayBinding="{Binding Label}"
+                                SelectedItem="{Binding SelectedOrientation, Mode=TwoWay}"
+                                TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="2">
+                    <!-- Zweikampfhärte -->
+                <Label Text="Zweikampfhärte" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource RfmTextMuted}" />
+                <Picker Title="Härte"
+                        ItemsSource="{Binding TacklingOptions}" ItemDisplayBinding="{Binding Label}"
+                        SelectedItem="{Binding SelectedTackling, Mode=TwoWay}"
+                        TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+                    </VerticalStackLayout>
+                </Grid>
+                <!-- Pitch: goalkeeper at the bottom, forwards at the top -->
+                <Border StrokeThickness="0" BackgroundColor="{StaticResource RfmPitch}" HeightRequest="560">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="14" />
+                    </Border.StrokeShape>
+                    <AbsoluteLayout BindableLayout.ItemsSource="{Binding Pitch}" Padding="8">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PitchToken">
+                                <Border AbsoluteLayout.LayoutFlags="PositionProportional"
+                                        AbsoluteLayout.LayoutBounds="{Binding ., Converter={StaticResource PitchBounds}}"
+                                        StrokeThickness="3"
+                                        Stroke="{Binding Fit, Converter={StaticResource FitColor}}"
+                                        BackgroundColor="{StaticResource RfmAccent}"
+                                        Padding="3">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="12" />
+                                    </Border.StrokeShape>
+                                    <Grid>
+                                        <!-- Select/drag/drop recognizers live on THIS inner grid only - the
+                                             ℹ/AV badges below are siblings of it, not descendants, so tapping
+                                             them can never also bubble into SelectPlayer (WinUI Tapped events
+                                             bubble by default; nesting them here silently armed a swap-select
+                                             on every badge tap, corrupting the lineup on the next unrelated tap). -->
+                                        <Grid>
+                                            <Grid.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.SelectPlayerCommand}"
+                                                    CommandParameter="{Binding PlayerId}" />
+                                                <DragGestureRecognizer CanDrag="True"
+                                                    DragStartingCommand="{Binding Source={x:Reference Page}, Path=BindingContext.BeginDragCommand}"
+                                                    DragStartingCommandParameter="{Binding PlayerId}" />
+                                                <DropGestureRecognizer AllowDrop="True"
+                                                    DropCommand="{Binding Source={x:Reference Page}, Path=BindingContext.DropOnCommand}"
+                                                    DropCommandParameter="{Binding PlayerId}" />
+                                            </Grid.GestureRecognizers>
+                                            <VerticalStackLayout Spacing="1" HorizontalOptions="Center" VerticalOptions="Center">
+                                                <Label Text="{Binding PosLabel}" FontSize="11" TextColor="White"
+                                                       HorizontalOptions="Center" Opacity="0.8" />
+                                                <Label Text="{Binding Name}" FontSize="11" FontAttributes="Bold" TextColor="White"
+                                                       HorizontalOptions="Center" LineBreakMode="TailTruncation" MaxLines="1" WidthRequest="72" HorizontalTextAlignment="Center" />
+                                                <Label Text="{Binding Rating}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}"
+                                                       HorizontalOptions="Center" />
+                                                <Label Text="{Binding MalusLabel}" IsVisible="{Binding HasMalus}"
+                                                       FontSize="10" FontAttributes="Bold"
+                                                       TextColor="{Binding Fit, Converter={StaticResource FitColor}}"
+                                                       HorizontalOptions="Center" />
+                                                <HorizontalStackLayout Spacing="3" HorizontalOptions="Center">
+                                                    <Label Text="{Binding Fitness, StringFormat='{0}%'}" FontSize="9"
+                                                           TextColor="{Binding FitnessColor}" />
+                                                    <Label Text="🟨" FontSize="9" IsVisible="{Binding HasYellowCard}" />
+                                                </HorizontalStackLayout>
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                        <Border BackgroundColor="#40000000" WidthRequest="20" HeightRequest="20"
+                                                HorizontalOptions="End" VerticalOptions="Start" Margin="2" Padding="0" StrokeThickness="0">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="10" />
+                                            </Border.StrokeShape>
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
+                                                    CommandParameter="{Binding PlayerId}" />
+                                            </Border.GestureRecognizers>
+                                            <Label Text="ℹ" FontSize="12" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                        <!-- Wing-back / normal role toggle - only shown on slots that offer one -->
+                                        <Border IsVisible="{Binding HasAlternateRole}"
+                                                BackgroundColor="{Binding IsAlternateActive, Converter={StaticResource RoleToggleColor}}"
+                                                WidthRequest="24" HeightRequest="20"
+                                                HorizontalOptions="Start" VerticalOptions="Start" Margin="2" Padding="0" StrokeThickness="1"
+                                                Stroke="{StaticResource RfmAccentTeal}">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="6" />
+                                            </Border.StrokeShape>
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.ToggleSlotRoleCommand}"
+                                                    CommandParameter="{Binding SlotIndex}" />
+                                            </Border.GestureRecognizers>
+                                            <Label Text="AV" FontSize="9" FontAttributes="Bold" TextColor="White"
+                                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </AbsoluteLayout>
+                </Border>
+
+                <!-- Bench - BindableLayout (not CollectionView) for reliable drag&drop, same
+                     hosting mechanism as the pitch (CollectionView virtualization on Windows
+                     makes per-item drag gestures unreliable). -->
+                <Label Text="Bank" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <VerticalStackLayout Spacing="2" BindableLayout.ItemsSource="{Binding Bench}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:SquadToken">
+                            <Border Padding="10,6" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={x:Reference Page}, Path=BindingContext.SelectPlayerCommand}"
+                                        CommandParameter="{Binding PlayerId}" />
+                                    <DragGestureRecognizer CanDrag="True"
+                                        DragStartingCommand="{Binding Source={x:Reference Page}, Path=BindingContext.BeginDragCommand}"
+                                        DragStartingCommandParameter="{Binding PlayerId}" />
+                                    <DropGestureRecognizer AllowDrop="True"
+                                        DropCommand="{Binding Source={x:Reference Page}, Path=BindingContext.DropOnCommand}"
+                                        DropCommandParameter="{Binding PlayerId}" />
+                                </Border.GestureRecognizers>
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="40,*,Auto,50,26">
+                                        <Label Grid.Column="0" Text="{Binding PosLabel}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
+                                        <Label Grid.Column="1" Text="{Binding Name}" FontSize="13" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                        <Label Grid.Column="2" Text="{Binding Rating}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
+                                        <HorizontalStackLayout Grid.Column="3" Spacing="3" VerticalOptions="Center" HorizontalOptions="End">
+                                            <Label Text="{Binding Fitness, StringFormat='{0}%'}" FontSize="10" TextColor="{Binding FitnessColor}" />
+                                            <Label Text="🟨" FontSize="10" IsVisible="{Binding HasYellowCard}" />
+                                        </HorizontalStackLayout>
+                                        <Border Grid.Column="4" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="22" HeightRequest="22" Padding="0" StrokeThickness="0">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="11" />
+                                            </Border.StrokeShape>
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
+                                                    CommandParameter="{Binding PlayerId}" />
+                                            </Border.GestureRecognizers>
+                                            <Label Text="ℹ" FontSize="11" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                    </Grid>
+                                    <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding Attributes.Chips}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:AttributeChip">
+                                                <Border BackgroundColor="{StaticResource RfmSurfaceAlt}" Margin="2" Padding="5,2" StrokeThickness="0">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="5" />
+                                                    </Border.StrokeShape>
+                                                    <Label FontSize="9" TextColor="{StaticResource RfmTextMuted}">
+                                                        <Label.FormattedText>
+                                                            <FormattedString>
+                                                                <Span Text="{Binding Label}" />
+                                                                <Span Text=" " />
+                                                                <Span Text="{Binding Value}" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                                                            </FormattedString>
+                                                        </Label.FormattedText>
+                                                    </Label>
+                                                </Border>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </FlexLayout>
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <!-- Reserves - same BindableLayout approach as Bench. -->
+                <Label Text="Reserve" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <VerticalStackLayout Spacing="2" BindableLayout.ItemsSource="{Binding Reserves}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:SquadToken">
+                            <Border Padding="10,6" BackgroundColor="{StaticResource RfmSurfaceAlt}" StrokeThickness="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={x:Reference Page}, Path=BindingContext.SelectPlayerCommand}"
+                                        CommandParameter="{Binding PlayerId}" />
+                                    <DragGestureRecognizer CanDrag="True"
+                                        DragStartingCommand="{Binding Source={x:Reference Page}, Path=BindingContext.BeginDragCommand}"
+                                        DragStartingCommandParameter="{Binding PlayerId}" />
+                                    <DropGestureRecognizer AllowDrop="True"
+                                        DropCommand="{Binding Source={x:Reference Page}, Path=BindingContext.DropOnCommand}"
+                                        DropCommandParameter="{Binding PlayerId}" />
+                                </Border.GestureRecognizers>
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="40,*,Auto,50,26">
+                                        <Label Grid.Column="0" Text="{Binding PosLabel}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
+                                        <Label Grid.Column="1" Text="{Binding Name}" FontSize="13" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                        <Label Grid.Column="2" Text="{Binding Rating}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
+                                        <HorizontalStackLayout Grid.Column="3" Spacing="3" VerticalOptions="Center" HorizontalOptions="End">
+                                            <Label Text="{Binding Fitness, StringFormat='{0}%'}" FontSize="10" TextColor="{Binding FitnessColor}" />
+                                            <Label Text="🟨" FontSize="10" IsVisible="{Binding HasYellowCard}" />
+                                        </HorizontalStackLayout>
+                                        <Border Grid.Column="4" BackgroundColor="{StaticResource RfmSurface}" WidthRequest="22" HeightRequest="22" Padding="0" StrokeThickness="0">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="11" />
+                                            </Border.StrokeShape>
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
+                                                    CommandParameter="{Binding PlayerId}" />
+                                            </Border.GestureRecognizers>
+                                            <Label Text="ℹ" FontSize="11" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                    </Grid>
+                                    <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding Attributes.Chips}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:AttributeChip">
+                                                <Border BackgroundColor="{StaticResource RfmSurface}" Margin="2" Padding="5,2" StrokeThickness="0">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="5" />
+                                                    </Border.StrokeShape>
+                                                    <Label FontSize="9" TextColor="{StaticResource RfmTextMuted}">
+                                                        <Label.FormattedText>
+                                                            <FormattedString>
+                                                                <Span Text="{Binding Label}" />
+                                                                <Span Text=" " />
+                                                                <Span Text="{Binding Value}" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                                                            </FormattedString>
+                                                        </Label.FormattedText>
+                                                    </Label>
+                                                </Border>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </FlexLayout>
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Formation dialog overlay -->
+        <Grid IsVisible="{Binding IsFormationDialogOpen}" BackgroundColor="#B0000000">
+            <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                    BackgroundColor="{StaticResource RfmBackground}"
+                    Margin="20" Padding="0"
+                    MaximumWidthRequest="900" MaximumHeightRequest="640"
+                    HorizontalOptions="Center" VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+
+                <Grid RowDefinitions="Auto,*" Padding="18" RowSpacing="12">
+
+                    <!-- Breadcrumb header -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="Mannschaft › Taktiktafel › Formation" FontSize="13"
+                               TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="✕" Command="{Binding CancelFormationCommand}"
+                                BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}"
+                                WidthRequest="40" HeightRequest="40" Padding="0" FontSize="16" />
+                    </Grid>
+
+                    <Grid Grid.Row="1" ColumnDefinitions="260,*" ColumnSpacing="16">
+
+                        <!-- Formation list with mini-pitch thumbnails -->
+                        <CollectionView Grid.Column="0"
+                                        ItemsSource="{Binding FormationDialogItems}"
+                                        SelectionMode="Single"
+                                        SelectedItem="{Binding SelectedDialogItem, Mode=TwoWay}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="vm:FormationDialogItem">
+                                    <Grid Padding="3">
+                                        <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="10" />
+                                            </Border.StrokeShape>
+                                            <Grid ColumnDefinitions="46,*,Auto" ColumnSpacing="10">
+                                                <!-- Mini pitch thumbnail -->
+                                                <Border Grid.Column="0" BackgroundColor="{StaticResource RfmPitch}"
+                                                        WidthRequest="42" HeightRequest="46" StrokeThickness="0">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="6" />
+                                                    </Border.StrokeShape>
+                                                    <AbsoluteLayout BindableLayout.ItemsSource="{Binding Formation.Slots}">
+                                                        <BindableLayout.ItemTemplate>
+                                                            <DataTemplate x:DataType="core:FormationSlot">
+                                                                <BoxView AbsoluteLayout.LayoutFlags="PositionProportional"
+                                                                         AbsoluteLayout.LayoutBounds="{Binding ., Converter={StaticResource ThumbDot}}"
+                                                                         Color="{StaticResource RfmAccent}"
+                                                                         CornerRadius="4" />
+                                                            </DataTemplate>
+                                                        </BindableLayout.ItemTemplate>
+                                                    </AbsoluteLayout>
+                                                </Border>
+
+                                                <Label Grid.Column="1" Text="{Binding Name}" FontAttributes="Bold" FontSize="14"
+                                                       TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+
+                                                <Label Grid.Column="2" Text="Empfohlen" FontSize="10"
+                                                       IsVisible="{Binding IsRecommended}"
+                                                       TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                        <!-- Large preview -->
+                        <Grid Grid.Column="1" RowDefinitions="Auto,*,Auto" RowSpacing="10">
+                            <Label Grid.Row="0" Text="{Binding SelectedDialogItem.Name}" FontSize="18" FontAttributes="Bold"
+                                   TextColor="{StaticResource RfmText}" HorizontalOptions="Center" />
+
+                            <Border Grid.Row="1" StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                                    BackgroundColor="{StaticResource RfmPitch}">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="10" />
+                                </Border.StrokeShape>
+                                <AbsoluteLayout BindableLayout.ItemsSource="{Binding SelectedDialogItem.Formation.Slots}" Padding="10">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="core:FormationSlot">
+                                            <Ellipse AbsoluteLayout.LayoutFlags="PositionProportional"
+                                                     AbsoluteLayout.LayoutBounds="{Binding ., Converter={StaticResource PreviewDot}}"
+                                                     Fill="{StaticResource RfmAccent}"
+                                                     Stroke="White" StrokeThickness="1.5" />
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </AbsoluteLayout>
+                            </Border>
+
+                            <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                                <BoxView Grid.Column="0" Opacity="0" />
+                                <Button Grid.Column="1" Text="Bestätigen" Command="{Binding ConfirmFormationCommand}"
+                                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+                                <Button Grid.Column="2" Text="Abbrechen" Command="{Binding CancelFormationCommand}"
+                                        BackgroundColor="Transparent" BorderColor="{StaticResource RfmTextMuted}" BorderWidth="1"
+                                        TextColor="{StaticResource RfmText}" />
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Player profile dialog -->
+        <controls:PlayerProfileDialog
+            IsOpen="{Binding IsPlayerProfileOpen}"
+            Title="{Binding SelectedProfile.Name}"
+            Profile="{Binding SelectedProfile}"
+            CloseCommand="{Binding CloseProfileCommand}" />
+
+        <!-- Busy overlay -->
+        <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000">
+            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="12">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{StaticResource RfmAccentTeal}"
+                                   WidthRequest="48" HeightRequest="48" />
+                <Label Text="{Binding StatusText}" FontSize="14" TextColor="{StaticResource RfmText}"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

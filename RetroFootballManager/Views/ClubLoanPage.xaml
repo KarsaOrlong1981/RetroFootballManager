@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RetroFootballManager.Views.ClubLoanPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    x:DataType="vm:ClubLoanViewModel"
+    Title="Kredit aufnehmen"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Padding="20" Spacing="14">
+
+                <Label Text="{Binding MaxAmountText}" FontSize="14" TextColor="{StaticResource RfmTextMuted}" />
+
+                <Label Text="Kreditsumme" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <Picker ItemsSource="{Binding AmountOptions}" SelectedItem="{Binding SelectedAmount}"
+                        TextColor="{StaticResource RfmText}" BackgroundColor="{StaticResource RfmSurface}" />
+
+                <Label Text="Laufzeit (Monate)" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <Picker ItemsSource="{Binding TermOptions}" SelectedItem="{Binding SelectedTerm}"
+                        TextColor="{StaticResource RfmText}" BackgroundColor="{StaticResource RfmSurface}" />
+
+                <Border StrokeThickness="0" Padding="14" BackgroundColor="{StaticResource RfmSurface}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="{Binding InterestRateText}" TextColor="{StaticResource RfmText}" />
+                        <Label Text="{Binding MonthlyPaymentPreviewText}" FontAttributes="Bold" TextColor="#EF4444" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="{Binding StatusText}" FontSize="14" TextColor="{StaticResource RfmText}" />
+
+                <Button Text="Kredit aufnehmen" Command="{Binding ConfirmCommand}"
+                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+                <Button Text="Abbrechen" Command="{Binding CancelCommand}"
+                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmTextMuted}" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Busy overlay -->
+        <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000">
+            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="12">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{StaticResource RfmAccentTeal}"
+                                   WidthRequest="48" HeightRequest="48" />
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

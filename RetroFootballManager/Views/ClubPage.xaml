@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RetroFootballManager.Views.ClubPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    x:DataType="vm:ClubViewModel"
+    Title="Verein"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="20" RowSpacing="12">
+
+        <Border Grid.Row="0" StrokeThickness="0" Padding="16" BackgroundColor="{StaticResource RfmSurface}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="14" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="4">
+                <Label Text="{Binding ClubName}" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <Label Text="{Binding LeagueTierText}" FontSize="14" TextColor="{StaticResource RfmTextMuted}" />
+                <Label Text="{Binding LeaguePositionText}" FontSize="14" TextColor="{StaticResource RfmAccentTeal}" />
+                <Label Text="{Binding StadiumSummary}" FontSize="14" TextColor="{StaticResource RfmTextMuted}" />
+                <Label Text="{Binding RatingComparisonText}" FontSize="14" TextColor="{StaticResource RfmAccentTeal}" Margin="0,4,0,0" />
+                <Label Text="{Binding MoraleComparisonText}" FontSize="14" TextColor="{StaticResource RfmAccentTeal}" />
+            </VerticalStackLayout>
+        </Border>
+
+        <Grid Grid.Row="1" RowDefinitions="Auto,*" RowSpacing="8">
+            <Label Grid.Row="0" Text="Andere Vereine" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <CollectionView Grid.Row="1" ItemsSource="{Binding OtherTeams}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TeamOverviewRow">
+                        <Grid Padding="3">
+                            <Border Padding="10,6" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Grid ColumnDefinitions="*,80,80">
+                                    <Label Grid.Column="0" Text="{Binding Name}" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                    <Label Grid.Column="1" Text="{Binding AvgRating, StringFormat='Ø {0:0.0}'}"
+                                           TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
+                                    <Label Grid.Column="2" Text="{Binding AvgMoral, StringFormat='Moral {0:0}'}"
+                                           TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+
+        <Button Grid.Row="2" Text="Zurück" Command="{Binding BackCommand}"
+                BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmTextMuted}" />
+    </Grid>
+</ContentPage>

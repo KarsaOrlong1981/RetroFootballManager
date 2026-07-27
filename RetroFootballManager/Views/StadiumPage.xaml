@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RetroFootballManager.Views.StadiumPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    x:DataType="vm:StadiumViewModel"
+    Title="Stadion"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <Grid >
+        <Image Grid.RowSpan="3" Source="{Binding BackgroundImageSource}" Aspect="AspectFill"/>
+        <ScrollView>
+            <VerticalStackLayout  Opacity="0.85" Padding="40" Spacing="14">
+              
+                <Label Text="{Binding StadiumName}" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <Label Text="{Binding BudgetText, StringFormat='Verfügbares Budget: {0}'}"
+                       BackgroundColor="Black"
+                       HorizontalOptions="Start"
+                       FontSize="16" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" />
+                <Label Text="{Binding CapacitySummary}"
+                       HorizontalOptions="Start"
+                       FontSize="18" TextColor="{StaticResource RfmTextMuted}" BackgroundColor="Black"/>
+                <Label Text="{Binding AttendanceEstimateText}" 
+                       BackgroundColor="Black"
+                       HorizontalOptions="Start"
+                       FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                <VerticalStackLayout Spacing="8" HorizontalOptions="Start">
+                    <Label Text="{Binding StatusText}" FontSize="16"
+                           TextColor="{StaticResource RfmText}" />
+                    <Button Text="Bestätigen" Command="{Binding ConfirmCommand}"
+                      BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+                </VerticalStackLayout>
+                <Label Text="Ticketpreise" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
+                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start"  WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <Grid ColumnDefinitions="*,120" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                        <Label Grid.Row="0" Grid.Column="0" Text="Sitzplatz" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                        <Entry Grid.Row="0" Grid.Column="1" Text="{Binding SeatPrice}" Keyboard="Numeric" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="1" Grid.Column="0" Text="Stehplatz" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                        <Entry Grid.Row="1" Grid.Column="1" Text="{Binding StandingPrice}" Keyboard="Numeric" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="2" Grid.Column="0" Text="Loge" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                        <Entry Grid.Row="2" Grid.Column="1" Text="{Binding LogePrice}" Keyboard="Numeric" TextColor="{StaticResource RfmText}" />
+                    </Grid>
+                </Border>
+
+                <Label Text="Kapazität ausbauen" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
+                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start"  WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+                        <Label Grid.Row="0" Grid.Column="0" Text="+1.000 Sitzplätze" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                        <Button Grid.Row="0" Grid.Column="1" Text="{Binding SeatUpgradeCostText}" Command="{Binding UpgradeSeatingCommand}"
+                                BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
+                        <Label Grid.Row="1" Grid.Column="0" Text="+500 Stehplätze" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                        <Button Grid.Row="1" Grid.Column="1" Text="{Binding StandingUpgradeCostText}" Command="{Binding UpgradeStandingCommand}"
+                                BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
+                        <Label Grid.Row="2" Grid.Column="0" Text="+50 Logenplätze" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                        <Button Grid.Row="2" Grid.Column="1" Text="{Binding LogeUpgradeCostText}" Command="{Binding UpgradeLogeCommand}"
+                                BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
+                        <Label Grid.Row="3" Grid.Column="0" Text="{Binding HasRoof, StringFormat='Überdachung ({0})'}" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                        <Button Grid.Row="3" Grid.Column="1" Text="{Binding RoofCostText}" Command="{Binding BuildRoofCommand}"
+                                BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
+                    </Grid>
+                </Border>
+
+                <Label Text="Ausbaustufen" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
+                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start"  WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+                        <Label Grid.Row="0" Grid.Column="0" Text="{Binding ComfortLevelText}" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                        <Button Grid.Row="0" Grid.Column="1" Text="{Binding ComfortUpgradeCostText}" Command="{Binding UpgradeComfortCommand}"
+                                BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
+                        <Label Grid.Row="1" Grid.Column="0" Text="{Binding CateringLevelText}" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                        <Button Grid.Row="1" Grid.Column="1" Text="{Binding CateringUpgradeCostText}" Command="{Binding UpgradeCateringCommand}"
+                                BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
+                        <Label Grid.Row="2" Grid.Column="0" Text="{Binding MerchandiseLevelText}" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                        <Button Grid.Row="2" Grid.Column="1" Text="{Binding MerchandiseUpgradeCostText}" Command="{Binding UpgradeMerchandiseCommand}"
+                                BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
+                        <Label Grid.Row="3" Grid.Column="0" Text="{Binding InfrastructureLevelText}" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                        <Button Grid.Row="3" Grid.Column="1" Text="{Binding InfrastructureUpgradeCostText}" Command="{Binding UpgradeInfrastructureCommand}"
+                                BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
+                    </Grid>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Busy overlay -->
+        <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000">
+            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="12">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{StaticResource RfmAccentTeal}"
+                                   WidthRequest="48" HeightRequest="48" />
+                <Label Text="{Binding StatusText}" FontSize="14" TextColor="{StaticResource RfmText}"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

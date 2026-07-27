@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RetroFootballManager.Views.OptionsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    x:DataType="vm:OptionsViewModel"
+    Title="Optionen"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Padding="20" Spacing="14">
+
+                <Label Text="Standard-Spielgeschwindigkeit" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <Border StrokeThickness="0" Padding="14" BackgroundColor="{StaticResource RfmSurface}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="{Binding DefaultMatchSpeedLabel}" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" />
+                        <Slider Minimum="0" Maximum="4" Value="{Binding DefaultMatchSpeed}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="Schwierigkeitsgrad" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}"
+                       IsVisible="{Binding IsCareerActive}" />
+                <Picker ItemsSource="{Binding DifficultyChoices}" SelectedItem="{Binding SelectedDifficulty}"
+                        ItemDisplayBinding="{Binding Label}"
+                        IsVisible="{Binding IsCareerActive}"
+                        TextColor="{StaticResource RfmText}" BackgroundColor="{StaticResource RfmSurface}" />
+
+                <Label Text="Karriere-Fortschritt" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
+                <Button Text="Karriere-Fortschritt zurücksetzen" Command="{Binding RequestResetCareerCommand}"
+                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmTextMuted}" />
+
+                <Label Text="{Binding StatusText}" FontSize="14" TextColor="{StaticResource RfmText}" />
+
+                <Button Text="Zurück" Command="{Binding CloseCommand}"
+                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" Margin="0,10,0,0" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Reset-career confirmation -->
+        <Grid IsVisible="{Binding IsResetCareerConfirmationOpen}" BackgroundColor="#B0000000">
+            <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                    BackgroundColor="{StaticResource RfmBackground}"
+                    Margin="20" Padding="18"
+                    MaximumWidthRequest="420"
+                    HorizontalOptions="Center" VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="Karriere-Fortschritt wirklich zurücksetzen?" FontSize="18" FontAttributes="Bold"
+                           TextColor="{StaticResource RfmText}" HorizontalOptions="Center" />
+                    <Label Text="Punkte und freigeschaltete Ligen gehen verloren. Der aktuelle Spielstand bleibt unberührt."
+                           FontSize="13" TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                    <Button Text="Ja, zurücksetzen" Command="{Binding ConfirmResetCareerCommand}"
+                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+                    <Button Text="Abbrechen" Command="{Binding CancelResetCareerCommand}"
+                            BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmTextMuted}" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- Busy overlay -->
+        <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000">
+            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="12">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{StaticResource RfmAccentTeal}"
+                                   WidthRequest="48" HeightRequest="48" />
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

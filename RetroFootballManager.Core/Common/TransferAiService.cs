@@ -1,0 +1,137 @@
+using RetroFootballManager.Models;
+
+namespace RetroFootballManager.Common
+{
+    // AI counterpart to human transfer market activity: COM teams periodically list surplus/weak
+    // players and bid on listings from other teams when they can afford it. Activity scales with
+    // Difficulty (Easy = rarer/cautious, Hard = more frequent/aggressive).
+    public static class TransferAiService
+    {
+        // Positions with more players than this threshold are considered overstocked.
+        private const int SurplusThreshold = 4;
+
+        private static double ActivityChance(Difficulty difficulty) => difficulty switch
+        {
+            Difficulty.Easy => 0.15,
+            Difficulty.Hard => 0.45,
+            _ => 0.3,
+        };
+
+        // One AI tick per team and call: at most one new listing + at most one offer.
+        public static async Task RunWeeklyTickAsync(
+            Team team, IReadOnlyList<TransferListing> allListings, TransferMarketService market,
+            Difficulty difficulty, int season, DateTime currentDate, Random rng, int humanTeamId = 0)
+        {
+            if (rng.NextDouble() > ActivityChance(difficulty))
+                return;
+
+            var alreadyListedIds = allListings.Where(l => l.TeamId == team.Id).Select(l => l.PlayerId).ToHashSet();
+            var surplus = FindSurplusPlayer(team, alreadyListedIds);
+            if (surplus is not null)
+            {
+                double askingPrice = EstimateMarketValue(surplus);
+                await market.ListPlayerAsync(surplus, team, askingPrice, season, currentDate);
+            }
+
+            var target = allListings
+                .Where(l => l.TeamId != team.Id && CanAfford(team, l))
+                .OrderBy(_ => rng.Next())
+                .FirstOrDefault();
+            if (target is not null)
+            {
+                double fee = target.AskingPrice * (0.85 + rng.NextDouble() * 0.3);
+                // Rough heuristic (no access to the other team's actual player here) -
+                // ~15% of market value as annual salary, matching PlayerValuationService.EstimateAnnualSalary.
+                double wage = target.AskingPrice * 0.15;
+                await market.MakeOfferAsync(target, team, fee, wage, currentDate, humanTeamId);
+            }
+        }
+
+        public static double EstimateMarketValue(Player player) => PlayerValuationService.EstimateMarketValue(player);
+
+        // Chance an unsolicited offer (see MakeUnsolicitedOfferAsync) is flatly turned down -
+        // "not for sale right now" - instead of getting a counter-fee.
+        private const double UnsolicitedFlatRefusalChance = 0.25;
+
+        // Evaluates incoming offers on the team's OWN listings - without this, offers (including
+        // the human player's) would stay "pending" forever since no one ever accepts/rejects them.
+        public static async Task EvaluateIncomingOffersAsync(
+            Team team, IReadOnlyList<TransferListing> ownListings, TransferMarketService market,
+            IReadOnlyDictionary<int, Team> teamsById, DateTime currentDate, int humanTeamId = 0, Random? rng = null)
+        {
+            foreach (var listing in ownListings.Where(l => l.TeamId == team.Id))
+            {
+                var player = team.Players.FirstOrDefault(p => p.Id == listing.PlayerId);
+                if (player is null)
+                    continue;
+
+                var offers = await market.GetOffersForListingAsync(listing);
+                var pendingOffers = offers.Where(o => o.Status == TransferOfferStatus.Pending).ToList();
+                if (pendingOffers.Count == 0)
+                    continue;
+
+                var bestOffer = pendingOffers.OrderByDescending(o => o.OfferedFee).First();
+                if (!teamsById.TryGetValue(bestOffer.OfferingTeamId, out var buyingTeam))
+                    continue;
+
+                if (ShouldAcceptOffer(listing, bestOffer))
+                {
+                    if (listing.IsLoanListing)
+                    {
+                        await market.LoanOutAsync(player, team, buyingTeam, currentDate, currentDate.AddMonths(6), bestOffer.WageOffer);
+                        await market.RemoveListingAsync(listing);
+                        foreach (var pending in pendingOffers)
+                            await market.RejectOfferAsync(pending, humanTeamId);
+                    }
+                    else
+                    {
+                        // AcceptOfferAsync already deletes the listing + all related offers.
+                        await market.AcceptOfferAsync(bestOffer, listing, team, buyingTeam, player, currentDate, humanTeamId);
+                    }
+                    continue;
+                }
+
+                // A club that never listed the player wasn't looking to sell - rather than an
+                // instant no, they either flatly refuse or name their own (higher) price.
+                if (listing.IsUnsolicited && (rng ?? new Random()).NextDouble() >= UnsolicitedFlatRefusalChance)
+                {
+                    double counterFee = listing.IsLoanListing ? listing.AskingPrice * 0.25 : listing.AskingPrice * 1.3;
+                    await market.CounterOfferAsync(bestOffer, listing, counterFee, currentDate, humanTeamId);
+                    foreach (var other in pendingOffers.Where(o => o.Id != bestOffer.Id))
+                        await market.RejectOfferAsync(other, humanTeamId);
+                    continue;
+                }
+
+                foreach (var pending in pendingOffers)
+                    await market.RejectOfferAsync(pending, humanTeamId);
+            }
+        }
+
+        // Transfer: offer must reach at least 80% of the asking price. Loan: only requires a
+        // salary offer at all - full market value isn't relevant for a loan anyway (see
+        // TransferMarketService.LoanOutAsync). Unsolicited offers (player never put up for
+        // transfer, see TransferMarketService.MakeUnsolicitedOfferAsync) demand a clear premium -
+        // the club wasn't looking to sell, so a fair-value bid isn't enough to change their mind.
+        private static bool ShouldAcceptOffer(TransferListing listing, TransferOffer offer)
+        {
+            if (listing.IsUnsolicited)
+                return listing.IsLoanListing
+                    ? offer.WageOffer >= listing.AskingPrice * 0.25
+                    : offer.OfferedFee >= listing.AskingPrice * 1.3;
+            return listing.IsLoanListing ? offer.WageOffer > 0 : offer.OfferedFee >= listing.AskingPrice * 0.8;
+        }
+
+        private static Player? FindSurplusPlayer(Team team, HashSet<int> alreadyListedIds)
+        {
+            foreach (var group in team.Players.Where(p => !alreadyListedIds.Contains(p.Id)).GroupBy(p => p.Position))
+            {
+                if (group.Count() > SurplusThreshold)
+                    return group.OrderBy(p => p.Rating).First();
+            }
+            return null;
+        }
+
+        private static bool CanAfford(Team team, TransferListing listing) =>
+            team.Finances is not null && team.Finances.CurrentBalance > listing.AskingPrice * 1.2;
+    }
+}

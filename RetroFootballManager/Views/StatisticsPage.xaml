@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RetroFootballManager.Views.StatisticsPage"
+    x:Name="Page"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    xmlns:controls="clr-namespace:RetroFootballManager.Views.Controls"
+    x:DataType="vm:StatisticsViewModel"
+    Title="Statistiken"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <Grid>
+        <Grid RowDefinitions="Auto,*,Auto" Padding="14" RowSpacing="10">
+
+            <Picker Grid.Row="0" Title="Kategorie"
+                    BackgroundColor="Blue"
+                    WidthRequest="200"
+                    HorizontalOptions="Start"
+                    ItemsSource="{Binding Categories}" ItemDisplayBinding="{Binding Label}"
+                    SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
+                    TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+
+            <CollectionView Grid.Row="1" ItemsSource="{Binding Rows}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:StatRankRow">
+                        <Grid Padding="3">
+                            <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Grid ColumnDefinitions="28,*,Auto,Auto,26" ColumnSpacing="10">
+                                    <Label Grid.Column="0" Text="{Binding Rank}" FontSize="13" FontAttributes="Bold"
+                                           TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
+                                    <VerticalStackLayout Grid.Column="1">
+                                        <Label Text="{Binding PlayerName}" FontSize="14" TextColor="{StaticResource RfmText}" />
+                                        <Label Text="{Binding TeamName}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="2" Text="{Binding PositionShort}" FontSize="12"
+                                           TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
+                                    <Label Grid.Column="3" Text="{Binding Value}" FontSize="15" FontAttributes="Bold"
+                                           TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
+                                    <Border Grid.Column="4" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="22" HeightRequest="22" Padding="0" StrokeThickness="0">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="11" />
+                                        </Border.StrokeShape>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer
+                                                Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
+                                                CommandParameter="{Binding PlayerId}" />
+                                        </Border.GestureRecognizers>
+                                        <Label Text="ℹ" FontSize="11" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <VerticalStackLayout Grid.Row="2" Spacing="8">
+                <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
+                <Button Text="Zurück" Command="{Binding BackCommand}"
+                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Player profile dialog: full profile if scouted, otherwise just name + "?". -->
+        <controls:PlayerProfileDialog
+            IsOpen="{Binding IsPlayerProfileOpen}"
+            Title="{Binding SelectedPlayerName}"
+            Profile="{Binding SelectedProfile}"
+            CloseCommand="{Binding CloseProfileCommand}"
+            IsLocked="{Binding IsSelectedPlayerNotScouted}"
+            LockedStatusText="{Binding ScoutingStatusText}"
+            IsLockedBusy="{Binding IsBeingScouted}"
+            UnlockCommand="{Binding ScoutPlayerCommand}" />
+    </Grid>
+</ContentPage>

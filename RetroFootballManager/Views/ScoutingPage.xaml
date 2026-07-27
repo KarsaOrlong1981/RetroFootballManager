@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="RetroFootballManager.Views.ScoutingPage"
+    x:Name="Page"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    xmlns:controls="clr-namespace:RetroFootballManager.Views.Controls"
+    x:DataType="vm:ScoutingViewModel"
+    Title="Scouting"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <Grid>
+        <Image Source="scouting.png" Aspect="AspectFill"/>
+        <ScrollView>
+            <VerticalStackLayout Opacity="0.85" Padding="16" Spacing="14">
+
+                <Label Text="Sie haben aktuell keinen Scout angestellt."
+                       FontSize="16" TextColor="{StaticResource RfmTextMuted}">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding HasScout}" Value="True">
+                            <Setter Property="IsVisible" Value="False" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Label" Binding="{Binding HasScout}" Value="False">
+                            <Setter Property="IsVisible" Value="True" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+
+                <VerticalStackLayout Spacing="14" IsVisible="{Binding HasScout}">
+
+                    <Label Text="Scout scoutet aktuell diese Spieler" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                    <Label Text="Noch keine laufenden Aufträge." BackgroundColor="Black" HorizontalOptions="Start" FontSize="13" TextColor="{StaticResource RfmTextMuted}" IsVisible="False">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding ActiveScouting.Count}" Value="0">
+                                <Setter Property="IsVisible" Value="True" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                    <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding ActiveScouting}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ActiveScoutingRow">
+                                <Border StrokeThickness="0" Padding="12,8" HorizontalOptions="Start"  WidthRequest="500" BackgroundColor="{StaticResource RfmSurface}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="10" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="*,Auto,36" ColumnSpacing="8">
+                                        <VerticalStackLayout Grid.Column="0">
+                                            <Label Text="{Binding PlayerName}" FontSize="14" TextColor="{StaticResource RfmText}" />
+                                            <Label Text="{Binding TeamName}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                        </VerticalStackLayout>
+                                        <Label Grid.Column="1" Text="{Binding DaysRemaining, StringFormat='noch {0} Tage'}"
+                                               FontSize="12" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
+                                        <Border Grid.Column="2" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="16" />
+                                            </Border.StrokeShape>
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
+                                                    CommandParameter="{Binding PlayerId}" />
+                                            </Border.GestureRecognizers>
+                                            <Label Text="ℹ" FontSize="11" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                    <Label Text="Scout-Empfehlungen" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
+                    <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Recommendations}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ScoutRecommendationRow">
+                                <Border StrokeThickness="0" Padding="12,8" HorizontalOptions="Start"  WidthRequest="500" BackgroundColor="{StaticResource RfmSurface}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="10" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="*,Auto,36" ColumnSpacing="8">
+                                        <VerticalStackLayout Grid.Column="0">
+                                            <Label FontSize="14" TextColor="{StaticResource RfmText}">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="{Binding PlayerName}" />
+                                                        <Span Text=" (" /><Span Text="{Binding PositionShort}" /><Span Text=") - " />
+                                                        <Span Text="{Binding TeamName}" />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                            <Label Text="{Binding Reason}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                        </VerticalStackLayout>
+                                        <Border Grid.Column="2" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="16" />
+                                            </Border.StrokeShape>
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
+                                                    CommandParameter="{Binding PlayerId}" />
+                                            </Border.GestureRecognizers>
+                                            <Label Text="ℹ" FontSize="11" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                    <Label Text="Bereits gescoutete Spieler" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
+                    <Label Text="Noch keine Spieler gescoutet." FontSize="13" TextColor="{StaticResource RfmTextMuted}" IsVisible="False">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding ScoutedPlayers.Count}" Value="0">
+                                <Setter Property="IsVisible" Value="True" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                    <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding ScoutedPlayers}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ScoutedPlayerRow">
+                                <Border StrokeThickness="0" Padding="12,8" HorizontalOptions="Start"  WidthRequest="500" BackgroundColor="{StaticResource RfmSurface}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="10" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="*,Auto,36,36" ColumnSpacing="8">
+                                        <VerticalStackLayout Grid.Column="0">
+                                            <Label Text="{Binding PlayerName}" FontSize="14" TextColor="{StaticResource RfmText}" />
+                                            <Label Text="{Binding TeamName}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                        </VerticalStackLayout>
+                                        <Label Grid.Column="1" Text="{Binding ScoutedDateText}"
+                                               FontSize="11" TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
+                                        <Border Grid.Column="2" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="16" />
+                                            </Border.StrokeShape>
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
+                                                    CommandParameter="{Binding PlayerId}" />
+                                            </Border.GestureRecognizers>
+                                            <Label Text="ℹ" FontSize="11" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                        <Border Grid.Column="3" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="16" />
+                                            </Border.StrokeShape>
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.RemoveScoutedPlayerCommand}"
+                                                    CommandParameter="{Binding PlayerId}" />
+                                            </Border.GestureRecognizers>
+                                            <Label Text="✕" FontSize="11" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+
+                <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Player profile dialog: full profile if scouted, otherwise "?" + Scouten button. -->
+        <controls:PlayerProfileDialog
+            IsOpen="{Binding IsPlayerProfileOpen}"
+            Title="{Binding SelectedPlayerName}"
+            Profile="{Binding SelectedProfile}"
+            CloseCommand="{Binding CloseProfileCommand}"
+            IsLocked="{Binding IsSelectedPlayerNotScouted}"
+            LockedStatusText="{Binding ScoutingStatusText}"
+            IsLockedBusy="{Binding IsBeingScouted}"
+            UnlockCommand="{Binding ScoutPlayerCommand}">
+            <controls:PlayerProfileDialog.ExtraContent>
+                <!-- Only for scouted players at other clubs, not on the transfer market yet - the
+                     seller's COM manager decides whether to accept, for a price above market value. -->
+                <VerticalStackLayout Spacing="6" IsVisible="{Binding CanOfferForSelectedPlayer}">
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+                        <Button Grid.Column="0" Text="Transferangebot"
+                                Command="{Binding MakeUnsolicitedTransferOfferCommand}"
+                                BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}" FontSize="12" />
+                        <Button Grid.Column="1" Text="Leihangebot"
+                                Command="{Binding MakeUnsolicitedLoanOfferCommand}"
+                                BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}" FontSize="12" />
+                    </Grid>
+                    <Label Text="{Binding OfferStatusText}" FontSize="11" TextColor="{StaticResource RfmAccentTeal}" />
+                </VerticalStackLayout>
+            </controls:PlayerProfileDialog.ExtraContent>
+        </controls:PlayerProfileDialog>
+    </Grid>
+</ContentPage>
