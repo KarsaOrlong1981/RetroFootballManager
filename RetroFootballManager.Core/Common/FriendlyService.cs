@@ -118,8 +118,8 @@ namespace RetroFootballManager.Common
 
         public async Task<MatchResult> PlayDueFriendlyAsync(Fixture fixture, Team home, Team away, int humanTeamId)
         {
-            MatchDayService.PrepareForMatch(home, fixture.Date);
-            MatchDayService.PrepareForMatch(away, fixture.Date);
+            MatchDayService.PrepareForMatch(home, fixture.Date, isFriendly: true);
+            MatchDayService.PrepareForMatch(away, fixture.Date, isFriendly: true);
 
             var match = new Match(home, away, _random)
             {

@@ -173,8 +173,8 @@ namespace RetroFootballManager.ViewModels
                 var humanTeam = _isHumanHome ? _homeTeam : _awayTeam;
                 var aiTeam = _isHumanHome ? _awayTeam : _homeTeam;
                 await MatchDayService.NotifyInjuryRecoveriesAsync(_messages, humanTeam, state.CurrentDate);
-                MatchDayService.RecoverForMatch(humanTeam, state.CurrentDate);
-                MatchDayService.PrepareForMatch(aiTeam, state.CurrentDate);
+                MatchDayService.RecoverForMatch(humanTeam, state.CurrentDate, _competition);
+                MatchDayService.PrepareForMatch(aiTeam, state.CurrentDate, _competition);
 
                 var formation = FormationCatalog.GetByName(humanTeam.FormationName);
                 if (humanTeam.Players.Count(p => p.Status == PlayerStatus.InStartingXI) < formation.Slots.Count)
@@ -816,6 +816,7 @@ namespace RetroFootballManager.ViewModels
             _tie.AwayGoals = _match.AwayGoals;
             _tie.Played = true;
             _match.Result.ApplyInjuryDurations(_tie.Date);
+            _match.Result.ApplySuspensions(_competition);
             int humanTeamId = _isHumanHome ? _homeTeam.Id : _awayTeam.Id;
             await MatchDayService.NotifyInjuriesAsync(_messages, _match.Result, _homeTeam, _awayTeam, humanTeamId, _tie.Date);
 

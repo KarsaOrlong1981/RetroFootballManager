@@ -59,8 +59,8 @@ namespace RetroFootballManager.Common
                     }
                     else
                     {
-                        MatchDayService.PrepareForMatch(home, currentDate);
-                        MatchDayService.PrepareForMatch(away, currentDate);
+                        MatchDayService.PrepareForMatch(home, currentDate, tie.CompetitionType);
+                        MatchDayService.PrepareForMatch(away, currentDate, tie.CompetitionType);
 
                         var match = new Match(home, away, _random)
                         {
@@ -87,6 +87,7 @@ namespace RetroFootballManager.Common
                     }
 
                     result.ApplyInjuryDurations(tie.Date);
+                    result.ApplySuspensions(tie.CompetitionType);
                     if (_messages is not null && humanTeamId != 0)
                         await MatchDayService.NotifyInjuriesAsync(_messages, result, home, away, humanTeamId, tie.Date);
 

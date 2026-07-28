@@ -151,8 +151,8 @@ namespace RetroFootballManager.ViewModels
                 var humanTeam = _isHumanHome ? _homeTeam : _awayTeam;
                 var aiTeam = _isHumanHome ? _awayTeam : _homeTeam;
                 await MatchDayService.NotifyInjuryRecoveriesAsync(_messages, humanTeam, state.CurrentDate);
-                MatchDayService.RecoverForMatch(humanTeam, state.CurrentDate);
-                MatchDayService.PrepareForMatch(aiTeam, state.CurrentDate);
+                MatchDayService.RecoverForMatch(humanTeam, state.CurrentDate, isFriendly: true);
+                MatchDayService.PrepareForMatch(aiTeam, state.CurrentDate, isFriendly: true);
 
                 var formation = FormationCatalog.GetByName(humanTeam.FormationName);
                 if (humanTeam.Players.Count(p => p.Status == PlayerStatus.InStartingXI) < formation.Slots.Count)

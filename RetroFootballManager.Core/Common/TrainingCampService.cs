@@ -111,9 +111,12 @@ namespace RetroFootballManager.Common
                 if (team.Statistics is not null)
                     team.Statistics.MoraleBoost += camp.MoraleBoost;
 
-                if (camp.GrantsAttributeBoost)
-                    foreach (var player in team.Players)
+                foreach (var player in team.Players)
+                {
+                    player.Moral = Math.Clamp(player.Moral + camp.MoraleBoost, 0, 100);
+                    if (camp.GrantsAttributeBoost)
                         BoostKeyAttributes(player);
+                }
 
                 camp.Applied = true;
                 await _camps.SaveAsync(camp);

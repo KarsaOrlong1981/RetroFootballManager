@@ -46,7 +46,18 @@ namespace RetroFootballManager.Common
         // WITHOUT touching the chosen lineup (used for the human team so their manual XI is
         // kept). currentDate == null keeps the old "always heal" behaviour (tests); when
         // given, a player only recovers once InjuredUntil is reached - real injury duration.
-        public static void RecoverForMatch(Team team, DateTime? currentDate = null)
+        //
+        // A red-card ban is served per match played, not per calendar day, and only counts
+        // in the competition it was picked up in - so this needs to know which match (if any)
+        // is actually being prepared for:
+        //   - isMatchDay = false (the daily calendar tick, no specific fixture): leave the ban
+        //     untouched, just keep Status visible as Suspended.
+        //   - isFriendly, or matchCompetition doesn't match the player's ban: not blocked here,
+        //     available for this match, ban is left running for its own competition.
+        //   - otherwise: this match serves one game of the ban.
+        public static void RecoverForMatch(
+            Team team, DateTime? currentDate = null, CompetitionType? matchCompetition = null,
+            bool isFriendly = false, bool isMatchDay = true)
         {
             foreach (var p in team.Players)
             {
@@ -59,17 +70,42 @@ namespace RetroFootballManager.Common
                     p.Status = PlayerStatus.Available;
                     p.InjuredUntil = null;
                 }
-                else if (p.Status is PlayerStatus.Suspended or PlayerStatus.SubstitutedOff)
+                else if (p.Status == PlayerStatus.SubstitutedOff)
                 {
-                    p.Status = p.Status == PlayerStatus.SubstitutedOff ? PlayerStatus.OnBench : PlayerStatus.Available;
+                    p.Status = PlayerStatus.OnBench;
                 }
+
+                if (p.SuspensionMatchesRemaining <= 0)
+                {
+                    if (p.Status == PlayerStatus.Suspended)
+                        p.Status = PlayerStatus.Available;
+                    continue;
+                }
+
+                if (!isMatchDay)
+                {
+                    p.Status = PlayerStatus.Suspended;
+                    continue;
+                }
+
+                if (isFriendly || p.SuspensionCompetition != matchCompetition)
+                {
+                    p.Status = PlayerStatus.Available;
+                    continue;
+                }
+
+                p.SuspensionMatchesRemaining--;
+                p.Status = p.SuspensionMatchesRemaining > 0 ? PlayerStatus.Suspended : PlayerStatus.Available;
+                if (p.SuspensionMatchesRemaining <= 0)
+                    p.SuspensionCompetition = null;
             }
         }
 
         // Recovers the team and then auto-picks a position-correct XI (used for COM teams).
-        public static void PrepareForMatch(Team team, DateTime? currentDate = null)
+        public static void PrepareForMatch(
+            Team team, DateTime? currentDate = null, CompetitionType? matchCompetition = null, bool isFriendly = false)
         {
-            RecoverForMatch(team, currentDate);
+            RecoverForMatch(team, currentDate, matchCompetition, isFriendly);
             LineupSelector.SelectLineup(team);
         }
 
@@ -259,6 +295,7 @@ namespace RetroFootballManager.Common
 
             result.ApplyToTeamStats(home.Statistics!, away.Statistics!);
             result.ApplyInjuryDurations(fixture.Date);
+            result.ApplySuspensions(competition: null);
             ApplyCareerMinutes(result, home, away);
         }
 

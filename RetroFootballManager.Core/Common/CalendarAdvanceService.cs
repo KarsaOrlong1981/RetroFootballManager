@@ -46,7 +46,7 @@ namespace RetroFootballManager.Common
                 await MatchDayService.NotifyInjuryRecoveriesAsync(_messages, humanTeam, state.CurrentDate);
 
             foreach (var team in teams)
-                MatchDayService.RecoverForMatch(team, state.CurrentDate);
+                MatchDayService.RecoverForMatch(team, state.CurrentDate, isMatchDay: false);
 
             await _aiManager.ReturnExpiredLoansAsync(state.CurrentDate, teamsById);
 

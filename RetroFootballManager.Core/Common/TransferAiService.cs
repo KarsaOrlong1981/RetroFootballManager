@@ -81,7 +81,7 @@ namespace RetroFootballManager.Common
                         await market.LoanOutAsync(player, team, buyingTeam, currentDate, currentDate.AddMonths(6), bestOffer.WageOffer);
                         await market.RemoveListingAsync(listing);
                         foreach (var pending in pendingOffers)
-                            await market.RejectOfferAsync(pending, humanTeamId);
+                            await market.RejectOfferAsync(pending, team, player, "ein anderer Verein hat den Zuschlag erhalten", humanTeamId);
                     }
                     else
                     {
@@ -98,12 +98,15 @@ namespace RetroFootballManager.Common
                     double counterFee = listing.IsLoanListing ? listing.AskingPrice * 0.25 : listing.AskingPrice * 1.3;
                     await market.CounterOfferAsync(bestOffer, listing, counterFee, currentDate, humanTeamId);
                     foreach (var other in pendingOffers.Where(o => o.Id != bestOffer.Id))
-                        await market.RejectOfferAsync(other, humanTeamId);
+                        await market.RejectOfferAsync(other, team, player, "der Verein hat einem anderen Bieter ein Gegenangebot gemacht", humanTeamId);
                     continue;
                 }
 
+                string reason = listing.IsUnsolicited
+                    ? "der Spieler steht derzeit nicht zum Verkauf"
+                    : "das Angebot war dem Verein zu niedrig";
                 foreach (var pending in pendingOffers)
-                    await market.RejectOfferAsync(pending, humanTeamId);
+                    await market.RejectOfferAsync(pending, team, player, reason, humanTeamId);
             }
         }
 

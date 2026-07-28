@@ -47,14 +47,7 @@ A new main-menu section showing two live morale meters: **fan mood** and **board
   a cup round (+5% both), winning a cup (+25%, +30% for the Champions League/Europa Cup
   equivalents), winning the league (+30%), promotion (+25%), relegation (-30%), and similar
   events.
-
-### Red-card suspension (competitive matches only, not friendlies)
-
-- A **straight red card** bans the player for **3 matches** in whichever competition (league
-  or cup) the red card was shown in.
-- A **second yellow card (yellow/red)** in a single match only bans the player for **1
-  match**.
-
+  
 ---
 
 ## Deutsch
@@ -100,8 +93,3 @@ Eine neue Sektion im Hauptmenü mit zwei Stimmungsanzeigen: **Fan-Stimmung** und
   bei Champions League/Europa Pokal +30 %), Meisterschaft (+30 %), Aufstieg (+25 %), Abstieg
   (-30 %) und ähnliche Ereignisse.
 
-### Sperre nach Rot (nur Pflichtspiele, nicht Freundschaftsspiele)
-
-- Eine **glatte rote Karte** sperrt den Spieler für **3 Spiele** in dem Wettbewerb (Liga oder
-  Pokal), in dem die rote Karte gezeigt wurde.
-- Eine **zweite gelbe Karte (Gelb-Rot)** in einem Spiel sperrt den Spieler nur für **1 Spiel**.

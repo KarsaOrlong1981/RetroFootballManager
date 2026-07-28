@@ -115,6 +115,16 @@ namespace RetroFootballManager.Models
         public Personality Personality { get; set; }
         public PlayerStatus Status { get; set; }
 
+        // Remaining matches of an active red-card ban (0 = none). Scoped to
+        // SuspensionCompetition and only decremented by MatchDayService.RecoverForMatch when
+        // preparing for a match in that same competition - friendlies never serve or block it,
+        // and a ban from one competition doesn't block another (see Match.IssueRedCard).
+        public int SuspensionMatchesRemaining { get; set; }
+
+        // Competition the active suspension applies to. null = league (same convention as
+        // MatchDayService.PersistPlayerStatsAsync, where null also means league).
+        public CompetitionType? SuspensionCompetition { get; set; }
+
         // Only relevant when Status == Injured: date from which the player is available again.
         // null = no injury / duration not yet known.
         public DateTime? InjuredUntil { get; set; }

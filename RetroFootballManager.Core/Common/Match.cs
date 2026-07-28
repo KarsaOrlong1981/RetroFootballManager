@@ -737,7 +737,7 @@ namespace RetroFootballManager.Common
         {
             if (forceRed)
             {
-                IssueRedCard(result, progress, minute, fouler, isHome, matchStats, redTextFactory(_random));
+                IssueRedCard(result, progress, minute, fouler, isHome, matchStats, redTextFactory(_random), isSecondYellow: false);
                 return;
             }
 
@@ -745,7 +745,7 @@ namespace RetroFootballManager.Common
             if (foulerStats.YellowCards > 0)
             {
                 IssueRedCard(result, progress, minute, fouler, isHome, matchStats,
-                    EventTextHelper.RedCardSecondYellowText(fouler, _random));
+                    EventTextHelper.RedCardSecondYellowText(fouler, _random), isSecondYellow: true);
                 return;
             }
 
@@ -756,6 +756,12 @@ namespace RetroFootballManager.Common
                 EventTextHelper.YellowCardText(fouler, _random));
         }
 
+        // Straight red = 3-match ban, second yellow ("Gelb-Rot") = 1-match ban - actually
+        // applied post-match via MatchResult.ApplySuspensions once the caller knows the
+        // competition (league/cup/friendly).
+        private const int StraightRedBanMatches = 3;
+        private const int SecondYellowBanMatches = 1;
+
         private static void IssueRedCard(
             MatchResult result,
             IProgress<MatchEvent>? progress,
@@ -763,11 +769,13 @@ namespace RetroFootballManager.Common
             Player player,
             bool isHome,
             MatchStats matchStats,
-            string description)
+            string description,
+            bool isSecondYellow)
         {
             matchStats.RedCards++;
             (isHome ? result.HomeRedCards : result.AwayRedCards).Add(player);
             GetOrCreateMatchStats(result, player).RedCards++;
+            result.SuspensionMatchesByPlayerId[player.Id] = isSecondYellow ? SecondYellowBanMatches : StraightRedBanMatches;
             player.Status = PlayerStatus.Suspended;
             EmitEvent(result, progress, minute, GameEventType.RedCard, isHome, player, description);
         }

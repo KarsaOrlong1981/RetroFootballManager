@@ -134,15 +134,24 @@ namespace RetroFootballManager.Common
             }
         }
 
-        public async Task RejectOfferAsync(TransferOffer offer, int humanTeamId = 0)
+        // sellingTeam/player/reason are optional so the human's own "reject this incoming
+        // offer" action (where no message is needed - the human already knows) can keep
+        // calling this with just the offer, same as before.
+        public async Task RejectOfferAsync(
+            TransferOffer offer, Team? sellingTeam = null, Player? player = null, string? reason = null,
+            int humanTeamId = 0)
         {
             offer.Status = TransferOfferStatus.Rejected;
             await _offers.SaveAsync(offer);
 
             if (_messages is not null && humanTeamId != 0 && offer.OfferingTeamId == humanTeamId)
             {
+                string clubName = sellingTeam?.Name ?? "Der Verein";
+                string playerName = player?.Name ?? "den Spieler";
+                string reasonSuffix = reason is not null ? $" ({reason})" : "";
                 await _messages.SendAsync(MessageType.TransferOfferRejected, "Angebot abgelehnt",
-                    "Dein Transferangebot wurde abgelehnt.", offer.CreatedDate, humanTeamId);
+                    $"{clubName} hat dein Angebot für {playerName} abgelehnt{reasonSuffix}.",
+                    offer.CreatedDate, humanTeamId, player?.Id);
             }
         }
 

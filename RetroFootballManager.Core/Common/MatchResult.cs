@@ -19,6 +19,12 @@ namespace RetroFootballManager.Common
         public List<Player> AwayRedCards { get; } = [];
         public List<Player> InjuredPlayers { get; } = [];
 
+        // Ban length (in matches) per sent-off player, rolled at the moment of the red card -
+        // 3 for a straight red, 1 for a second-yellow (see Match.IssueRedCard). Applied via
+        // ApplySuspensions once the caller knows the competition (league/cup); never applied
+        // for friendlies, which don't hand out suspensions at all.
+        public Dictionary<int, int> SuspensionMatchesByPlayerId { get; } = [];
+
         // Injury duration (in days) per injured player (PlayerId -> days), rolled at the moment
         // of injury during the match. The match itself has no real calendar date, so only the
         // duration is stored here - ApplyInjuryDurations converts it to an absolute
@@ -83,6 +89,21 @@ namespace RetroFootballManager.Common
             {
                 if (InjuryDurationDays.TryGetValue(player.Id, out int days))
                     player.InjuredUntil = matchDate.AddDays(days);
+            }
+        }
+
+        // Starts serving any red-card bans from this match in the given competition
+        // (null = league). Not called for friendlies - a red card there never suspends.
+        public void ApplySuspensions(CompetitionType? competition)
+        {
+            foreach (var player in HomeRedCards.Concat(AwayRedCards))
+            {
+                if (!SuspensionMatchesByPlayerId.TryGetValue(player.Id, out int matches))
+                    continue;
+
+                player.SuspensionMatchesRemaining = matches;
+                player.SuspensionCompetition = competition;
+                player.Status = PlayerStatus.Suspended;
             }
         }
     }
