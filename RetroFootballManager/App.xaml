@@ -25,6 +25,8 @@
             <conv:StringPresenceConverter x:Key="HasLogo" />
             <conv:StringPresenceConverter x:Key="NoLogo" Invert="True" />
             <conv:StringPresenceConverter x:Key="StringPresence" />
+            <conv:CompetitionKindDisplayConverter x:Key="CompetitionKindDisplay" />
+            <conv:GroupConditionTypeDisplayConverter x:Key="GroupConditionTypeDisplay" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

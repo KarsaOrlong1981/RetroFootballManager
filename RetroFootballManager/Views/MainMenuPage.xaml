@@ -83,7 +83,7 @@
             </Border>
 
             <!-- Club -->
-            <Border x:Name="HsClub" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Verein">
+            <Border x:Name="HsClub" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Vereine">
                 <Border.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding OpenClubCommand}" />
                 </Border.GestureRecognizers>

@@ -8,7 +8,7 @@
     Title="Verein"
     BackgroundColor="{StaticResource RfmBackground}">
 
-    <Grid RowDefinitions="Auto,*,Auto" Padding="20" RowSpacing="12">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="20" RowSpacing="12">
 
         <Border Grid.Row="0" StrokeThickness="0" Padding="16" BackgroundColor="{StaticResource RfmSurface}">
             <Border.StrokeShape>
@@ -23,8 +23,30 @@
                 <Label Text="{Binding MoraleComparisonText}" FontSize="14" TextColor="{StaticResource RfmAccentTeal}" />
             </VerticalStackLayout>
         </Border>
+        <HorizontalStackLayout Grid.Row="1" Spacing="12">
+            <Picker Title="Fitern nach Wettbewerb:"
+                BackgroundColor="Blue"
+                WidthRequest="200"
+                ItemsSource="{Binding CompetitionKinds}"
+                SelectedItem="{Binding SelectedKind, Mode=TwoWay}"
+                TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}">
+                <Picker.ItemDisplayBinding>
+                    <Binding Path="." Converter="{StaticResource CompetitionKindDisplay}" />
+                </Picker.ItemDisplayBinding>
+            </Picker>
+            <Picker Title="Sortieren nach:"
+                BackgroundColor="Blue"
+                WidthRequest="200"
+                ItemsSource="{Binding GroupConditionTypes}"
+                SelectedItem="{Binding SelectedGroupConditionType, Mode=TwoWay}"
+                TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}">
+                <Picker.ItemDisplayBinding>
+                    <Binding Path="." Converter="{StaticResource GroupConditionTypeDisplay}" />
+                </Picker.ItemDisplayBinding>
+            </Picker>
+        </HorizontalStackLayout>
 
-        <Grid Grid.Row="1" RowDefinitions="Auto,*" RowSpacing="8">
+        <Grid Grid.Row="2" RowDefinitions="Auto,*" RowSpacing="8">
             <Label Grid.Row="0" Text="Andere Vereine" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
             <CollectionView Grid.Row="1" ItemsSource="{Binding OtherTeams}">
                 <CollectionView.ItemTemplate>
@@ -34,11 +56,13 @@
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
-                                <Grid ColumnDefinitions="*,80,80">
+                                <Grid ColumnDefinitions="*,80,80,100">
                                     <Label Grid.Column="0" Text="{Binding Name}" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
                                     <Label Grid.Column="1" Text="{Binding AvgRating, StringFormat='Ø {0:0.0}'}"
                                            TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
                                     <Label Grid.Column="2" Text="{Binding AvgMoral, StringFormat='Moral {0:0}'}"
+                                           TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
+                                    <Label Grid.Column="3" Text="{Binding Status}"
                                            TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
                                 </Grid>
                             </Border>
@@ -48,7 +72,7 @@
             </CollectionView>
         </Grid>
 
-        <Button Grid.Row="2" Text="Zurück" Command="{Binding BackCommand}"
+        <Button Grid.Row="3" Text="Zurück" Command="{Binding BackCommand}"
                 BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmTextMuted}" />
     </Grid>
 </ContentPage>

@@ -1,3 +1,4 @@
+using RetroFootballManager.Common;
 using RetroFootballManager.Models;
 
 namespace RetroFootballManager.Data.Repositories
@@ -15,6 +16,14 @@ namespace RetroFootballManager.Data.Repositories
             _db.Connection.Table<CupTie>()
                 .Where(t => t.Season == season && t.CompetitionType == competition)
                 .ToListAsync();
+
+        // Whether teamId never entered / is still in / got eliminated from / won this
+        // competition in this season - derived from tie history, see CupParticipationService.
+        public async Task<CupParticipationStatus> GetParticipationStatusAsync(int teamId, int season, CompetitionType competition)
+        {
+            var ties = await GetBySeasonAsync(season, competition);
+            return CupParticipationService.GetStatus(teamId, ties);
+        }
 
         public Task<List<CupTie>> GetByRoundAsync(int season, CompetitionType competition, int round) =>
             _db.Connection.Table<CupTie>()
