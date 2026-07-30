@@ -47,7 +47,44 @@ A new main-menu section showing two live morale meters: **fan mood** and **board
   a cup round (+5% both), winning a cup (+25%, +30% for the Champions League/Europa Cup
   equivalents), winning the league (+30%), promotion (+25%), relegation (-30%), and similar
   events.
-  
+
+### Formation position fixes
+
+The DM/CM assignment and the AV/WB toggle currently don't match real formation logic:
+
+- **4-2-3-1**: the two deepest midfielders should both be CMs, not one CM + one DM.
+- **4-3-3**: the middle of the three should be a DM, the other two should be CMs.
+- **4-2-2-2**: depending on team mentality, the two deepest midfielders should be CMs
+  (offensive), or DMs (defensive and balanced).
+- The FB/WB toggle button should only ever appear for LB/RB positions - it currently also
+  shows up (incorrectly) for LM/RM.
+
+### Long-term player development
+
+Players should improve not only through training but also gradually over the years, based on
+age and talent:
+
+- Younger players develop faster than older ones; higher talent also speeds up growth.
+- Growth must stay balanced - no overpowered players as a result.
+
+### Fitness & recovery
+
+- After a match, players should need at least **3 days** to return to 100% fitness, instead of
+  bouncing back to full fitness immediately after every game.
+
+### Universe editor (new)
+
+A new "Editor" option in the start menu:
+
+- Works like starting a new game (generates a universe), but everything can then be
+  customized: player names and attributes, team names, team crests (via file picker for
+  images), and cup/league names.
+- For clubs, all club data should be editable too: stadium name and capacity, finances, etc.
+- Edited universes must be saved so they can be reloaded at any time.
+- A new option, **"Use edited teams"** (checkbox), controls whether starting a new game loads
+  the edited universe instead of generating a fresh one. Show the player a short explanation
+  of what this checkbox does next to it.
+
 ---
 
 ## Deutsch
@@ -92,4 +129,45 @@ Eine neue Sektion im Hauptmenü mit zwei Stimmungsanzeigen: **Fan-Stimmung** und
   (+5 % Fan-Stimmung), Weiterkommen in einer Pokalrunde (+5 % auf beides), Pokalsieg (+25 %,
   bei Champions League/Europa Pokal +30 %), Meisterschaft (+30 %), Aufstieg (+25 %), Abstieg
   (-30 %) und ähnliche Ereignisse.
+
+### Formations-Positionen korrigieren
+
+Die DM/ZM-Zuordnung und der AV/WB-Umschaltknopf entsprechen aktuell nicht der realen
+Formationslogik:
+
+- **4-2-3-1**: die beiden tiefsten Mittelfeldspieler sollen beide ZMs sein, nicht ein ZM und
+  ein DM.
+- **4-3-3**: der mittlere der drei soll ein DM sein, die anderen beiden ZMs.
+- **4-2-2-2**: je nach Mannschaftsausrichtung sollen die beiden tiefsten Mittelfeldspieler
+  ZMs sein (offensiv) oder DMs (defensiv und ausgeglichen).
+- Der AV/WB-Umschaltknopf darf nur bei LV/RV-Positionen erscheinen - aktuell wird er
+  fälschlicherweise auch bei LM/RM angezeigt.
+
+### Langfristige Spielerentwicklung
+
+Spieler sollen sich nicht nur durch Training, sondern auch über die Jahre hinweg
+weiterentwickeln, abhängig von Alter und Talent:
+
+- Jüngere Spieler entwickeln sich schneller als ältere; höheres Talent beschleunigt die
+  Entwicklung zusätzlich.
+- Der Fortschritt muss dabei gesund bleiben - es sollen keine überstarken Spieler entstehen.
+
+### Fitness & Regeneration
+
+- Nach einem Spiel sollen Spieler mindestens **3 Tage** benötigen, um wieder auf 100 %
+  Fitness zu kommen, statt nach jedem Spiel sofort wieder voll fit zu sein.
+
+### Universen-Editor (neu)
+
+Eine neue Option "Editor" im Startmenü:
+
+- Funktioniert wie ein neues Spiel (das Universum wird generiert), aber danach lässt sich
+  alles anpassen: Spielernamen und Fähigkeiten, Teamnamen, Vereinswappen (per Dateiauswahl
+  für Bilder) sowie Pokal- und Liganamen.
+- Bei Clubs sollen ebenfalls alle Daten editierbar sein: Stadionname und -größe, Finanzen usw.
+- Editierte Universen müssen gespeichert werden, damit sie jederzeit wieder geladen werden
+  können.
+- Eine neue Option **"Editierte Teams verwenden"** (Checkbox) legt fest, ob bei "Neues Spiel"
+  das editierte Universum geladen wird statt ein neues zu generieren. Neben der Checkbox soll
+  dem Spieler kurz erklärt werden, was sie bewirkt.
 

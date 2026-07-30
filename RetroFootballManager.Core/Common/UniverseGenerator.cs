@@ -19,7 +19,7 @@ namespace RetroFootballManager.Common
         private static readonly int[] TierCapacity = [45000, 24000, 12000, 6000];
 
         // Starting capital per tier.
-        private static readonly int[] TierBalance = [40_000_000, 12_000_000, 3_000_000, 800_000];
+        private static readonly int[] TierBalance = [40_000_000, 12_000_000, 3_000_000, 800_000]; 
 
         public static (List<League> Leagues, List<Team> Teams) CreateUniverse(
             int season,
