@@ -474,6 +474,15 @@ namespace RetroFootballManager.Data
         public async Task<PlayerStats?> GetPlayerSeasonStatsAsync(int playerId, int season) =>
             (await _playerRepository.GetPlayerStatsAsync(playerId, season)).FirstOrDefault();
 
+        // All-time totals across every season/competition row for this player.
+        public async Task<PlayerStats> GetPlayerCareerStatsAsync(int playerId)
+        {
+            var career = new PlayerStats { PlayerId = playerId };
+            foreach (var row in await _playerRepository.GetAllStatsAsync(playerId))
+                career.AddMatchStats(row);
+            return career;
+        }
+
         public Task<List<Fixture>> GetFixturesAsync(int season) =>
             _fixtureRepository.GetBySeasonAsync(season);
 
@@ -510,7 +519,7 @@ namespace RetroFootballManager.Data
             if (result.ManagerFinalPosition == 1)
                 await RecordTrophyWinAsync(state.ManagerTeamId, TrophyMapping.FromLeagueTier(result.ManagerTier), state.Season);
 
-            await PaySponsorPromotionBonusesAsync(teams, result);
+            await PaySponsorSeasonBonusesAsync(teams, result);
 
             int newSeason = state.Season + 1;
             var seasonStart = NextSeasonStart(state.CurrentDate);
@@ -554,30 +563,51 @@ namespace RetroFootballManager.Data
             return result;
         }
 
-        // Pays the promotion bonus (Sponsor.BonusPerPromotion) to every promoted team with an
-        // active sponsor deal - previously a dead field, never paid out. Public (instead of
-        // private) for direct testability, analogous to CupMatchDayService.ResolvePenaltyShootout.
-        public async Task PaySponsorPromotionBonusesAsync(IReadOnlyList<Team> teams, SeasonEndResult result)
+        // Pays all sponsor bonuses in one lump sum at season end - win bonus (per win actually
+        // achieved this season), promotion bonus, and the placement bonuses (champion/top 5/
+        // midfield). None of these are paid during the season itself; BonusForTop5,
+        // BonusForMidfieldPlace and BonusForMasterTitle were previously dead fields, never
+        // paid out at all. Public (instead of private) for direct testability, analogous to
+        // CupMatchDayService.ResolvePenaltyShootout.
+        public async Task PaySponsorSeasonBonusesAsync(IReadOnlyList<Team> teams, SeasonEndResult result)
         {
             var teamsById = teams.ToDictionary(t => t.Id);
             var catalog = await _sponsorRepository.GetAllAsync();
 
             foreach (var league in result.Leagues)
             {
-                foreach (var teamId in league.PromotedTeamIds)
+                foreach (var row in league.Table)
                 {
-                    if (!teamsById.TryGetValue(teamId, out var team) || team.Finances is null)
+                    if (!teamsById.TryGetValue(row.TeamId, out var team) || team.Finances is null)
                         continue;
 
-                    var deals = await _sponsorshipRepository.GetByTeamAsync(teamId);
+                    bool promoted = league.PromotedTeamIds.Contains(row.TeamId);
+                    bool relegated = league.RelegatedTeamIds.Contains(row.TeamId);
+
+                    var deals = await _sponsorshipRepository.GetByTeamAsync(row.TeamId);
                     foreach (var deal in deals)
                     {
                         var sponsor = catalog.FirstOrDefault(s => s.Id == deal.SponsorId);
-                        if (sponsor is null || sponsor.BonusPerPromotion <= 0)
+                        if (sponsor is null)
                             continue;
 
-                        team.Finances.CurrentBalance += sponsor.BonusPerPromotion;
-                        team.Finances.SponsorIncome += sponsor.BonusPerPromotion;
+                        int bonus = sponsor.BonusPerWin * row.Wins;
+
+                        if (row.Position == 1)
+                            bonus += sponsor.BonusForMasterTitle;
+                        else if (row.Position <= 5)
+                            bonus += sponsor.BonusForTop5;
+                        else if (!relegated)
+                            bonus += sponsor.BonusForMidfieldPlace;
+
+                        if (promoted)
+                            bonus += sponsor.BonusPerPromotion;
+
+                        if (bonus <= 0)
+                            continue;
+
+                        team.Finances.CurrentBalance += bonus;
+                        team.Finances.SponsorIncome += bonus;
                     }
                 }
             }

@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
+<local:BaseContentPage
     x:Class="RetroFootballManager.Views.FinancesPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:RetroFootballManager.Views"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    xmlns:models="clr-namespace:RetroFootballManager.Models;assembly=RetroFootballManager.Core"
     x:DataType="vm:FinancesViewModel"
     Title="Finanzen"
     BackgroundColor="{StaticResource RfmBackground}">
@@ -23,8 +25,8 @@
                     <Label Text="{Binding BalanceText}" FontSize="30" FontAttributes="Bold"
                            TextColor="{StaticResource RfmAccentTeal}" />
                     <Label Text="{Binding FinancialHealthText, StringFormat='Finanzielle Gesundheit: {0}'}"
-                           FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
-                    <Label Text="Kontostand zum Saisonende (Schätzung)" FontSize="12"
+                           FontSize="14" TextColor="{StaticResource RfmTextMuted}" />
+                    <Label Text="Kontostand zum Saisonende (Schätzung)" FontSize="14"
                            TextColor="{StaticResource RfmTextMuted}" Margin="0,6,0,0" />
                     <Label Text="{Binding SeasonEndForecastText}" FontSize="16" FontAttributes="Bold"
                            TextColor="{StaticResource RfmAccentTeal}" />
@@ -32,7 +34,7 @@
             </Border>
 
             <Label Text="Gehälter, Sponsoreneinnahmen und Stadion-Unterhalt werden jeden 15. des Monats abgerechnet."
-                   FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                   FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
 
             <Label Text="Kredit" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
             <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
@@ -89,6 +91,42 @@
                     <Label Grid.Row="2" Grid.Column="1" Text="{Binding MerchandiseIncomeText}" TextColor="{StaticResource RfmAccentTeal}" />
                 </Grid>
             </Border>
+
+            <Label Text="Sponsoren im Detail" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <Label Text="Die Grundzahlung läuft monatlich zum 15.; alle Bonuszahlungen (pro Sieg, Aufstieg, Platzierung) werden erst am Saisonende ausgezahlt."
+                   FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
+            <CollectionView ItemsSource="{Binding SponsorDeals}" HorizontalOptions="Start" WidthRequest="800" MinimumHeightRequest="60">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SponsorOverviewItem">
+                        <Border StrokeThickness="0" Padding="14" WidthRequest="800" HorizontalOptions="Start"
+                                BackgroundColor="{StaticResource RfmSurface}" Margin="0,0,0,8">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="12" />
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="{Binding SlotLabel}" FontSize="14" TextColor="{StaticResource RfmTextMuted}" />
+                                <Label Text="{Binding SponsorName}" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                                <Label Text="{Binding SeasonPaymentText}" FontSize="14" TextColor="{StaticResource RfmAccentTeal}" />
+                                <Label Text="{Binding PaymentPerMonthText}" FontSize="14" TextColor="{StaticResource RfmTextMuted}" />
+                                <Label Text="{Binding ExpiresText}" FontSize="14" TextColor="{StaticResource RfmTextMuted}" />
+                                <Label Text="Mögliche Bonuszahlungen (am Saisonende):" FontSize="14" FontAttributes="Bold"
+                                       TextColor="{StaticResource RfmText}" Margin="0,4,0,0" />
+                                <CollectionView ItemsSource="{Binding Offers}" ItemsLayout="VerticalList">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:BonusOffers">
+                                            <HorizontalStackLayout Spacing="10">
+                                                <Label Text="{Binding Offer}" FontSize="14" TextColor="{StaticResource RfmText}" />
+                                                <Label Text="{Binding Payment, StringFormat='{0:N0} €'}" FontSize="14"
+                                                       TextColor="{StaticResource RfmAccentTeal}" FontAttributes="Bold" />
+                                            </HorizontalStackLayout>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
             <Label Text="Aktuelle laufende Kosten/Einnahmen" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
             <Label Text="Wirkt sich ab dem nächsten Spieltag auf die Bilanz aus." FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
@@ -147,4 +185,4 @@
             </VerticalStackLayout>
     </ScrollView>
     </Grid>
-</ContentPage>
+</local:BaseContentPage>

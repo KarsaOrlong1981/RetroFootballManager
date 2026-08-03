@@ -22,6 +22,8 @@
     <Color x:Key="RfmTextMuted">#8FA3B8</Color>
     <Color x:Key="RfmPitch">#12362B</Color>
     <Color x:Key="RfmLocked">#3A2036</Color>
+    <Color x:Key="RfmStartButton">#4A5D23</Color>
+    <Color x:Key="RfmFormationGreen">#4CBB17</Color>
 
     <SolidColorBrush x:Key="RfmBackgroundBrush" Color="{StaticResource RfmBackground}" />
     <SolidColorBrush x:Key="RfmSurfaceBrush" Color="{StaticResource RfmSurface}" />

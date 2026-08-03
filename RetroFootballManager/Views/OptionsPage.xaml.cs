@@ -2,7 +2,7 @@ using RetroFootballManager.ViewModels;
 
 namespace RetroFootballManager.Views
 {
-    public partial class OptionsPage : ContentPage
+    public partial class OptionsPage : BaseContentPage
     {
         private readonly OptionsViewModel _viewModel;
 

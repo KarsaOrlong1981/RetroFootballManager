@@ -2,7 +2,7 @@ using RetroFootballManager.ViewModels;
 
 namespace RetroFootballManager.Views
 {
-    public partial class ScoutingPage : ContentPage
+    public partial class ScoutingPage : BaseContentPage
     {
         private readonly ScoutingViewModel _viewModel;
 

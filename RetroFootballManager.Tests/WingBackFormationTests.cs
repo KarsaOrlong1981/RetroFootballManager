@@ -20,27 +20,31 @@ namespace RetroFootballManager.Tests
         }
 
         [Fact]
-        public void BackThreeFormation_OffersWingBackAlternateOnWideMidfieldSlots()
+        public void BackThreeFormation_HasNoWingBackAlternate()
         {
-            var left = FormationCatalog.F352.Slots.Single(s => s.Position == Position.LeftMidfielder);
-            var right = FormationCatalog.F352.Slots.Single(s => s.Position == Position.RightMidfielder);
-
-            Assert.Equal(Position.LeftWingBack, left.AlternateRole);
-            Assert.Equal(Position.RightWingBack, right.AlternateRole);
-
-            // No wide full-back slots exist in a back-three, so the defenders don't get one.
-            var defenders = FormationCatalog.F352.Slots.Where(s =>
-                s.Position is Position.LeftDefender or Position.RightDefender);
-            Assert.All(defenders, d => Assert.Null(d.AlternateRole));
+            // The AV/WB toggle only ever applies to LV/RV slots. A back-three has no full-back
+            // slots at all, so 3-5-2 simply has no wing-back alternate anywhere - not even on
+            // its wide midfielders.
+            Assert.All(FormationCatalog.F352.Slots, s => Assert.Null(s.AlternateRole));
         }
 
         [Fact]
-        public void EveryFormation_HasExactlyTwoWingBackAlternates()
+        public void EveryBackFourFormation_HasExactlyTwoWingBackAlternates()
         {
-            foreach (var formation in FormationCatalog.All)
+            foreach (var formation in FormationCatalog.All.Where(f => f.Name != FormationCatalog.F352.Name))
             {
                 int count = formation.Slots.Count(s => s.AlternateRole is Position.LeftWingBack or Position.RightWingBack);
                 Assert.Equal(2, count);
+            }
+        }
+
+        [Fact]
+        public void WingBackAlternate_OnlyEverAppliesToFullBackSlots()
+        {
+            foreach (var formation in FormationCatalog.All)
+            {
+                var withAlternate = formation.Slots.Where(s => s.AlternateRole is not null);
+                Assert.All(withAlternate, s => Assert.True(s.Position is Position.LeftDefender or Position.RightDefender));
             }
         }
     }

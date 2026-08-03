@@ -10,6 +10,8 @@ namespace RetroFootballManager.Common
         private readonly SponsorRepository _sponsors;
         private readonly SponsorshipRepository _sponsorships;
 
+        public event EventHandler<EventArgs>? SponsorChanged;
+
         public SponsorService(SponsorRepository sponsors, SponsorshipRepository sponsorships)
         {
             _sponsors = sponsors;
@@ -18,14 +20,33 @@ namespace RetroFootballManager.Common
 
         public async Task<List<Sponsor>> GetAvailableOffersAsync(Team team, SponsorType slot)
         {
+            // Tier 3 and Tier 4 get no Kit sponsor offers
             if (slot == SponsorType.Kit && team.LeagueTier > 2)
                 return [];
 
             var catalog = await _sponsors.GetAllAsync();
-            return catalog
-                .Where(s => s.SponsorType == slot && team.LeagueTier <= s.MinTier)
-                .OrderByDescending(s => s.SeasonPayment)
-                .ToList();
+            var sponsorWithoutBonus = catalog
+                    .Where(s =>
+                        s.SponsorType == slot &&
+                        s.MinTier == team.LeagueTier &&
+                        s.HasNoBonus)
+                    .OrderByDescending(s => s.SeasonPayment)
+                    .FirstOrDefault();
+            var bonusSponsors = catalog
+                     .Where(s =>
+                         s.SponsorType == slot &&
+                         s.MinTier == team.LeagueTier &&
+                         !s.HasNoBonus)
+                     .OrderByDescending(s => s.SeasonPayment)
+                     .Take(2)
+                     .ToList();
+            var result = new List<Sponsor>();
+            if (sponsorWithoutBonus != null)
+                result.Add(sponsorWithoutBonus);
+
+            result.AddRange(bonusSponsors);
+
+            return result;
         }
 
         // Blocks signing while the current deal in this slot is still running -
@@ -45,7 +66,19 @@ namespace RetroFootballManager.Common
             sponsorship.Duration = durationSeasons;
 
             await _sponsorships.SaveAsync(sponsorship);
+            SponsorChanged?.Invoke(this, EventArgs.Empty);
             return sponsorship;
+        }
+
+        public async Task<List<(Sponsorship Deal, Sponsor Sponsor)>> GetActiveSponsorshipsAsync(int teamId)
+        {
+            var sponsorships = await _sponsorships.GetByTeamAsync(teamId);
+            var catalog = await _sponsors.GetAllAsync();
+            return sponsorships
+                .Select(s => (Deal: s, Sponsor: catalog.FirstOrDefault(c => c.Id == s.SponsorId)))
+                .Where(x => x.Sponsor is not null)
+                .Select(x => (x.Deal, x.Sponsor!))
+                .ToList();
         }
     }
 }

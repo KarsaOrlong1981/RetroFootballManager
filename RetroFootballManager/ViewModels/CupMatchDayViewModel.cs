@@ -97,6 +97,8 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private string _headerText = string.Empty;
         [ObservableProperty] private string _homeTeamShortName = string.Empty;
         [ObservableProperty] private string _awayTeamShortName = string.Empty;
+        [ObservableProperty] private string _homeTeamFullName = string.Empty;
+        [ObservableProperty] private string _awayTeamFullName = string.Empty;
         [ObservableProperty] private string? _homeTeamLogoPath;
         [ObservableProperty] private string? _awayTeamLogoPath;
         [ObservableProperty] private string _scoreText = string.Empty;
@@ -183,12 +185,14 @@ namespace RetroFootballManager.ViewModels
                 BuildTactics();
 
                 RoundName = $"{CompetitionLabel(_competition)} · {RoundDisplayName(_tie.Round, _tie.Group, _tie.LegNumber)}";
-                HeaderText = $"{RoundName} · {_homeTeam.ShortName} – {_awayTeam.ShortName}";
+                HeaderText = $"{RoundName} · {_homeTeam.Name} – {_awayTeam.Name}";
                 HomeTeamShortName = _homeTeam.ShortName;
                 AwayTeamShortName = _awayTeam.ShortName;
+                HomeTeamFullName = _homeTeam.Name;
+                AwayTeamFullName = _awayTeam.Name;
                 HomeTeamLogoPath = _homeTeam.LogoPath;
                 AwayTeamLogoPath = _awayTeam.LogoPath;
-                ScoreText = $"{_homeTeam.ShortName} 0 : 0 {_awayTeam.ShortName}";
+                ScoreText = $"0 : 0";
                 MinuteText = "0'";
                 StatusText = _tie.Round == CupDrawService.RoundFinal
                     ? $"Finale (neutrales Stadion): {_homeTeam.Name} gegen {_awayTeam.Name}"
@@ -330,7 +334,7 @@ namespace RetroFootballManager.ViewModels
             if (_match is null || _homeTeam is null || _awayTeam is null)
                 return (false, false);
 
-            ScoreText = $"{_homeTeam.ShortName} {_match.HomeGoals} : {_match.AwayGoals} {_awayTeam.ShortName}";
+            ScoreText = $"{_match.HomeGoals} : {_match.AwayGoals}";
             MinuteText = $"{_match.CurrentMinute}'";
 
             bool sawRedCard = false;
@@ -385,11 +389,11 @@ namespace RetroFootballManager.ViewModels
 
         private static string IconFor(GameEventType type) => type switch
         {
-            GameEventType.Goal => "⚽",
-            GameEventType.YellowCard => "🟨",
-            GameEventType.RedCard => "🟥",
-            GameEventType.Substitution => "🔄",
-            _ => "•",
+            GameEventType.Goal => "ball.png",
+            GameEventType.YellowCard => "yellowcard.png",
+            GameEventType.RedCard => "redcard.png",
+            GameEventType.Substitution => "substitution.png",
+            _ => "",
         };
 
         [RelayCommand]
@@ -490,7 +494,8 @@ namespace RetroFootballManager.ViewModels
             var seasonStats = _session.State is null
                 ? null
                 : await _saveGame.GetPlayerSeasonStatsAsync(player.Id, _session.State.Season);
-            SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats);
+            var careerStats = await _saveGame.GetPlayerCareerStatsAsync(player.Id);
+            SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats);
             IsPlayerProfileOpen = true;
         }
 

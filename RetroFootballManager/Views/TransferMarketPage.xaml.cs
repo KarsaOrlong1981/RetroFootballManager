@@ -2,7 +2,7 @@ using RetroFootballManager.ViewModels;
 
 namespace RetroFootballManager.Views
 {
-    public partial class TransferMarketPage : ContentPage
+    public partial class TransferMarketPage : BaseContentPage
     {
         private readonly TransferMarketViewModel _viewModel;
 

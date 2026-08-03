@@ -63,16 +63,25 @@ namespace RetroFootballManager.Models
         [Ignore]
         public string ShortPositionName => PositionDisplay.Short(Position);
 
+        private List<PositionSkill>? _secondaryPositionsCache;
+        private string _secondaryPositionsRaw = "[]";
+
         // Persisted as JSON since sqlite-net can't store complex lists directly.
-        public string SecondaryPositionsRaw { get; set; } = "[]";
+        public string SecondaryPositionsRaw
+        {
+            get => _secondaryPositionsRaw;
+            set { _secondaryPositionsRaw = value; _secondaryPositionsCache = null; }
+        }
 
         // Positions besides the natural one where the player can play with a smaller
         // malus (depending on proficiency). Positions not listed get a much higher malus.
+        // Cached since this is read repeatedly (e.g. once per lineup slot on every
+        // drag/drop rebuild) and the JSON rarely changes.
         [Ignore]
         public List<PositionSkill> SecondaryPositions
         {
-            get => JsonSerializer.Deserialize<List<PositionSkill>>(SecondaryPositionsRaw) ?? [];
-            set => SecondaryPositionsRaw = JsonSerializer.Serialize(value);
+            get => _secondaryPositionsCache ??= JsonSerializer.Deserialize<List<PositionSkill>>(SecondaryPositionsRaw) ?? [];
+            set { SecondaryPositionsRaw = JsonSerializer.Serialize(value); _secondaryPositionsCache = value; }
         }
         public double Rating { get; set; }
         public int Moral { get; set; }

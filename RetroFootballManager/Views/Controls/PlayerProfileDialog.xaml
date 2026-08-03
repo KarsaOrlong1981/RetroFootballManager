@@ -19,9 +19,9 @@
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                     <Label Grid.Column="0" Text="{Binding Title, Source={x:Reference Root}}" FontSize="20" FontAttributes="Bold"
                            TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
-                    <Button Grid.Column="1" Text="✕" Command="{Binding CloseCommand, Source={x:Reference Root}}"
+                    <Button Grid.Column="1" ImageSource="close.png" Command="{Binding CloseCommand, Source={x:Reference Root}}"
                             BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}"
-                            WidthRequest="36" HeightRequest="36" Padding="0" FontSize="14" />
+                            WidthRequest="36" HeightRequest="36" Padding="8" />
                 </Grid>
 
                 <!-- Not-scouted state: "?" placeholder + scout button, used by Statistics/TransferMarket/Scouting -->
@@ -53,18 +53,119 @@
                                 <RoundRectangle CornerRadius="10" />
                             </Border.StrokeShape>
                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="8">
-                                <Label Grid.Row="0" Grid.Column="0" Text="{Binding Position, StringFormat='Position: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
-                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding Nationality, StringFormat='Nation: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
-                                <Label Grid.Row="1" Grid.Column="0" Text="{Binding Age, StringFormat='Alter: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
-                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding DateOfBirth, StringFormat='Geburtsdatum: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
-                                <Label Grid.Row="2" Grid.Column="0" Text="{Binding Rating, StringFormat='Rating: {0:0.0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
-                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding Talent, StringFormat='Talent: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
-                                <Label Grid.Row="3" Grid.Column="0" Text="{Binding Moral, StringFormat='Moral: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
-                                <Label Grid.Row="3" Grid.Column="1" Text="{Binding Fitness, StringFormat='Fitness: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
-                                <Label Grid.Row="4" Grid.Column="0" Text="{Binding Size, StringFormat='Größe: {0:0.00} m'}" FontSize="12" TextColor="{StaticResource RfmText}" />
-                                <Label Grid.Row="4" Grid.Column="1" Text="{Binding Personality, StringFormat='Persönlichkeit: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
-                                <Label Grid.Row="5" Grid.Column="0" Text="{Binding SecondaryPositions, StringFormat='Nebenpositionen: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+
+                                <!-- Position -->
+                                <Label Grid.Row="0" Grid.Column="0" FontSize="12">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Position: " TextColor="{StaticResource RfmText}" />
+                                            <Span Text="{Binding Position}" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- Nation -->
+                                <Label Grid.Row="0" Grid.Column="1" FontSize="12">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Nation: " TextColor="{StaticResource RfmText}" />
+                                            <Span Text="{Binding Nationality}" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- Alter -->
+                                <Label Grid.Row="1" Grid.Column="0" FontSize="12">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Alter: " TextColor="{StaticResource RfmText}" />
+                                            <Span Text="{Binding Age}" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- Geburtsdatum -->
+                                <Label Grid.Row="1" Grid.Column="1" FontSize="12">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Geburtsdatum: " TextColor="{StaticResource RfmText}" />
+                                            <Span Text="{Binding DateOfBirth}" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- Rating -->
+                                <Label Grid.Row="2" Grid.Column="0" FontSize="12">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Rating: " TextColor="{StaticResource RfmText}" />
+                                            <Span Text="{Binding Rating, StringFormat='{0:0.0}'}" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- Talent -->
+                                <Label Grid.Row="2" Grid.Column="1" FontSize="12">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Talent: " TextColor="{StaticResource RfmText}" />
+                                            <Span Text="{Binding Talent}" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- Moral -->
+                                <Label Grid.Row="3" Grid.Column="0" FontSize="12">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Moral: " TextColor="{StaticResource RfmText}" />
+                                            <Span Text="{Binding Moral}" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- Fitness -->
+                                <Label Grid.Row="3" Grid.Column="1" FontSize="12">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Fitness: " TextColor="{StaticResource RfmText}" />
+                                            <Span Text="{Binding Fitness}" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- Größe -->
+                                <Label Grid.Row="4" Grid.Column="0" FontSize="12">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Größe: " TextColor="{StaticResource RfmText}" />
+                                            <Span Text="{Binding Size, StringFormat='{0:0.00} m'}" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- Persönlichkeit -->
+                                <Label Grid.Row="4" Grid.Column="1" FontSize="12">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Persönlichkeit: " TextColor="{StaticResource RfmText}" />
+                                            <Span Text="{Binding Personality}" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- Nebenpositionen -->
+                                <Label Grid.Row="5" Grid.Column="0" FontSize="12">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Nebenpositionen: " TextColor="{StaticResource RfmText}" />
+                                            <Span Text="{Binding SecondaryPositions}" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
                             </Grid>
+
                         </Border>
 
                         <Label Text="Fähigkeiten" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
@@ -93,8 +194,16 @@
                         <Label Text="{Binding CareerAppearances, StringFormat='Karriere-Einsätze: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
                         <Label Text="{Binding CareerMinutesPlayed, StringFormat='Karriere-Minuten: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
                         <Label Text="{Binding SeasonMinutes, StringFormat='Minuten diese Saison: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
-
+                        <Label Text="{Binding Goals, StringFormat='Tore diese Saison: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                        <Label Text="{Binding CareerGoals, StringFormat='Tore gesamt: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                        <Label Text="{Binding Assists, StringFormat='Vorlagen diese Saison: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                        <Label Text="{Binding CareerAssists, StringFormat='Vorlagen gesamt: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                        <Label Text="{Binding YellowCards, StringFormat='Gelbe Karten diese Saison: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                        <Label Text="{Binding CareerYellowCards, StringFormat='Gelbe Karten gesamt: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                        <Label Text="{Binding RedCards, StringFormat='Rote Karten diese Saison: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+                        <Label Text="{Binding CareerRedCards, StringFormat='Rote Karten gesamt: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
                         <Label Text="Vertrag" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,6,0,0" />
+                        <Label Text="{Binding MarketValue, StringFormat='Marktwert: {0}  €'}" FontSize="12" TextColor="{StaticResource RfmText}" />
                         <Label Text="{Binding ContractNote}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
                         <Label Text="{Binding TransferStatusNote}" FontSize="11" TextColor="{StaticResource RfmAccentTeal}" />
                     </VerticalStackLayout>

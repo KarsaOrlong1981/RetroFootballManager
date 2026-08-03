@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
+<local:BaseContentPage
     x:Class="RetroFootballManager.Views.TransferMarketPage"
     x:Name="Page"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:RetroFootballManager.Views"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
     xmlns:models="clr-namespace:RetroFootballManager.Models;assembly=RetroFootballManager.Core"
     xmlns:controls="clr-namespace:RetroFootballManager.Views.Controls"
@@ -151,7 +152,7 @@
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
                                             CommandParameter="{Binding PlayerId}" />
                                         </Border.GestureRecognizers>
-                                        <Label Text="ℹ" FontSize="12" TextColor="{StaticResource RfmText}"
+                                        <Image Source="info.png" WidthRequest="15" HeightRequest="15" Aspect="AspectFit"
                                            HorizontalOptions="Center" VerticalOptions="Center" />
                                     </Border>
                                     <VerticalStackLayout Grid.Column="1">
@@ -210,7 +211,7 @@
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
                                             CommandParameter="{Binding PlayerId}" />
                                         </Border.GestureRecognizers>
-                                        <Label Text="ℹ" FontSize="12" TextColor="{StaticResource RfmText}"
+                                        <Image Source="info.png" WidthRequest="15" HeightRequest="15" Aspect="AspectFit"
                                            HorizontalOptions="Center" VerticalOptions="Center" />
                                     </Border>
 
@@ -287,4 +288,4 @@
         </VerticalStackLayout>
     </Grid>
     </Grid>
-</ContentPage>
+</local:BaseContentPage>

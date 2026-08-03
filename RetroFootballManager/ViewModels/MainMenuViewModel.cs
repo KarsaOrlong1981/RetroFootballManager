@@ -22,6 +22,8 @@ namespace RetroFootballManager.ViewModels
         private readonly FriendlyService _friendly;
         private readonly TrainingCampService _trainingCamps;
         private readonly INavigationService _navigation;
+        private readonly SponsorService _sponsorService;
+        private readonly AppSettingsService _appSettings;
 
         private CupTie? _pendingCupTie;
         private CompetitionType _pendingCompetition;
@@ -41,7 +43,9 @@ namespace RetroFootballManager.ViewModels
             CalendarAdvanceService calendarAdvance,
             FriendlyService friendly,
             TrainingCampService trainingCamps,
-            INavigationService navigation)
+            INavigationService navigation,
+            SponsorService sponsorService,
+            AppSettingsService appSettings)
             : base(dispatcher)
         {
             _session = session;
@@ -53,8 +57,29 @@ namespace RetroFootballManager.ViewModels
             _friendly = friendly;
             _trainingCamps = trainingCamps;
             _navigation = navigation;
+            _sponsorService = sponsorService;
+            _appSettings = appSettings;
+            _sponsorService.SponsorChanged += SponsorService_SponsorChanged;
             Title = "Hauptmenü";
+            _showTooltips = _appSettings.ShowTooltips;
         }
+
+        [ObservableProperty]
+        private bool _showTooltips;
+
+        partial void OnShowTooltipsChanged(bool value) => _appSettings.ShowTooltips = value;
+
+        private void SponsorService_SponsorChanged(object? sender, EventArgs e)
+        {
+            _ = HandleActiveSponsors();
+        }
+
+        [ObservableProperty]
+        private Sponsor? _mainSponsor;
+        [ObservableProperty]
+        private Sponsor? _perimeterSponsor;
+        [ObservableProperty]
+        private Sponsor? _kitSponsor;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(HasStatusText))]
@@ -173,6 +198,9 @@ namespace RetroFootballManager.ViewModels
 
         [ObservableProperty]
         private bool _canConfirmTrainingCamp;
+
+        [ObservableProperty]
+        private bool _hasSponsor;
 
         public async Task InitializeAsync()
         {
@@ -355,6 +383,8 @@ namespace RetroFootballManager.ViewModels
             {
                 Log.Error("Failed to determine unread messages.", ex);
             }
+
+            await HandleActiveSponsors();
         }
 
         // "Before every match" - bundled across all three competition types since league/cup/friendly
@@ -613,6 +643,26 @@ namespace RetroFootballManager.ViewModels
                 state.ManagerTeamId, SelectedTrainingCampDuration, state.CurrentDate, _windowEnd);
             CanConfirmTrainingCamp = allowed;
             TrainingCampValidationText = reason ?? string.Empty;
+        }
+
+        private async Task HandleActiveSponsors()
+        {
+            try
+            {
+                var team = _session?.ManagerTeam;
+                if (team is null)
+                    return;
+
+                var sponsors = await _sponsorService.GetActiveSponsorshipsAsync(team.Id);
+                HasSponsor = sponsors.Count != 0;
+                MainSponsor = sponsors.Where(sp => sp.Sponsor.SponsorType == SponsorType.Main).FirstOrDefault().Sponsor;
+                PerimeterSponsor = sponsors.Where(sp => sp.Sponsor.SponsorType == SponsorType.Perimeter).FirstOrDefault().Sponsor;
+                KitSponsor = sponsors.Where(sp => sp.Sponsor.SponsorType == SponsorType.Kit).FirstOrDefault().Sponsor;
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Error on Sponsor Changed handling: ", ex);
+            }
         }
 
         [RelayCommand]

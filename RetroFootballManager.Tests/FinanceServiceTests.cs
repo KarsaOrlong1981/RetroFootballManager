@@ -59,45 +59,34 @@ namespace RetroFootballManager.Tests
         ];
 
         [Fact]
-        public async Task ApplyMatchdayFinance_HomeFixture_CreditsTicketIncome()
+        public void ApplyMatchdayFinance_HomeFixture_CreditsTicketIncome()
         {
             var team = CreateTeamWithEconomy();
-            var result = await _service.ApplyMatchdayFinanceAsync(team, isHome: true, won: true, Standings, opponentTierRank: 2, CurrentDate);
+            var result = _service.ApplyMatchdayFinance(team, isHome: true, Standings, opponentTierRank: 2);
 
             Assert.True(result.TicketIncome > 0);
             Assert.Equal(result.TicketIncome, team.Finances!.TicketIncome);
         }
 
         [Fact]
-        public async Task ApplyMatchdayFinance_AwayFixture_NoTicketIncome()
+        public void ApplyMatchdayFinance_AwayFixture_NoTicketIncome()
         {
             var team = CreateTeamWithEconomy();
-            var result = await _service.ApplyMatchdayFinanceAsync(team, isHome: false, won: true, Standings, opponentTierRank: 2, CurrentDate);
+            var result = _service.ApplyMatchdayFinance(team, isHome: false, Standings, opponentTierRank: 2);
 
             Assert.Equal(0, result.TicketIncome);
         }
 
         [Fact]
-        public async Task ApplyMatchdayFinance_SponsorWinBonus_OnlyAppliedOnWin()
+        public void ApplyMatchdayFinance_NeverPaysSponsorBonus_PaidOnlyAtSeasonEnd()
         {
+            // Win bonuses are tallied over the season and paid as one lump sum at season end
+            // (SaveGameService.PaySponsorSeasonBonusesAsync) - matchday finance must not touch
+            // SponsorIncome at all.
             var team = CreateTeamWithEconomy();
-            await _sponsorRepo.SaveAsync(new Sponsor
-            {
-                Name = "Bonus AG", SponsorType = SponsorType.Main, MinTier = 4,
-                SeasonPayment = 340_000, BonusPerWin = 5_000,
-            });
-            var sponsor = (await _sponsorRepo.GetAllAsync())[0];
-            await _sponsorshipRepo.SaveAsync(new Sponsorship
-            {
-                TeamId = team.Id, SponsorId = sponsor.Id, SponsorType = SponsorType.Main, StartSeason = 1, Duration = 2,
-            });
+            _service.ApplyMatchdayFinance(team, isHome: false, Standings, opponentTierRank: 2);
 
-            var won = await _service.ApplyMatchdayFinanceAsync(team, isHome: false, won: true, Standings, opponentTierRank: 2, CurrentDate);
-            var teamNoWin = CreateTeamWithEconomy();
-            var lost = await _service.ApplyMatchdayFinanceAsync(teamNoWin, isHome: false, won: false, Standings, opponentTierRank: 2, CurrentDate);
-
-            Assert.Equal(5_000, won.SponsorWinBonus);
-            Assert.Equal(0, lost.SponsorWinBonus);
+            Assert.Equal(0, team.Finances!.SponsorIncome);
         }
 
         [Fact]

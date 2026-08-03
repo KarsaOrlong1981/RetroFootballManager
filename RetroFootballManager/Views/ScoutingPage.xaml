@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
+<local:BaseContentPage
     x:Class="RetroFootballManager.Views.ScoutingPage"
     x:Name="Page"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:RetroFootballManager.Views"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
     xmlns:controls="clr-namespace:RetroFootballManager.Views.Controls"
     x:DataType="vm:ScoutingViewModel"
@@ -60,7 +61,7 @@
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
                                                     CommandParameter="{Binding PlayerId}" />
                                             </Border.GestureRecognizers>
-                                            <Label Text="ℹ" FontSize="11" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                            <Image Source="info.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
                                         </Border>
                                     </Grid>
                                 </Border>
@@ -98,7 +99,7 @@
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
                                                     CommandParameter="{Binding PlayerId}" />
                                             </Border.GestureRecognizers>
-                                            <Label Text="ℹ" FontSize="11" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                            <Image Source="info.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
                                         </Border>
                                     </Grid>
                                 </Border>
@@ -122,10 +123,17 @@
                                         <RoundRectangle CornerRadius="10" />
                                     </Border.StrokeShape>
                                     <Grid ColumnDefinitions="*,Auto,36,36" ColumnSpacing="8">
-                                        <VerticalStackLayout Grid.Column="0">
-                                            <Label Text="{Binding PlayerName}" FontSize="14" TextColor="{StaticResource RfmText}" />
-                                            <Label Text="{Binding TeamName}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
-                                        </VerticalStackLayout>
+                                        <Label FontSize="14" TextColor="{StaticResource RfmText}">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="{Binding PlayerName}" />
+                                                    <Span Text=" (" />
+                                                    <Span Text="{Binding PositionShort}" />
+                                                    <Span Text=") - " />
+                                                    <Span Text="{Binding TeamName}" />
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
                                         <Label Grid.Column="1" Text="{Binding ScoutedDateText}"
                                                FontSize="11" TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
                                         <Border Grid.Column="2" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0">
@@ -137,7 +145,7 @@
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
                                                     CommandParameter="{Binding PlayerId}" />
                                             </Border.GestureRecognizers>
-                                            <Label Text="ℹ" FontSize="11" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                            <Image Source="info.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
                                         </Border>
                                         <Border Grid.Column="3" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0">
                                             <Border.StrokeShape>
@@ -148,7 +156,7 @@
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.RemoveScoutedPlayerCommand}"
                                                     CommandParameter="{Binding PlayerId}" />
                                             </Border.GestureRecognizers>
-                                            <Label Text="✕" FontSize="11" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                            <Image Source="close.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
                                         </Border>
                                     </Grid>
                                 </Border>
@@ -188,4 +196,4 @@
             </controls:PlayerProfileDialog.ExtraContent>
         </controls:PlayerProfileDialog>
     </Grid>
-</ContentPage>
+</local:BaseContentPage>

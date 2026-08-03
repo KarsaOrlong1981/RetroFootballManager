@@ -52,5 +52,12 @@ namespace RetroFootballManager.Models
         // matchday in the same week). See FinanceService.ApplyMonthlySettlementAsync.
         public int? LastSettlementMonth { get; set; }
         public int? LastSettlementYear { get; set; }
+
+        // How many of the season's monthly sponsor installments (see
+        // FinanceService.SponsorPaymentMonths) have already been paid - caps sponsor income at
+        // exactly SeasonPayment per season instead of it drifting on across the summer break,
+        // where the monthly settlement still fires but no season is running. Reset in
+        // FinanceService.RolloverSeason.
+        public int SponsorPaymentsThisSeason { get; set; }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RetroFootballManager.Common;
@@ -44,6 +45,8 @@ namespace RetroFootballManager.ViewModels
 
         [ObservableProperty] private string _seasonEndForecastText = string.Empty;
 
+        public ObservableCollection<SponsorOverviewItem> SponsorDeals { get; } = [];
+
         [ObservableProperty] private bool _hasActiveLoan;
         [ObservableProperty] private string _loanRemainingText = string.Empty;
         [ObservableProperty] private string _loanMonthlyPaymentText = string.Empty;
@@ -79,6 +82,25 @@ namespace RetroFootballManager.ViewModels
                 .Sum();
             CurrentSponsorIncomeText = $"{currentSponsorIncome:N0} € / Saison";
 
+            SponsorDeals.Clear();
+            foreach (var deal in sponsorships)
+            {
+                var sponsor = catalog.FirstOrDefault(c => c.Id == deal.SponsorId);
+                if (sponsor is null)
+                    continue;
+
+                int expiresAfterSeason = deal.StartSeason + deal.Duration - 1;
+                SponsorDeals.Add(new SponsorOverviewItem
+                {
+                    SlotLabel = SlotLabel(sponsor.SponsorType),
+                    SponsorName = sponsor.Name,
+                    SeasonPaymentText = $"{sponsor.SeasonPayment:N0} € / Saison",
+                    PaymentPerMonthText = $"{sponsor.PaymentPerMonth:N0} € / Monat (bis zu {FinanceService.SponsorPaymentMonths}× jährlich, jeweils zum 15.)",
+                    ExpiresText = $"läuft bis Saison {expiresAfterSeason}",
+                    Offers = sponsor.Offers,
+                });
+            }
+
             CurrentStadiumMaintenanceText = team.Stadium is null
                 ? "–"
                 : $"{team.Stadium.MaintenanceCosts:N0} € / Saison";
@@ -104,6 +126,14 @@ namespace RetroFootballManager.ViewModels
                     : "Noch keine Schätzung (erst nach dem 1. Spieltag).";
             }
         }
+
+        private static string SlotLabel(SponsorType slot) => slot switch
+        {
+            SponsorType.Main => "Hauptsponsor",
+            SponsorType.Perimeter => "Bandenwerbung",
+            SponsorType.Kit => "Ausrüster",
+            _ => slot.ToString(),
+        };
 
         [RelayCommand]
         private Task Back() => _navigation.GoBackAsync();

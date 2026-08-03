@@ -2,7 +2,7 @@ using RetroFootballManager.ViewModels;
 
 namespace RetroFootballManager.Views
 {
-    public partial class SponsorsPage : ContentPage
+    public partial class SponsorsPage : BaseContentPage
     {
         private readonly SponsorsViewModel _viewModel;
 

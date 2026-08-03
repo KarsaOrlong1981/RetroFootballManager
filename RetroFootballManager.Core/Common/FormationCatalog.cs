@@ -34,7 +34,7 @@ namespace RetroFootballManager.Common
             new(Position.Goalkeeper, 0.50, 0.93),
             new(Position.LeftDefender, 0.18, 0.72, Position.LeftWingBack), new(Position.CentralDefender, 0.40, 0.77),
             new(Position.CentralDefender, 0.60, 0.77), new(Position.RightDefender, 0.82, 0.72, Position.RightWingBack),
-            new(Position.CentralMidfielder, 0.30, 0.48), new(Position.CentralMidfielder, 0.50, 0.50),
+            new(Position.CentralMidfielder, 0.30, 0.48), new(Position.DefensiveMidfielder, 0.50, 0.50),
             new(Position.CentralMidfielder, 0.70, 0.48),
             new(Position.LeftOffenseMidfielder, 0.20, 0.18), new(Position.Forward, 0.50, 0.14),
             new(Position.RightOffenseMidfielder, 0.80, 0.18),
@@ -45,7 +45,7 @@ namespace RetroFootballManager.Common
             new(Position.Goalkeeper, 0.50, 0.93),
             new(Position.LeftDefender, 0.18, 0.72, Position.LeftWingBack), new(Position.CentralDefender, 0.40, 0.77),
             new(Position.CentralDefender, 0.60, 0.77), new(Position.RightDefender, 0.82, 0.72, Position.RightWingBack),
-            new(Position.DefensiveMidfielder, 0.38, 0.55), new(Position.CentralMidfielder, 0.62, 0.55),
+            new(Position.CentralMidfielder, 0.38, 0.55), new(Position.CentralMidfielder, 0.62, 0.55),
             new(Position.LeftOffenseMidfielder, 0.20, 0.32), new(Position.CentralOffenseMidfielder, 0.50, 0.34),
             new(Position.RightOffenseMidfielder, 0.80, 0.32),
             new(Position.Forward, 0.50, 0.12),
@@ -70,40 +70,53 @@ namespace RetroFootballManager.Common
             new(Position.Forward, 0.50, 0.12),
         ]);
 
-        public static readonly Formation F4222 = new("4-2-2-2",
-        [
-            new(Position.Goalkeeper, 0.50, 0.93),
+        // The deepest midfield pair is only a genuine double-pivot (both DM) when the team
+        // plays defensively/balanced; an offensive orientation pushes both into box-to-box
+        // CM roles instead. See GetByName(name, orientation).
+        public static Formation BuildF4222(TacticalOrientation orientation)
+        {
+            var pivot = IsOffensive(orientation) ? Position.CentralMidfielder : Position.DefensiveMidfielder;
+            return new Formation("4-2-2-2",
+            [
+                new(Position.Goalkeeper, 0.50, 0.93),
 
-            new(Position.LeftDefender, 0.18, 0.72, Position.LeftWingBack),
-            new(Position.CentralDefender, 0.40, 0.77),
-            new(Position.CentralDefender, 0.60, 0.77),
-            new(Position.RightDefender, 0.82, 0.72, Position.RightWingBack),
+                new(Position.LeftDefender, 0.18, 0.72, Position.LeftWingBack),
+                new(Position.CentralDefender, 0.40, 0.77),
+                new(Position.CentralDefender, 0.60, 0.77),
+                new(Position.RightDefender, 0.82, 0.72, Position.RightWingBack),
 
-            new(Position.DefensiveMidfielder, 0.38, 0.55),
-            new(Position.CentralMidfielder, 0.62, 0.55),
+                new(pivot, 0.38, 0.55),
+                new(pivot, 0.62, 0.55),
 
-            new(Position.LeftOffenseMidfielder, 0.28, 0.35),
-            new(Position.RightOffenseMidfielder, 0.72, 0.35),
+                new(Position.LeftOffenseMidfielder, 0.28, 0.35),
+                new(Position.RightOffenseMidfielder, 0.72, 0.35),
 
-            new(Position.Forward, 0.42, 0.12),
-            new(Position.Forward, 0.58, 0.12),
-        ]);
+                new(Position.Forward, 0.42, 0.12),
+                new(Position.Forward, 0.58, 0.12),
+            ]);
+        }
 
-        // Back-3 system: no wide defenders, so the wing-back alternate sits on the wide
-        // midfielder slots instead (where wing-backs actually patrol in a 3-5-2).
+        private static bool IsOffensive(TacticalOrientation orientation) =>
+            orientation is TacticalOrientation.Offensive or TacticalOrientation.VeryOffensive;
+
+        public static readonly Formation F4222 = BuildF4222(TacticalOrientation.Balanced);
+
+        // Back-3 system: no wide defenders. The AV/WB toggle only ever applies to LV/RV
+        // slots, so a 3-5-2 simply has no wing-back alternate - its wide players are plain
+        // LM/RM.
         public static readonly Formation F352 = new("3-5-2",
         [
             new(Position.Goalkeeper, 0.50, 0.93),
 
-            new(Position.LeftDefender, 0.30, 0.75),
+            new(Position.CentralDefender, 0.28, 0.75),
             new(Position.CentralDefender, 0.50, 0.78),
-            new(Position.RightDefender, 0.70, 0.75),
+            new(Position.CentralDefender, 0.72, 0.75),
 
-            new(Position.LeftMidfielder, 0.18, 0.45, Position.LeftWingBack),
+            new(Position.LeftMidfielder, 0.18, 0.45),
             new(Position.CentralMidfielder, 0.38, 0.50),
             new(Position.DefensiveMidfielder, 0.50, 0.52),
             new(Position.CentralMidfielder, 0.62, 0.50),
-            new(Position.RightMidfielder, 0.82, 0.45, Position.RightWingBack),
+            new(Position.RightMidfielder, 0.82, 0.45),
 
             new(Position.Forward, 0.42, 0.12),
             new(Position.Forward, 0.58, 0.12),
@@ -157,5 +170,10 @@ namespace RetroFootballManager.Common
 
         public static Formation GetByName(string? name) =>
             All.FirstOrDefault(f => f.Name == name) ?? Default;
+
+        // 4-2-2-2's pivot depends on the team's tactical orientation - resolve it dynamically
+        // instead of returning the static (Balanced-shaped) F4222 field.
+        public static Formation GetByName(string? name, TacticalOrientation orientation) =>
+            name == F4222.Name ? BuildF4222(orientation) : GetByName(name);
     }
 }

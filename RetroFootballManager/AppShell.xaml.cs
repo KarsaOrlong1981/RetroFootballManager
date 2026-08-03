@@ -4,9 +4,12 @@ namespace RetroFootballManager
 {
     public partial class AppShell : Shell
     {
+        public static AppShell? Instance { get; private set; }
+
         public AppShell()
         {
             InitializeComponent();
+            Instance = this;
 
             // Global gepushte Routen (Detail-/Zwischenseiten).
             Routing.RegisterRoute("teamselection", typeof(TeamSelectionPage));

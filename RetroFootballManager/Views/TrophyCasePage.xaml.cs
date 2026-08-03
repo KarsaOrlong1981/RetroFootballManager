@@ -2,7 +2,7 @@ using RetroFootballManager.ViewModels;
 
 namespace RetroFootballManager.Views
 {
-    public partial class TrophyCasePage : ContentPage
+    public partial class TrophyCasePage : BaseContentPage
     {
         private readonly TrophyCaseViewModel _viewModel;
 

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
+<local:BaseContentPage
     x:Class="RetroFootballManager.Views.MainMenuPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    xmlns:local="clr-namespace:RetroFootballManager.Views"
     x:DataType="vm:MainMenuViewModel"
-    Shell.NavBarIsVisible="False"
     BackgroundColor="{StaticResource RfmBackground}">
 
-    <ContentPage.Resources>
+    <local:BaseContentPage.Resources>
         <Style x:Key="MenuHotspotStyle" TargetType="Border">
             <!-- Invisible in normal operation (hit area + tooltip only).
                  For debugging placement, temporarily set BackgroundColor="#66FFD54F" and
@@ -22,7 +22,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-    </ContentPage.Resources>
+    </local:BaseContentPage.Resources>
 
     <Grid>
         <Image x:Name="BackgroundImage" Source="mainmenu_no_label.png" Aspect="AspectFill"/>
@@ -127,20 +127,20 @@
             </Border>
         </AbsoluteLayout>
 
-    <ScrollView VerticalOptions="Start">
-        <VerticalStackLayout Opacity="0.85" Padding="20" Spacing="16">
+        <ScrollView VerticalOptions="Start">
+            <VerticalStackLayout Opacity="0.85" Padding="20" Spacing="16">
 
-            <!-- Verein-Kopf -->
+                <!-- Verein-Kopf -->
                 <Border StrokeThickness="0" Padding="16" BackgroundColor="{StaticResource RfmSurface}">
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="14" />
                     </Border.StrokeShape>
                     <Grid>
-                        <Grid ColumnDefinitions="150,*,*,Auto,Auto" ColumnSpacing="14">
+                        <Grid ColumnDefinitions="150,Auto,*,*,Auto,Auto" ColumnSpacing="14">
                             <Border Grid.Column="0" WidthRequest="150" HeightRequest="150"
-                            BackgroundColor="White"
-                            Stroke="{StaticResource RfmAccentTeal}" StrokeThickness="1.5" Padding="4"
-                            VerticalOptions="Center">
+                                    BackgroundColor="White"
+                                    Stroke="{StaticResource RfmAccentTeal}" StrokeThickness="1.5" Padding="4"
+                                    VerticalOptions="Center">
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="14" />
                                 </Border.StrokeShape>
@@ -153,7 +153,7 @@
                                    HorizontalOptions="Center" VerticalOptions="Center" />
                                 </Grid>
                             </Border>
-                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" >
                                 <Label Text="{Binding ClubName}" FontSize="20" FontAttributes="Bold"
                                TextColor="{StaticResource RfmText}" />
                                 <Label Text="{Binding Season}" FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
@@ -163,8 +163,25 @@
                                IsVisible="{Binding NextCupInfo, Converter={StaticResource StringPresence}}" />
                                 <Label Text="{Binding Budget}" FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
                             </VerticalStackLayout>
+
+                            <!-- Sponsored by section-->
+                            <Grid Grid.Column="2" 
+                                  HorizontalOptions="Start"
+                                  IsVisible="{Binding HasSponsor}">
+                                <Label  Text="Sponsored By:" FontSize="16" FontAttributes="Bold"
+                                    TextColor="{StaticResource RfmText}" />
+                                <HorizontalStackLayout >
+                                    <!--Main sponsor -->
+                                    <Image WidthRequest="120" HeightRequest="120" Source="{Binding MainSponsor.ImagePath}" />
+                                    <!-- Perimeter sponsor -->
+                                    <Image WidthRequest="120" HeightRequest="120" Source="{Binding PerimeterSponsor.ImagePath}" />
+                                    <!--Kit sponsor -->
+                                    <Image WidthRequest="120" HeightRequest="120" Source="{Binding KitSponsor.ImagePath}" />
+                                </HorizontalStackLayout>
+                            </Grid>
+
                             <!-- Transferfenster-Status (+ Vorbereitungsphase-Restwochen, falls zutreffend) -->
-                            <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" Spacing="4">
+                            <VerticalStackLayout Grid.Column="3" VerticalOptions="Center" HorizontalOptions="Start" Spacing="4">
                                 <Label Text="{Binding PreSeasonInfo}" FontSize="12" FontAttributes="Bold"
                                TextColor="{StaticResource RfmAccentTeal}" HorizontalOptions="Center"
                                IsVisible="{Binding HasPreSeasonInfo}" />
@@ -175,23 +192,34 @@
                                     <Label Text="{Binding TransferWindowInfo}" FontSize="18" FontAttributes="Bold"
                  TextColor="{Binding TransferWindowColor}" HorizontalOptions="Center" />
                                 </Border>
+                                <Label Text="{Binding StatusText}" FontSize="11" HorizontalOptions="Center" TextColor="{StaticResource RfmTextMuted}"
+                                    IsVisible="{Binding HasStatusText}" />
+                                <!-- Tooltip toggle: pinned top-left, always available on the main menu -->
+                                <Border StrokeThickness="0" Padding="10,6"  BackgroundColor="{StaticResource RfmSurface}"
+                                    Opacity="0.9" HorizontalOptions="Start" VerticalOptions="Start">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="10" />
+                                    </Border.StrokeShape>
+                                    <HorizontalStackLayout Spacing="6">
+                                        <CheckBox IsChecked="{Binding ShowTooltips}" Color="{StaticResource RfmAccentTeal}" />
+                                        <Label Text="Tooltips anzeigen" VerticalOptions="Center" TextColor="{StaticResource RfmText}" FontSize="13" />
+                                    </HorizontalStackLayout>
+                                </Border>
                             </VerticalStackLayout>
-                            <!-- Zum Spieltag (Live-Spiel) - nur sichtbar wenn wirklich ein Spiel ansteht -->
-                            <Button Grid.Column="3"
+                            
+                            <Button Grid.Column="4"
                             WidthRequest="220"
-                            HeightRequest="60"
+                            HeightRequest="40"
                             HorizontalOptions="End"
                             IsVisible="{Binding HasDueMatch}"
-                        Text="Zum Spieltag" Command="{Binding OpenMatchDayCommand}" FontAttributes="Bold" FontSize="22"
+                        Text="Zum Spieltag" Command="{Binding OpenMatchDayCommand}" FontAttributes="Bold" FontSize="18"
                        BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
 
-                            <!-- Kein Spiel fällig: Kalender vorspulen (+ in Vorbereitung/Winterpause Trainingslager/Freundschaftsspiel) -->
-                            <VerticalStackLayout Grid.Column="3" HorizontalOptions="End" Spacing="6"
+                            
+                            <VerticalStackLayout Grid.Column="4" HorizontalOptions="End" Spacing="6"
                                          IsVisible="{Binding HasNoDueMatch}">
                                 <Button Text="Zeit vorstellen" Command="{Binding AdvanceTimeCommand}"
                                 BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" FontSize="13" />
-                                <Label Text="{Binding StatusText}" FontSize="11" TextColor="{StaticResource RfmTextMuted}"
-                               IsVisible="{Binding HasStatusText}" />
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="6" IsVisible="{Binding IsPreSeasonOrWinterBreak}">
                                     <Button Grid.Column="0" Text="Trainingslager" Command="{Binding OpenTrainingCampDialogCommand}"
                                     BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" FontSize="12" />
@@ -225,9 +253,9 @@
                     </Grid>
                 </Border>
             </VerticalStackLayout>
-    </ScrollView>
+        </ScrollView>
 
-    <!-- Overview: upcoming friendlies + active training camp - pinned to the bottom of the screen -->
+        <!-- Overview: upcoming friendlies + active training camp - pinned to the bottom of the screen -->
     <Border StrokeThickness="0" Padding="12,10" Margin="20" BackgroundColor="{StaticResource RfmSurface}"
             Opacity="0.9" HorizontalOptions="End" VerticalOptions="End"
             IsVisible="{Binding HasOverviewContent}">
@@ -371,4 +399,4 @@
         </VerticalStackLayout>
     </Grid>
     </Grid>
-</ContentPage>
+</local:BaseContentPage>

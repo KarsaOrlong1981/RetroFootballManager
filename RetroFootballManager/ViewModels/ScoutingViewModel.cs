@@ -12,7 +12,7 @@ namespace RetroFootballManager.ViewModels
 {
     public record ActiveScoutingRow(int PlayerId, string PlayerName, string TeamName, int DaysRemaining);
     public record ScoutRecommendationRow(int PlayerId, string PlayerName, string TeamName, string PositionShort, string Reason);
-    public record ScoutedPlayerRow(int PlayerId, string PlayerName, string TeamName, string ScoutedDateText);
+    public record ScoutedPlayerRow(int PlayerId, string PlayerName, string TeamName, string ScoutedDateText, string PositionShort);
 
     public partial class ScoutingViewModel : BaseViewModel
     {
@@ -100,7 +100,7 @@ namespace RetroFootballManager.ViewModels
                     if (player is null)
                         continue;
                     ScoutedPlayers.Add(new ScoutedPlayerRow(
-                        player.Id, player.Name, names.GetValueOrDefault(player.TeamId, "?"), row.ScoutedDate.ToString("dd.MM.yyyy")));
+                        player.Id, player.Name, names.GetValueOrDefault(player.TeamId, "?"), row.ScoutedDate.ToString("dd.MM.yyyy"), player.ShortPositionName));
                 }
             }
             catch (Exception ex)
@@ -144,7 +144,8 @@ namespace RetroFootballManager.ViewModels
                 var contract = state is null ? null : await _saveGame.GetActivePlayerContractAsync(player.Id, state.CurrentDate);
                 var listing = await _saveGame.GetTransferListingForPlayerAsync(player.Id);
                 var seasonStats = state is null ? null : await _saveGame.GetPlayerSeasonStatsAsync(player.Id, state.Season);
-                SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats);
+                var careerStats = await _saveGame.GetPlayerCareerStatsAsync(player.Id);
+                SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats);
 
                 // Never offer for our own players - only for scouted players at other clubs, and
                 // only while no offer/listing already exists for them.

@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
+<local:BaseContentPage
     x:Class="RetroFootballManager.Views.LineupPage"
     x:Name="Page"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:RetroFootballManager.Views"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
     xmlns:core="clr-namespace:RetroFootballManager.Common;assembly=RetroFootballManager.Core"
     xmlns:controls="clr-namespace:RetroFootballManager.Views.Controls"
@@ -15,9 +16,7 @@
         <!-- Main content -->
         <ScrollView>
             <VerticalStackLayout Padding="14" Spacing="12">
-                <Grid ColumnDefinitions="*,*">
-                    <Label Text="Ziehe einen Spieler auf einen anderen, um sie zu tauschen (oder tippe zwei an). ℹ zeigt das Spielerprofil."
-                          FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
+                <Grid>
                     <VerticalStackLayout Spacing="8" Grid.Column="1">
                         <Label Text="{Binding StatusText}" FontSize="14" TextColor="{StaticResource RfmAccentTeal}" />
                         <Button Text="Aufstellung bestätigen" HorizontalOptions="End" WidthRequest="200" Command="{Binding ConfirmCommand}"
@@ -28,7 +27,7 @@
                 <!-- Formation -->
                 <Button Text="{Binding CurrentFormationName, StringFormat='Formation: {0}'}"
                         Command="{Binding OpenFormationDialogCommand}"
-                        BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}" FontSize="22" />
+                        BackgroundColor="{StaticResource RfmFormationGreen}" TextColor="{StaticResource RfmText}" FontSize="22" />
 
                 <Grid ColumnDefinitions="*,*,*">
 
@@ -59,11 +58,13 @@
                     </VerticalStackLayout>
                 </Grid>
                 <!-- Pitch: goalkeeper at the bottom, forwards at the top -->
-                <Border StrokeThickness="0" BackgroundColor="{StaticResource RfmPitch}" HeightRequest="560">
+                <Border StrokeThickness="0" BackgroundColor="{StaticResource RfmPitch}"  HeightRequest="800">
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="14" />
                     </Border.StrokeShape>
-                    <AbsoluteLayout BindableLayout.ItemsSource="{Binding Pitch}" Padding="8">
+                    <Grid>
+                        <Image Source="tactic.png" Aspect="Fill" />
+                        <AbsoluteLayout BindableLayout.ItemsSource="{Binding Pitch}" Padding="8">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="vm:PitchToken">
                                 <Border AbsoluteLayout.LayoutFlags="PositionProportional"
@@ -75,13 +76,8 @@
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="12" />
                                     </Border.StrokeShape>
-                                    <Grid>
-                                        <!-- Select/drag/drop recognizers live on THIS inner grid only - the
-                                             ℹ/AV badges below are siblings of it, not descendants, so tapping
-                                             them can never also bubble into SelectPlayer (WinUI Tapped events
-                                             bubble by default; nesting them here silently armed a swap-select
-                                             on every badge tap, corrupting the lineup on the next unrelated tap). -->
                                         <Grid>
+                                            <Grid>
                                             <Grid.GestureRecognizers>
                                                 <TapGestureRecognizer
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.SelectPlayerCommand}"
@@ -107,7 +103,7 @@
                                                 <HorizontalStackLayout Spacing="3" HorizontalOptions="Center">
                                                     <Label Text="{Binding Fitness, StringFormat='{0}%'}" FontSize="9"
                                                            TextColor="{Binding FitnessColor}" />
-                                                    <Label Text="🟨" FontSize="9" IsVisible="{Binding HasYellowCard}" />
+                                                    <Image Source="yellowcard.png" WidthRequest="9" HeightRequest="12" Aspect="AspectFit" IsVisible="{Binding HasYellowCard}" />
                                                 </HorizontalStackLayout>
                                             </VerticalStackLayout>
                                         </Grid>
@@ -121,7 +117,7 @@
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
                                                     CommandParameter="{Binding PlayerId}" />
                                             </Border.GestureRecognizers>
-                                            <Label Text="ℹ" FontSize="12" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" />
+                                            <Image Source="info.png" WidthRequest="15" HeightRequest="15" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
                                         </Border>
                                         <!-- Wing-back / normal role toggle - only shown on slots that offer one -->
                                         <Border IsVisible="{Binding HasAlternateRole}"
@@ -145,13 +141,16 @@
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
                     </AbsoluteLayout>
+                    </Grid>
                 </Border>
 
-                <!-- Bench - BindableLayout (not CollectionView) for reliable drag&drop, same
+                <Grid RowDefinitions="Auto,*, Auto,*">
+                    <Image Grid.RowSpan="4"  Aspect="AspectFill" Source="sub.png"/>
+                    <!-- Bench - BindableLayout (not CollectionView) for reliable drag&drop, same
                      hosting mechanism as the pitch (CollectionView virtualization on Windows
                      makes per-item drag gestures unreliable). -->
-                <Label Text="Bank" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                <VerticalStackLayout Spacing="2" BindableLayout.ItemsSource="{Binding Bench}">
+                <Label Text="Bank" Margin="12" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <VerticalStackLayout Grid.Row="1" Opacity="0.85" Spacing="2" MaximumWidthRequest="1200" MinimumWidthRequest="1000" HorizontalOptions="Start" BindableLayout.ItemsSource="{Binding Bench}">
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="vm:SquadToken">
                             <Border Padding="10,6" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
@@ -170,15 +169,15 @@
                                         DropCommandParameter="{Binding PlayerId}" />
                                 </Border.GestureRecognizers>
                                 <VerticalStackLayout Spacing="4">
-                                    <Grid ColumnDefinitions="40,*,Auto,50,26">
-                                        <Label Grid.Column="0" Text="{Binding PosLabel}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
-                                        <Label Grid.Column="1" Text="{Binding Name}" FontSize="13" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
-                                        <Label Grid.Column="2" Text="{Binding Rating}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
-                                        <HorizontalStackLayout Grid.Column="3" Spacing="3" VerticalOptions="Center" HorizontalOptions="End">
+                                    <Grid ColumnDefinitions="30,40,*,Auto,50,26">
+                                        <Label Grid.Column="1" Text="{Binding PosLabel}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
+                                        <Label Grid.Column="2" Text="{Binding Name}" FontSize="13" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                        <Label Grid.Column="3" Text="{Binding Rating}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
+                                        <HorizontalStackLayout Grid.Column="4" Spacing="3" VerticalOptions="Center" HorizontalOptions="End">
                                             <Label Text="{Binding Fitness, StringFormat='{0}%'}" FontSize="10" TextColor="{Binding FitnessColor}" />
-                                            <Label Text="🟨" FontSize="10" IsVisible="{Binding HasYellowCard}" />
+                                            <Image Source="yellowcard.png" WidthRequest="10" HeightRequest="13" Aspect="AspectFit" IsVisible="{Binding HasYellowCard}" />
                                         </HorizontalStackLayout>
-                                        <Border Grid.Column="4" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="22" HeightRequest="22" Padding="0" StrokeThickness="0">
+                                        <Border Grid.Column="0" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="22" HeightRequest="22" Padding="0" StrokeThickness="0">
                                             <Border.StrokeShape>
                                                 <RoundRectangle CornerRadius="11" />
                                             </Border.StrokeShape>
@@ -187,7 +186,7 @@
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
                                                     CommandParameter="{Binding PlayerId}" />
                                             </Border.GestureRecognizers>
-                                            <Label Text="ℹ" FontSize="11" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                            <Image Source="info.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
                                         </Border>
                                     </Grid>
                                     <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding Attributes.Chips}">
@@ -217,8 +216,8 @@
                 </VerticalStackLayout>
 
                 <!-- Reserves - same BindableLayout approach as Bench. -->
-                <Label Text="Reserve" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                <VerticalStackLayout Spacing="2" BindableLayout.ItemsSource="{Binding Reserves}">
+                <Label Grid.Row="2" Margin="12" Text="Reserve" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <VerticalStackLayout Grid.Row="3" Opacity="0.85" Spacing="2" MaximumWidthRequest="1200" MinimumWidthRequest="1000" HorizontalOptions="Start" BindableLayout.ItemsSource="{Binding Reserves}">
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="vm:SquadToken">
                             <Border Padding="10,6" BackgroundColor="{StaticResource RfmSurfaceAlt}" StrokeThickness="0">
@@ -237,15 +236,15 @@
                                         DropCommandParameter="{Binding PlayerId}" />
                                 </Border.GestureRecognizers>
                                 <VerticalStackLayout Spacing="4">
-                                    <Grid ColumnDefinitions="40,*,Auto,50,26">
-                                        <Label Grid.Column="0" Text="{Binding PosLabel}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
-                                        <Label Grid.Column="1" Text="{Binding Name}" FontSize="13" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
-                                        <Label Grid.Column="2" Text="{Binding Rating}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
-                                        <HorizontalStackLayout Grid.Column="3" Spacing="3" VerticalOptions="Center" HorizontalOptions="End">
+                                    <Grid ColumnDefinitions="30,40,*,Auto,50,26">
+                                        <Label Grid.Column="1" Text="{Binding PosLabel}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
+                                        <Label Grid.Column="2" Text="{Binding Name}" FontSize="13" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                        <Label Grid.Column="3" Text="{Binding Rating}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
+                                        <HorizontalStackLayout Grid.Column="4" Spacing="3" VerticalOptions="Center" HorizontalOptions="End">
                                             <Label Text="{Binding Fitness, StringFormat='{0}%'}" FontSize="10" TextColor="{Binding FitnessColor}" />
-                                            <Label Text="🟨" FontSize="10" IsVisible="{Binding HasYellowCard}" />
+                                            <Image Source="yellowcard.png" WidthRequest="10" HeightRequest="13" Aspect="AspectFit" IsVisible="{Binding HasYellowCard}" />
                                         </HorizontalStackLayout>
-                                        <Border Grid.Column="4" BackgroundColor="{StaticResource RfmSurface}" WidthRequest="22" HeightRequest="22" Padding="0" StrokeThickness="0">
+                                        <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurface}" WidthRequest="22" HeightRequest="22" Padding="0" StrokeThickness="0">
                                             <Border.StrokeShape>
                                                 <RoundRectangle CornerRadius="11" />
                                             </Border.StrokeShape>
@@ -254,7 +253,7 @@
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
                                                     CommandParameter="{Binding PlayerId}" />
                                             </Border.GestureRecognizers>
-                                            <Label Text="ℹ" FontSize="11" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                            <Image Source="info.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
                                         </Border>
                                     </Grid>
                                     <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding Attributes.Chips}">
@@ -282,6 +281,7 @@
                         </DataTemplate>
                     </BindableLayout.ItemTemplate>
                 </VerticalStackLayout>
+                </Grid>
             </VerticalStackLayout>
         </ScrollView>
 
@@ -302,9 +302,9 @@
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                         <Label Grid.Column="0" Text="Mannschaft › Taktiktafel › Formation" FontSize="13"
                                TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
-                        <Button Grid.Column="1" Text="✕" Command="{Binding CancelFormationCommand}"
+                        <Button Grid.Column="1" ImageSource="close.png" Command="{Binding CancelFormationCommand}"
                                 BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}"
-                                WidthRequest="40" HeightRequest="40" Padding="0" FontSize="16" />
+                                WidthRequest="40" HeightRequest="40" Padding="9" />
                     </Grid>
 
                     <Grid Grid.Row="1" ColumnDefinitions="260,*" ColumnSpacing="16">
@@ -406,4 +406,4 @@
             </VerticalStackLayout>
         </Grid>
     </Grid>
-</ContentPage>
+</local:BaseContentPage>

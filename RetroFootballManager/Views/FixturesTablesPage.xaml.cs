@@ -2,7 +2,7 @@ using RetroFootballManager.ViewModels;
 
 namespace RetroFootballManager.Views
 {
-    public partial class FixturesTablesPage : ContentPage
+    public partial class FixturesTablesPage : BaseContentPage
     {
         private readonly FixturesTablesViewModel _viewModel;
 

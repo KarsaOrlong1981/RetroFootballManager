@@ -90,6 +90,10 @@ namespace RetroFootballManager
             services.AddSingleton<GameSession>();
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddSingleton<AppSettingsService>();
+#if WINDOWS
+            services.AddSingleton<IWindowService, RetroFootballManager.WinUI.WindowService>();
+#endif
+            services.AddSingleton<NavigationBarViewModel>();
 
             // MAUI dispatcher for BaseViewModel (UI thread marshalling).
             services.AddSingleton<IDispatcher>(_ =>

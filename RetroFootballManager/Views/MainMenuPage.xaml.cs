@@ -3,7 +3,7 @@ using RetroFootballManager.ViewModels;
 
 namespace RetroFootballManager.Views
 {
-    public partial class MainMenuPage : ContentPage
+    public partial class MainMenuPage : BaseContentPage
     {
         private readonly MainMenuViewModel _viewModel;
 
@@ -35,6 +35,13 @@ namespace RetroFootballManager.Views
             ("HsBackToStart", new Rect(1470, 0, 66, 1024)),        // wall strip right of the tactics board, full height
         ];
 
+        // Permanent labels shown centered over each hotspot's own area when the "Tooltips
+        // anzeigen" checkbox is on (ShowTooltips). Built lazily from each Border's
+        // ToolTipProperties.Text so the tooltip wording has a single source.
+        private readonly Dictionary<string, Label> _tooltipLabels = [];
+        private readonly Dictionary<string, Rect> _hotspotBounds = [];
+        private readonly Dictionary<string, Size> _labelMeasuredSizes = [];
+
         public MainMenuPage(MainMenuViewModel viewModel)
         {
             InitializeComponent();
@@ -53,12 +60,66 @@ namespace RetroFootballManager.Views
             RepositionHotspots();
         }
 
+        private void EnsureTooltipLabels()
+        {
+            if (_tooltipLabels.Count > 0)
+                return;
+
+            foreach (var (name, _) in HotspotRects)
+            {
+                if (FindByName(name) is not Border border)
+                    continue;
+
+                var text = ToolTipProperties.GetText(border) as string;
+                if (string.IsNullOrEmpty(text))
+                    continue;
+
+                var capturedName = name;
+                var label = new Label
+                {
+                    Text = text,
+                    FontSize = 12,
+                    FontAttributes = FontAttributes.Bold,
+                    TextColor = Colors.White,
+                    BackgroundColor = Color.FromArgb("#CC1A1A1A"),
+                    HorizontalTextAlignment = TextAlignment.Center,
+                    Padding = new Thickness(6, 3),
+                    InputTransparent = true,
+                };
+                label.SetBinding(Label.IsVisibleProperty, new Binding(nameof(MainMenuViewModel.ShowTooltips)));
+                label.SizeChanged += (_, _) =>
+                {
+                    if (label.Width <= 0 || label.Height <= 0)
+                        return;
+                    _labelMeasuredSizes[capturedName] = new Size(label.Width, label.Height);
+                    if (_hotspotBounds.TryGetValue(capturedName, out var currentBounds))
+                        CenterLabel(label, currentBounds, label.Width, label.Height);
+                };
+                HotspotLayer.Children.Add(label);
+                _tooltipLabels[name] = label;
+            }
+        }
+
+        // Centers the label's already-measured box on the hotspot's own area (not on where
+        // a hover popup would appear), per the request that tooltips sit inside their hotspot.
+        private static void CenterLabel(Label label, Rect bounds, double width, double height)
+        {
+            AbsoluteLayout.SetLayoutFlags(label, AbsoluteLayoutFlags.None);
+            AbsoluteLayout.SetLayoutBounds(label, new Rect(
+                bounds.Center.X - width / 2,
+                bounds.Center.Y - height / 2,
+                width,
+                height));
+        }
+
         private void RepositionHotspots()
         {
             var containerW = HotspotLayer.Width;
             var containerH = HotspotLayer.Height;
             if (containerW <= 0 || containerH <= 0)
                 return;
+
+            EnsureTooltipLabels();
 
             // Aspect="AspectFill" cover formula (like CSS background-size:cover):
             // scale uniformly until the image fully covers the container, then
@@ -82,6 +143,15 @@ namespace RetroFootballManager.Views
 
                 AbsoluteLayout.SetLayoutFlags(view, AbsoluteLayoutFlags.None);
                 AbsoluteLayout.SetLayoutBounds(view, bounds);
+
+                _hotspotBounds[name] = bounds;
+                if (_tooltipLabels.TryGetValue(name, out var label))
+                {
+                    if (_labelMeasuredSizes.TryGetValue(name, out var size))
+                        CenterLabel(label, bounds, size.Width, size.Height);
+                    else
+                        AbsoluteLayout.SetLayoutBounds(label, new Rect(bounds.Center.X, bounds.Center.Y, AbsoluteLayout.AutoSize, AbsoluteLayout.AutoSize));
+                }
             }
         }
     }

@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
+<local:BaseContentPage
     x:Class="RetroFootballManager.Views.MatchDayPage"
     x:Name="Page"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:RetroFootballManager.Views"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
     xmlns:models="clr-namespace:RetroFootballManager.Models;assembly=RetroFootballManager.Core"
     xmlns:core="clr-namespace:RetroFootballManager.Common;assembly=RetroFootballManager.Core"
@@ -12,9 +13,8 @@
     Title="Spieltag"
     BackgroundColor="{StaticResource RfmBackground}">
 
-    <Grid>
-        <ScrollView>
-            <VerticalStackLayout Padding="16" Spacing="14">
+    <Grid RowDefinitions="Auto,*">
+        <VerticalStackLayout Grid.Row="0" Padding="16,16,16,0" Spacing="14">
 
                 <!-- Scoreboard -->
                 <Border StrokeThickness="0" Padding="14" BackgroundColor="{StaticResource RfmSurface}">
@@ -26,45 +26,53 @@
                         <Label Text="{Binding HeaderText}" FontSize="14" TextColor="{StaticResource RfmTextMuted}" />
 
                         <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
-                            <Border WidthRequest="130" HeightRequest="130"
-                                    BackgroundColor="White"
-                                    Stroke="{StaticResource RfmAccentTeal}" StrokeThickness="1.5" Padding="0"
-                                    VerticalOptions="Center">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="10" />
-                                </Border.StrokeShape>
-                                <Grid>
-                                    <Image Source="{Binding HomeTeamLogoPath, Converter={StaticResource LogoSource}}"
-                                           IsVisible="{Binding HomeTeamLogoPath, Converter={StaticResource HasLogo}}"
-                                           Aspect="AspectFit" />
-                                    <Label Text="{Binding HomeTeamShortName}" FontSize="13" FontAttributes="Bold"
-                                           TextColor="#22C55E"
-                                           IsVisible="{Binding HomeTeamLogoPath, Converter={StaticResource NoLogo}}"
-                                           HorizontalOptions="Center" VerticalOptions="Center" />
-                                </Grid>
-                            </Border>
-                            <Label Text="{Binding ScoreText}" FontSize="26" FontAttributes="Bold"
+                            <VerticalStackLayout Spacing="8">
+                                <Border WidthRequest="130" HeightRequest="130"
+                                        BackgroundColor="White"
+                                        Stroke="{StaticResource RfmAccentTeal}" StrokeThickness="1.5" Padding="0"
+                                        VerticalOptions="Center">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="10" />
+                                    </Border.StrokeShape>
+                                    <Grid>
+                                        <Image Source="{Binding HomeTeamLogoPath, Converter={StaticResource LogoSource}}"
+                                               IsVisible="{Binding HomeTeamLogoPath, Converter={StaticResource HasLogo}}"
+                                               Aspect="AspectFit" />
+                                        <Label Text="{Binding HomeTeamShortName}" FontSize="13" FontAttributes="Bold"
+                                               TextColor="#22C55E"
+                                               IsVisible="{Binding HomeTeamLogoPath, Converter={StaticResource NoLogo}}"
+                                               HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Grid>
+                                </Border>
+                                <Label Text="{Binding HomeTeamFullName}" LineBreakMode="WordWrap" FontSize="26" FontAttributes="Bold"
                                    TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
-                            <Border WidthRequest="130" HeightRequest="130"
-                                    BackgroundColor="White"
-                                    Stroke="{StaticResource RfmAccentTeal}" StrokeThickness="1.5" Padding="0"
-                                    VerticalOptions="Center">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="10" />
-                                </Border.StrokeShape>
-                                <Grid>
-                                    <Image Source="{Binding AwayTeamLogoPath, Converter={StaticResource LogoSource}}"
-                                           IsVisible="{Binding AwayTeamLogoPath, Converter={StaticResource HasLogo}}"
-                                           Aspect="AspectFit" />
-                                    <Label Text="{Binding AwayTeamShortName}" FontSize="13" FontAttributes="Bold"
-                                           TextColor="#38BDF8"
-                                           IsVisible="{Binding AwayTeamLogoPath, Converter={StaticResource NoLogo}}"
-                                           HorizontalOptions="Center" VerticalOptions="Center" />
-                                </Grid>
-                            </Border>
+                            </VerticalStackLayout>
+                            <Label Text="{Binding ScoreText}" FontSize="28" FontAttributes="Bold"
+                                   TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                            <VerticalStackLayout Spacing="8">
+                                <Border WidthRequest="130" HeightRequest="130"
+                                        BackgroundColor="White"
+                                        Stroke="{StaticResource RfmAccentTeal}" StrokeThickness="1.5" Padding="0"
+                                        VerticalOptions="Center">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="10" />
+                                    </Border.StrokeShape>
+                                    <Grid>
+                                        <Image Source="{Binding AwayTeamLogoPath, Converter={StaticResource LogoSource}}"
+                                               IsVisible="{Binding AwayTeamLogoPath, Converter={StaticResource HasLogo}}"
+                                               Aspect="AspectFit" />
+                                        <Label Text="{Binding AwayTeamShortName}" FontSize="13" FontAttributes="Bold"
+                                               TextColor="#38BDF8"
+                                               IsVisible="{Binding AwayTeamLogoPath, Converter={StaticResource NoLogo}}"
+                                               HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Grid>
+                                </Border>
+                                <Label Text="{Binding AwayTeamFullName}" LineBreakMode="WordWrap" FontSize="26" FontAttributes="Bold"
+                                      TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                            </VerticalStackLayout>
                         </HorizontalStackLayout>
 
-                        <Label Text="{Binding MinuteText}" FontSize="14"
+                        <Label Text="{Binding MinuteText}" FontSize="20"
                                TextColor="{StaticResource RfmAccentTeal}" HorizontalOptions="Center" />
                         <Label Text="{Binding StatusText}" FontSize="12"
                                TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
@@ -82,7 +90,7 @@
                                             <RoundRectangle CornerRadius="6" />
                                         </Border.StrokeShape>
                                         <HorizontalStackLayout Spacing="4">
-                                            <Label Text="⚽" FontSize="11" />
+                                            <Image Source="ball.png" WidthRequest="12" HeightRequest="12" Aspect="AspectFit" />
                                             <Label Text="{Binding PlayerName}" FontSize="11" FontAttributes="Bold" TextColor="{Binding AccentColor}" />
                                             <Label Text="{Binding MinutesLabel}" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
                                         </HorizontalStackLayout>
@@ -102,7 +110,7 @@
                                             <RoundRectangle CornerRadius="6" />
                                         </Border.StrokeShape>
                                         <HorizontalStackLayout Spacing="4">
-                                            <Label Text="{Binding Icon}" FontSize="11" />
+                                            <Image Source="{Binding Icon}" WidthRequest="12" HeightRequest="12" Aspect="AspectFit" />
                                             <Label Text="{Binding PlayerName}" FontSize="11" FontAttributes="Bold" TextColor="{Binding AccentColor}" />
                                         </HorizontalStackLayout>
                                     </Border>
@@ -202,34 +210,39 @@
                     </HorizontalStackLayout>
                 </Grid>
 
+        </VerticalStackLayout>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,0,16,16" Spacing="14">
+
                 <Border IsVisible="{Binding IsMatchArea}" StrokeThickness="0" Padding="10"
-                        BackgroundColor="{StaticResource RfmSurfaceAlt}" MinimumHeightRequest="220">
+                        BackgroundColor="{StaticResource RfmSurfaceAlt}">
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="12" />
                     </Border.StrokeShape>
-                    <ScrollView>
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Ticker}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="vm:TickerEntry">
-                                    <Grid Padding="2,3">
+                                    <Grid Padding="3,5">
                                         <Border HorizontalOptions="{Binding RowAlignment}"
-                                                MaximumWidthRequest="280"
+                                                MaximumWidthRequest="460"
                                                 BackgroundColor="{StaticResource RfmSurface}"
                                                 Stroke="{Binding AccentColor}" StrokeThickness="1"
-                                                Padding="8,5">
+                                                Padding="14,10">
                                             <Border.StrokeShape>
-                                                <RoundRectangle CornerRadius="8" />
+                                                <RoundRectangle CornerRadius="10" />
                                             </Border.StrokeShape>
-                                            <VerticalStackLayout Spacing="1">
-                                                <HorizontalStackLayout Spacing="5">
-                                                    <Label Text="{Binding Icon}" FontSize="13" VerticalOptions="Center" />
-                                                    <Label Text="{Binding Minute, StringFormat='{0}\''}" FontSize="10"
+                                            <VerticalStackLayout Spacing="3">
+                                                <HorizontalStackLayout Spacing="8">
+                                                    <Image Source="{Binding Icon}" IsVisible="{Binding HasIcon}"
+                                                           WidthRequest="22" HeightRequest="22" Aspect="AspectFit" VerticalOptions="Center" />
+                                                    <Label Text="{Binding Minute, StringFormat='{0}\''}" FontSize="20"
                                                            TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
                                                     <Label Text="{Binding PlayerName}" IsVisible="{Binding HasPlayerName}"
-                                                           FontSize="12" FontAttributes="Bold"
+                                                           FontSize="24" FontAttributes="Bold"
                                                            TextColor="{Binding AccentColor}" VerticalOptions="Center" />
                                                 </HorizontalStackLayout>
-                                                <Label Text="{Binding Description}" FontSize="11"
+                                                <Label Text="{Binding Description}" FontSize="22"
                                                        TextColor="{StaticResource RfmTextMuted}" />
                                             </VerticalStackLayout>
                                         </Border>
@@ -237,7 +250,6 @@
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
-                    </ScrollView>
                 </Border>
 
                 <!-- Other results -->
@@ -349,12 +361,12 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- Team management overlay: pause -> edit formation/lineup/tactic/subs -> confirm/cancel -->
+        <!-- Team management overlay: pause -&gt; edit formation/lineup/tactic/subs -&gt; confirm/cancel -->
         <Grid IsVisible="{Binding IsTeamManagementOpen}" BackgroundColor="#B0000000">
             <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
                     BackgroundColor="{StaticResource RfmBackground}"
                     Margin="16" Padding="0"
-                    MaximumWidthRequest="520" MaximumHeightRequest="720"
+                    MaximumWidthRequest="680" MaximumHeightRequest="820"
                     HorizontalOptions="Center" VerticalOptions="Center">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="16" />
@@ -363,19 +375,22 @@
                 <Grid RowDefinitions="Auto,*,Auto" Padding="16" RowSpacing="10">
 
                     <VerticalStackLayout Grid.Row="0" Spacing="2">
-                        <Label FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}">
-                            <Label.Triggers>
-                                <DataTrigger TargetType="Label" Binding="{Binding IsHalfTimeManagement}" Value="True">
-                                    <Setter Property="Text" Value="Halbzeit – Mannschaft anpassen" />
-                                </DataTrigger>
-                                <DataTrigger TargetType="Label" Binding="{Binding IsHalfTimeManagement}" Value="False">
-                                    <Setter Property="Text" Value="Mannschaft anpassen" />
-                                </DataTrigger>
-                                <DataTrigger TargetType="Label" Binding="{Binding IsRedCardManagement}" Value="True">
-                                    <Setter Property="Text" Value="🟥 Rote Karte – Mannschaft anpassen" />
-                                </DataTrigger>
-                            </Label.Triggers>
-                        </Label>
+                        <HorizontalStackLayout Spacing="6">
+                            <Image Source="redcard.png" WidthRequest="14" HeightRequest="18" Aspect="AspectFit" IsVisible="{Binding IsRedCardManagement}" />
+                            <Label FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsHalfTimeManagement}" Value="True">
+                                        <Setter Property="Text" Value="Halbzeit – Mannschaft anpassen" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsHalfTimeManagement}" Value="False">
+                                        <Setter Property="Text" Value="Mannschaft anpassen" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsRedCardManagement}" Value="True">
+                                        <Setter Property="Text" Value="Rote Karte – Mannschaft anpassen" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </HorizontalStackLayout>
                         <Label Text="Ziehe Spieler auf eine andere Position, um sie zu tauschen (oder tippe zwei an)."
                                FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
                     </VerticalStackLayout>
@@ -403,7 +418,7 @@
                             </Grid>
 
                             <!-- Pitch -->
-                            <Border StrokeThickness="0" BackgroundColor="{StaticResource RfmPitch}" HeightRequest="520">
+                            <Border StrokeThickness="0" BackgroundColor="{StaticResource RfmPitch}" HeightRequest="680">
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="14" />
                                 </Border.StrokeShape>
@@ -420,12 +435,6 @@
                                                     <RoundRectangle CornerRadius="10" />
                                                 </Border.StrokeShape>
                                                 <Grid>
-                                                    <!-- Select/drag/drop recognizers live on THIS inner grid only - the
-                                                         WB/ℹ badges below are siblings of it, not descendants, so tapping
-                                                         them can never also bubble into ManagementSelectPlayer (WinUI
-                                                         Tapped events bubble by default; nesting them here silently armed
-                                                         a swap-select on every badge tap, corrupting the lineup on the
-                                                         next unrelated tap). -->
                                                     <Grid>
                                                         <Grid.GestureRecognizers>
                                                             <TapGestureRecognizer
@@ -452,7 +461,7 @@
                                                             <HorizontalStackLayout Spacing="2" HorizontalOptions="Center">
                                                                 <Label Text="{Binding Fitness, StringFormat='{0}%'}" FontSize="8"
                                                                        TextColor="{Binding FitnessColor}" />
-                                                                <Label Text="🟨" FontSize="8" IsVisible="{Binding HasYellowCard}" />
+                                                                <Image Source="yellowcard.png" WidthRequest="8" HeightRequest="10" Aspect="AspectFit" IsVisible="{Binding HasYellowCard}" />
                                                             </HorizontalStackLayout>
                                                         </VerticalStackLayout>
                                                     </Grid>
@@ -484,7 +493,7 @@
                                                                 Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
                                                                 CommandParameter="{Binding PlayerId}" />
                                                         </Border.GestureRecognizers>
-                                                        <Label Text="ℹ" FontSize="9" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" />
+                                                        <Image Source="info.png" WidthRequest="12" HeightRequest="12" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
                                                     </Border>
                                                 </Grid>
                                             </Border>
@@ -514,17 +523,17 @@
                                                     DropCommand="{Binding Source={x:Reference Page}, Path=BindingContext.ManagementDropOnCommand}"
                                                     DropCommandParameter="{Binding PlayerId}" />
                                             </Border.GestureRecognizers>
-                                            <Grid ColumnDefinitions="40,*,Auto,50,26">
-                                                <Label Grid.Column="0" Text="{Binding PosLabel}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
-                                                <Label Grid.Column="1" Text="{Binding Name}" FontSize="13" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
-                                                <Label Grid.Column="2" Text="{Binding Rating}" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
-                                                <HorizontalStackLayout Grid.Column="3" Spacing="3" VerticalOptions="Center" HorizontalOptions="End">
+                                            <Grid ColumnDefinitions="30,40,*,Auto,50,26">
+                                                <Label Grid.Column="1" Text="{Binding PosLabel}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
+                                                <Label Grid.Column="2" Text="{Binding Name}" FontSize="13" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                                <Label Grid.Column="3" Text="{Binding Rating}" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
+                                                <HorizontalStackLayout Grid.Column="4" Spacing="3" VerticalOptions="Center" HorizontalOptions="End">
                                                     <Label Text="Gesperrt" FontSize="9" FontAttributes="Bold" IsVisible="{Binding IsDisabled}"
                                                            TextColor="#EF4444" />
                                                     <Label Text="{Binding Fitness, StringFormat='{0}%'}" FontSize="10" TextColor="{Binding FitnessColor}" />
-                                                    <Label Text="🟨" FontSize="10" IsVisible="{Binding HasYellowCard}" />
+                                                    <Image Source="yellowcard.png" WidthRequest="10" HeightRequest="13" Aspect="AspectFit" IsVisible="{Binding HasYellowCard}" />
                                                 </HorizontalStackLayout>
-                                                <Border Grid.Column="4" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="22" HeightRequest="22" Padding="0" StrokeThickness="0">
+                                                <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="22" HeightRequest="22" Padding="0" StrokeThickness="0">
                                                     <Border.StrokeShape>
                                                         <RoundRectangle CornerRadius="11" />
                                                     </Border.StrokeShape>
@@ -533,7 +542,7 @@
                                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
                                                             CommandParameter="{Binding PlayerId}" />
                                                     </Border.GestureRecognizers>
-                                                    <Label Text="ℹ" FontSize="11" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                                    <Image Source="info.png" WidthRequest="22" HeightRequest="22" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
                                                 </Border>
                                             </Grid>
                                         </Border>
@@ -596,4 +605,4 @@
             </Border>
         </Grid>
     </Grid>
-</ContentPage>
+</local:BaseContentPage>

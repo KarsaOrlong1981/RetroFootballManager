@@ -273,12 +273,11 @@ namespace RetroFootballManager.Common
             {
                 var team = teamById[id];
                 var (fixture, isHome) = teamFixture[id];
-                bool won = isHome ? fixture.HomeGoals > fixture.AwayGoals : fixture.AwayGoals > fixture.HomeGoals;
                 int opponentTeamId = isHome ? fixture.AwayTeamId : fixture.HomeTeamId;
                 int opponentTierRank = teamById[opponentTeamId].LeagueTier;
 
                 var standings = await GetStandingsAsync(team.LeagueTier);
-                await _finance!.ApplyMatchdayFinanceAsync(team, isHome, won, standings, opponentTierRank, state.CurrentDate);
+                _finance!.ApplyMatchdayFinance(team, isHome, standings, opponentTierRank);
                 bool isHumanTeam = id == state.ManagerTeamId;
                 await _finance.ApplyMonthlySettlementAsync(team, state.CurrentDate, sendMessage: isHumanTeam);
 

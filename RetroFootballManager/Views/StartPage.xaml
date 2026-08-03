@@ -1,31 +1,25 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
+<local:BaseContentPage
     x:Class="RetroFootballManager.Views.StartPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    xmlns:local="clr-namespace:RetroFootballManager.Views"
     x:DataType="vm:StartViewModel"
-    Shell.NavBarIsVisible="False"
     BackgroundColor="{StaticResource RfmBackground}">
 
     <Grid RowDefinitions="*,Auto,*" Padding="24">
-        <Image Grid.RowSpan="3" Source="hintergrund_stadion_aussen.png" Aspect="AspectFill"/>
+        <Image Grid.RowSpan="3" Source="empty_table_cropped.png" Aspect="AspectFill"/>
+        <Image Grid.RowSpan="3" Source="start_transparent.png" Aspect="AspectFit"/>
         <VerticalStackLayout Grid.Row="1" Opacity="0.8" Spacing="16" MaximumWidthRequest="420" HorizontalOptions="Center" >
 
-            <Label Text="RETRO"
-                   TextColor="{StaticResource RfmText}"
-                   FontSize="40" FontAttributes="Bold"
-                   HorizontalOptions="Center" />
-            <Label Text="FOOTBALL MANAGER"
-                   TextColor="{StaticResource RfmText}"
-                   FontSize="34" FontAttributes="Bold"
-                   HorizontalOptions="Center" Margin="0,-12,0,24" />
+            <Image Aspect="AspectFit" Source="retrofootball_logo_clean.png"  WidthRequest="400"/>
 
             <Button Text="Spiel fortsetzen"
                     Command="{Binding ContinueCommand}"
                     IsVisible="{Binding HasSaveGame}"
-                    BackgroundColor="{StaticResource RfmAccent}"
-                    TextColor="White" />
+                    BackgroundColor="{StaticResource RfmStartButton}"
+                    TextColor="{StaticResource RfmText}" />
 
             <Button Text="Spiel laden"
                     Command="{Binding LoadCommand}"
@@ -35,7 +29,7 @@
 
             <Button Text="Neues Spiel starten"
                     Command="{Binding NewGameCommand}"
-                    BackgroundColor="{StaticResource RfmAccent}"
+                    BackgroundColor="{StaticResource RfmStartButton}"
                     TextColor="White" />
 
             <Button Text="Optionen"
@@ -97,4 +91,4 @@
             </Border>
         </Grid>
     </Grid>
-</ContentPage>
+</local:BaseContentPage>

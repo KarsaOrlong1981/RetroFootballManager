@@ -76,7 +76,7 @@ namespace RetroFootballManager.ViewModels
             foreach (var ti in Enum.GetValues<TacklingIntensity>())
                 TacklingOptions.Add(new TacklingOption(ti, TacklingOption.LabelFor(ti)));
 
-            _formation = FormationCatalog.GetByName(_team.FormationName);
+            _formation = FormationCatalog.GetByName(_team.FormationName, _team.TacticalOrientation);
             CurrentFormationName = _formation.Name;
             SelectedPlayingStyle = PlayingStyles.FirstOrDefault(s => s.Style == _team.PlayingStyle);
             SelectedOrientation = Orientations.FirstOrDefault(o => o.Orientation == _team.TacticalOrientation);
@@ -100,8 +100,20 @@ namespace RetroFootballManager.ViewModels
 
         partial void OnSelectedOrientationChanged(OrientationOption? value)
         {
-            if (_team is not null && value is not null)
-                _team.TacticalOrientation = value.Orientation;
+            if (_team is null || value is null)
+                return;
+
+            _team.TacticalOrientation = value.Orientation;
+
+            // 4-2-2-2's deepest pair changes role (DM vs CM) with orientation - re-resolve the
+            // formation and re-render so the pitch reflects it immediately.
+            var updated = FormationCatalog.GetByName(_team.FormationName, value.Orientation);
+            if (updated.Name == "4-2-2-2")
+            {
+                _formation = updated;
+                BuildInitialLineup();
+                RebuildViews();
+            }
         }
 
         partial void OnSelectedTacklingChanged(TacklingOption? value)
@@ -118,12 +130,18 @@ namespace RetroFootballManager.ViewModels
             if (_team is null)
                 return;
 
-            var best = FormationCatalog.All
+            // 4-2-2-2's pivot shape depends on orientation - resolve the live variant instead
+            // of the static (Balanced-shaped) FormationCatalog.All entry.
+            var formations = FormationCatalog.All
+                .Select(f => FormationCatalog.GetByName(f.Name, _team.TacticalOrientation))
+                .ToList();
+
+            var best = formations
                 .OrderByDescending(f => LineupSelector.ScoreFormation(_team, f))
                 .First();
 
             FormationDialogItems.Clear();
-            foreach (var f in FormationCatalog.All)
+            foreach (var f in formations)
                 FormationDialogItems.Add(new FormationDialogItem(f, f.Name == best.Name));
 
             SelectedDialogItem = FormationDialogItems.FirstOrDefault(i => i.Formation.Name == _formation.Name)
@@ -169,7 +187,8 @@ namespace RetroFootballManager.ViewModels
             var seasonStats = _session.State is null
                 ? null
                 : await _saveGame.GetPlayerSeasonStatsAsync(player.Id, _session.State.Season);
-            SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats);
+            var careerStats = await _saveGame.GetPlayerCareerStatsAsync(player.Id);
+            SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats);
             IsPlayerProfileOpen = true;
         }
 
@@ -383,14 +402,14 @@ namespace RetroFootballManager.ViewModels
             if (_team is null)
                 return;
 
-            Pitch.Clear();
+            var pitch = new List<PitchToken>(_formation.Slots.Count);
             for (int i = 0; i < _formation.Slots.Count; i++)
             {
                 var slot = _formation.Slots[i];
                 var player = _lineup[i] is int id ? _team.Players.FirstOrDefault(p => p.Id == id) : null;
                 var effectivePos = EffectiveSlotPositionFor(i, player);
                 double multiplier = player is null ? 1.0 : PositionSkillEffects.GetMultiplier(player, effectivePos);
-                Pitch.Add(new PitchToken(
+                pitch.Add(new PitchToken(
                     player?.Id ?? -1, slot.X, slot.Y,
                     PositionDisplay.Short(effectivePos),
                     player?.Name ?? "—",
@@ -404,13 +423,34 @@ namespace RetroFootballManager.ViewModels
                     Fitness: player?.Fitness ?? 100));
             }
 
-            Bench.Clear();
-            foreach (var p in _team.Players.Where(p => p.Status == PlayerStatus.OnBench).OrderBy(p => p.Position))
-                Bench.Add(ToSquadToken(p));
+            var bench = _team.Players.Where(p => p.Status == PlayerStatus.OnBench)
+                .OrderBy(p => p.Position).Select(ToSquadToken).ToList();
+            var reserves = _team.Players.Where(p => p.Status == PlayerStatus.Available)
+                .OrderBy(p => p.Position).Select(ToSquadToken).ToList();
 
-            Reserves.Clear();
-            foreach (var p in _team.Players.Where(p => p.Status == PlayerStatus.Available).OrderBy(p => p.Position))
-                Reserves.Add(ToSquadToken(p));
+            // A swap/toggle only ever changes 1-2 players, but Bench/Reserves render via
+            // BindableLayout (not a virtualizing CollectionView - see LineupPage.xaml comment),
+            // which tears down and recreates the ENTIRE native visual subtree on a Clear()/Reset.
+            // With ~17 attribute chips per player that's thousands of native views rebuilt for a
+            // one-player change, causing a multi-second UI-thread stall. Diffing in place so only
+            // the actually-changed slots raise Replace/Add/Remove keeps unaffected players' visual
+            // trees untouched.
+            SyncCollection(Pitch, pitch);
+            SyncCollection(Bench, bench);
+            SyncCollection(Reserves, reserves);
+        }
+
+        private static void SyncCollection<T>(ObservableCollection<T> collection, IReadOnlyList<T> updated)
+        {
+            for (int i = 0; i < updated.Count && i < collection.Count; i++)
+            {
+                if (!Equals(collection[i], updated[i]))
+                    collection[i] = updated[i];
+            }
+            while (collection.Count > updated.Count)
+                collection.RemoveAt(collection.Count - 1);
+            for (int i = collection.Count; i < updated.Count; i++)
+                collection.Add(updated[i]);
         }
 
         private static PositionFitLevel ClassifyFit(Player? player, Position slotPosition)

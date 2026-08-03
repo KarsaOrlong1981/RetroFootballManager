@@ -2,7 +2,7 @@ using RetroFootballManager.ViewModels;
 
 namespace RetroFootballManager.Views
 {
-    public partial class StaffPage : ContentPage
+    public partial class StaffPage : BaseContentPage
     {
         private readonly StaffViewModel _viewModel;
 

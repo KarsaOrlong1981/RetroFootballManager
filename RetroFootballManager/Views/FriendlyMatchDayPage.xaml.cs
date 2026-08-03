@@ -2,7 +2,7 @@ using RetroFootballManager.ViewModels;
 
 namespace RetroFootballManager.Views
 {
-    public partial class FriendlyMatchDayPage : ContentPage
+    public partial class FriendlyMatchDayPage : BaseContentPage
     {
         private readonly FriendlyMatchDayViewModel _viewModel;
         private bool _initialized;

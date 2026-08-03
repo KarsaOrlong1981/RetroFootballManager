@@ -30,6 +30,9 @@ namespace RetroFootballManager.Data.Repositories
             _db.Connection.Table<PlayerStats>()
                 .Where(s => s.PlayerId == playerId && s.Season == season && s.Competition == competition).ToListAsync();
 
+        public Task<List<PlayerStats>> GetAllStatsAsync(int playerId) =>
+            _db.Connection.Table<PlayerStats>().Where(s => s.PlayerId == playerId).ToListAsync();
+
         public Task<List<PlayerStats>> GetStatsByCompetitionAsync(int season, CompetitionType competition) =>
             _db.Connection.Table<PlayerStats>()
                 .Where(s => s.Season == season && s.Competition == competition).ToListAsync();

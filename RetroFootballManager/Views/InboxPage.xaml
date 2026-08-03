@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
+<local:BaseContentPage
     x:Class="RetroFootballManager.Views.InboxPage"
     x:Name="Page"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:RetroFootballManager.Views"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
     x:DataType="vm:InboxViewModel"
     Title="Postfach"
@@ -12,7 +13,7 @@
     <Grid RowDefinitions="*,Auto" Padding="14" RowSpacing="10">
 
         <ScrollView Grid.Row="0">
-            <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Rows}">
+            <VerticalStackLayout Spacing="8" HorizontalOptions="Start" MaximumWidthRequest="880" BindableLayout.ItemsSource="{Binding Rows}">
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="vm:InboxMessageRow">
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
@@ -36,8 +37,8 @@
                                     <Label Text="{Binding Body}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
                                 </VerticalStackLayout>
                             </Border>
-                            <Border Grid.Column="1" WidthRequest="36" HeightRequest="36" Padding="0"
-                                    BackgroundColor="{StaticResource RfmSurfaceAlt}" StrokeThickness="0"
+                            <Border Grid.Column="1" WidthRequest="48" HeightRequest="48" Padding="0"
+                                    BackgroundColor="{StaticResource RfmText}" StrokeThickness="0"
                                     VerticalOptions="Center">
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
@@ -47,7 +48,7 @@
                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.DeleteCommand}"
                                         CommandParameter="{Binding Id}" />
                                 </Border.GestureRecognizers>
-                                <Label Text="🗑" FontSize="16" HorizontalOptions="Center" VerticalOptions="Center" />
+                                <Image Source="trash.png" WidthRequest="42" HeightRequest="42" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
                             </Border>
                         </Grid>
                     </DataTemplate>
@@ -61,4 +62,4 @@
                     BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
         </VerticalStackLayout>
     </Grid>
-</ContentPage>
+</local:BaseContentPage>

@@ -34,8 +34,12 @@ namespace RetroFootballManager.Tests
             if (File.Exists(_dbPath)) File.Delete(_dbPath);
         }
 
+        private static StandingRow Row(int position, int teamId, string name, int wins) =>
+            new(position, teamId, name, Played: 30, wins, Draws: 0, Losses: 30 - wins,
+                GoalsFor: 0, GoalsAgainst: 0, GoalDifference: 0, Points: wins * 3, Form: "");
+
         [Fact]
-        public async Task PaySponsorPromotionBonusesAsync_CreditsBonusForPromotedTeamWithActiveDeal()
+        public async Task PaySponsorSeasonBonusesAsync_CreditsBonusForPromotedTeamWithActiveDeal()
         {
             var team = TestHelpers.CreateTeam("Aufsteiger", baseRating: 60);
             team.Id = 1;
@@ -50,17 +54,17 @@ namespace RetroFootballManager.Tests
 
             var result = new SeasonEndResult(
                 Season: 1,
-                Leagues: [new LeagueTableResult(Tier: 4, Table: [], PromotedTeamIds: [team.Id], RelegatedTeamIds: [])],
+                Leagues: [new LeagueTableResult(Tier: 4, Table: [Row(1, team.Id, team.Name, wins: 20)], PromotedTeamIds: [team.Id], RelegatedTeamIds: [])],
                 ManagerFinalPosition: 1, ManagerTier: 4, PointsAwarded: 100, ManagerOutcome: "Aufstieg", ManagerPromoted: true);
 
-            await _saveGame.PaySponsorPromotionBonusesAsync([team], result);
+            await _saveGame.PaySponsorSeasonBonusesAsync([team], result);
 
             Assert.Equal(350_000, team.Finances.CurrentBalance);
             Assert.Equal(250_000, team.Finances.SponsorIncome);
         }
 
         [Fact]
-        public async Task PaySponsorPromotionBonusesAsync_DoesNothing_ForNonPromotedTeam()
+        public async Task PaySponsorSeasonBonusesAsync_DoesNothing_ForNonPromotedMidTableTeamWithoutMidfieldBonus()
         {
             var team = TestHelpers.CreateTeam("Bleibt", baseRating: 60);
             team.Id = 2;
@@ -75,16 +79,16 @@ namespace RetroFootballManager.Tests
 
             var result = new SeasonEndResult(
                 Season: 1,
-                Leagues: [new LeagueTableResult(Tier: 4, Table: [], PromotedTeamIds: [], RelegatedTeamIds: [])],
-                ManagerFinalPosition: 5, ManagerTier: 4, PointsAwarded: 25, ManagerOutcome: "Klassenerhalt", ManagerPromoted: false);
+                Leagues: [new LeagueTableResult(Tier: 4, Table: [Row(9, team.Id, team.Name, wins: 0)], PromotedTeamIds: [], RelegatedTeamIds: [])],
+                ManagerFinalPosition: 9, ManagerTier: 4, PointsAwarded: 25, ManagerOutcome: "Klassenerhalt", ManagerPromoted: false);
 
-            await _saveGame.PaySponsorPromotionBonusesAsync([team], result);
+            await _saveGame.PaySponsorSeasonBonusesAsync([team], result);
 
             Assert.Equal(100_000, team.Finances.CurrentBalance);
         }
 
         [Fact]
-        public async Task PaySponsorPromotionBonusesAsync_DoesNothing_WithoutActiveSponsorship()
+        public async Task PaySponsorSeasonBonusesAsync_DoesNothing_WithoutActiveSponsorship()
         {
             var team = TestHelpers.CreateTeam("KeinSponsor", baseRating: 60);
             team.Id = 3;
@@ -92,12 +96,41 @@ namespace RetroFootballManager.Tests
 
             var result = new SeasonEndResult(
                 Season: 1,
-                Leagues: [new LeagueTableResult(Tier: 4, Table: [], PromotedTeamIds: [team.Id], RelegatedTeamIds: [])],
+                Leagues: [new LeagueTableResult(Tier: 4, Table: [Row(1, team.Id, team.Name, wins: 20)], PromotedTeamIds: [team.Id], RelegatedTeamIds: [])],
                 ManagerFinalPosition: 1, ManagerTier: 4, PointsAwarded: 100, ManagerOutcome: "Aufstieg", ManagerPromoted: true);
 
-            await _saveGame.PaySponsorPromotionBonusesAsync([team], result);
+            await _saveGame.PaySponsorSeasonBonusesAsync([team], result);
 
             Assert.Equal(100_000, team.Finances.CurrentBalance);
+        }
+
+        [Fact]
+        public async Task PaySponsorSeasonBonusesAsync_PaysWinBonusAndMasterTitle_ForChampion()
+        {
+            var team = TestHelpers.CreateTeam("Meister", baseRating: 60);
+            team.Id = 4;
+            team.Finances = new Finances { CurrentBalance = 0 };
+
+            var sponsor = new Sponsor
+            {
+                Name = "Bonus AG", SponsorType = SponsorType.Main, MinTier = 4,
+                BonusPerWin = 1_000, BonusForMasterTitle = 100_000, BonusForTop5 = 40_000,
+            };
+            await _sponsorRepo.SaveAsync(sponsor);
+            await _sponsorshipRepo.SaveAsync(new Sponsorship
+            {
+                TeamId = team.Id, SponsorId = sponsor.Id, SponsorType = SponsorType.Main, StartSeason = 1, Duration = 2,
+            });
+
+            var result = new SeasonEndResult(
+                Season: 1,
+                Leagues: [new LeagueTableResult(Tier: 4, Table: [Row(1, team.Id, team.Name, wins: 25)], PromotedTeamIds: [team.Id], RelegatedTeamIds: [])],
+                ManagerFinalPosition: 1, ManagerTier: 4, PointsAwarded: 150, ManagerOutcome: "Meister", ManagerPromoted: true);
+
+            await _saveGame.PaySponsorSeasonBonusesAsync([team], result);
+
+            // 25 wins * 1_000 win bonus + master title bonus - NOT also the top5 bonus (champion supersedes it).
+            Assert.Equal(125_000, team.Finances.CurrentBalance);
         }
     }
 }

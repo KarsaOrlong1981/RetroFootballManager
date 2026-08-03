@@ -2,7 +2,7 @@ using RetroFootballManager.ViewModels;
 
 namespace RetroFootballManager.Views
 {
-    public partial class InboxPage : ContentPage
+    public partial class InboxPage : BaseContentPage
     {
         private readonly InboxViewModel _viewModel;
 

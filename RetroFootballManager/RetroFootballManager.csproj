@@ -41,6 +41,7 @@
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
 		<MauiImage Include="Resources\Images\Logos\*" Resize="True" BaseSize="128,128" />
+		<MauiImage Update="Resources\Images\Logos\retrofootball_logo_clean.png" Resize="False" />
 		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
 		
 		<!-- Custom Fonts -->
@@ -51,6 +52,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Resources\Images\Backgrounds\einzeltraining.png" />
+	  <None Remove="Resources\Images\Backgrounds\empty_table_cropped.png" />
 	  <None Remove="Resources\Images\Backgrounds\finaces.png" />
 	  <None Remove="Resources\Images\Backgrounds\hintergrund_finanzen.png" />
 	  <None Remove="Resources\Images\Backgrounds\hintergrund_scouts.jpg" />
@@ -64,8 +67,23 @@
 	  <None Remove="Resources\Images\Backgrounds\hintergrund_stadion_evo5.jpg" />
 	  <None Remove="Resources\Images\Backgrounds\hintergrund_stadion_evo6_ultimativ.jpg" />
 	  <None Remove="Resources\Images\Backgrounds\mainmenu_no_label.png" />
+	  <None Remove="Resources\Images\Backgrounds\meetingroom.png" />
 	  <None Remove="Resources\Images\Backgrounds\scouting.png" />
+	  <None Remove="Resources\Images\Backgrounds\start_transparent.png" />
+	  <None Remove="Resources\Images\Backgrounds\tactic.png" />
+	  <None Remove="Resources\Images\Backgrounds\teamtraining.png" />
 	  <None Remove="Resources\Images\Backgrounds\transfermarket.png" />
+	  <None Remove="Resources\Images\Sponors\autoservice_klein.png" />
+	  <None Remove="Resources\Images\Sponors\baeckerei_krause.png" />
+	  <None Remove="Resources\Images\Sponors\bauzentrum_krampe.png" />
+	  <None Remove="Resources\Images\Sponors\dorfmarkt_schoeder.png" />
+	  <None Remove="Resources\Images\Sponors\elektro_schulte.png" />
+	  <None Remove="Resources\Images\Sponors\fahrrad_mueller.png" />
+	  <None Remove="Resources\Images\Sponors\getraenke_meyer.png" />
+	  <None Remove="Resources\Images\Sponors\getraenke_schulz.png" />
+	  <None Remove="Resources\Images\Sponors\landmarkt_union.png" />
+	  <None Remove="Resources\Images\Sponors\lokalhandel_eg.png" />
+	  <None Remove="Resources\Images\Sponors\provinz_discounter.png" />
 	  <None Remove="Resources\Images\Trophies\trophy_deutscher_meister.jpg" />
 	  <None Remove="Resources\Images\Trophies\trophy_meister_liga2.jpg" />
 	  <None Remove="Resources\Images\Trophies\trophy_meister_liga3.jpg" />
@@ -76,6 +94,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiImage Include="Resources\Images\Backgrounds\einzeltraining.png" />
+	  <MauiImage Include="Resources\Images\Backgrounds\empty_table_cropped.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\finaces.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\hintergrund_finanzen.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\hintergrund_scouts.jpg" />
@@ -89,8 +109,24 @@
 	  <MauiImage Include="Resources\Images\Backgrounds\hintergrund_stadion_evo5.jpg" />
 	  <MauiImage Include="Resources\Images\Backgrounds\hintergrund_stadion_evo6_ultimativ.jpg" />
 	  <MauiImage Include="Resources\Images\Backgrounds\mainmenu_no_label.png" />
+	  <MauiImage Include="Resources\Images\Backgrounds\meetingroom.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\scouting.png" />
+	  <MauiImage Include="Resources\Images\Backgrounds\start_transparent.png" />
+	  <MauiImage Include="Resources\Images\Backgrounds\sub.png" />
+	  <MauiImage Include="Resources\Images\Backgrounds\tactic.png" />
+	  <MauiImage Include="Resources\Images\Backgrounds\teamtraining.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\transfermarket.png" />
+	  <MauiImage Include="Resources\Images\Sponors\autoservice_klein.png" />
+	  <MauiImage Include="Resources\Images\Sponors\baeckerei_krause.png" />
+	  <MauiImage Include="Resources\Images\Sponors\bauzentrum_krampe.png" />
+	  <MauiImage Include="Resources\Images\Sponors\dorfmarkt_schoeder.png" />
+	  <MauiImage Include="Resources\Images\Sponors\elektro_schulte.png" />
+	  <MauiImage Include="Resources\Images\Sponors\fahrrad_mueller.png" />
+	  <MauiImage Include="Resources\Images\Sponors\getraenke_meyer.png" />
+	  <MauiImage Include="Resources\Images\Sponors\getraenke_schulz.png" />
+	  <MauiImage Include="Resources\Images\Sponors\landmarkt_union.png" />
+	  <MauiImage Include="Resources\Images\Sponors\lokalhandel_eg.png" />
+	  <MauiImage Include="Resources\Images\Sponors\provinz_discounter.png" />
 	  <MauiImage Include="Resources\Images\Trophies\trophy_deutscher_meister.jpg" />
 	  <MauiImage Include="Resources\Images\Trophies\trophy_meister_liga2.jpg" />
 	  <MauiImage Include="Resources\Images\Trophies\trophy_meister_liga3.jpg" />

@@ -3,18 +3,29 @@ using RetroFootballManager.Models;
 
 namespace RetroFootballManager.Common
 {
-    public record MatchdayFinanceResult(int TicketIncome, int MerchandiseIncome, int SponsorWinBonus);
+    public record MatchdayFinanceResult(int TicketIncome, int MerchandiseIncome);
 
     // Books a team's ongoing income/expenses. Two separate triggers:
     // - ApplyMatchdayFinanceAsync: purely match-dependent items (ticket income only for
-    //   home games, sponsor win bonus only on a win, merchandise per matchday).
+    //   home games, merchandise per matchday). Sponsor bonuses (win/promotion/placement)
+    //   are NOT paid here - they're tallied over the season and paid as one lump sum at
+    //   season end (see SaveGameService.PaySponsorSeasonBonusesAsync).
     // - ApplyMonthlySettlementAsync: real calendar-month settlement (player/staff wages,
-    //   stadium upkeep, sponsor monthly rate = annual amount/12 each), independent of
-    //   whether a matchday is happening - also runs during preseason/winter break
-    //   (called from both MatchDayService and CalendarAdvanceService).
+    //   stadium upkeep, sponsor monthly rate), independent of whether a matchday is
+    //   happening - also runs during preseason/winter break (called from both
+    //   MatchDayService and CalendarAdvanceService).
     public class FinanceService
     {
         public const int MatchdaysPerSeason = 34;
+
+        // A season always runs from August 1st (see SaveGameService.NextSeasonStart) through
+        // the 34th matchday + 4-week winter break (FixtureGenerator), which always lands
+        // before the next April 15th settlement regardless of which exact Saturday matchday 1
+        // falls on - so exactly 9 monthly settlements (Aug 15 .. Apr 15) occur within a season.
+        // Sponsor.SeasonPayment is split across these 9, not across a full calendar year, so
+        // the full amount is actually in hand by the time the season ends.
+        public const int SponsorPaymentMonths = 9;
+
         private const double MerchandisePerMatchday = 2_000;
         private const int FinanceWarningThreshold = 0;
 
@@ -59,27 +70,23 @@ namespace RetroFootballManager.Common
 
         // Purely match-dependent items - wages/stadium upkeep/sponsor base rate run
         // separately via ApplyMonthlySettlementAsync.
-        public async Task<MatchdayFinanceResult> ApplyMatchdayFinanceAsync(
-            Team team, bool isHome, bool won, IReadOnlyList<StandingRow> standings, int opponentTierRank,
-            DateTime currentDate)
+        public MatchdayFinanceResult ApplyMatchdayFinance(
+            Team team, bool isHome, IReadOnlyList<StandingRow> standings, int opponentTierRank)
         {
             var finances = team.Finances;
             var stadium = team.Stadium;
             if (finances is null || stadium is null)
-                return new MatchdayFinanceResult(0, 0, 0);
+                return new MatchdayFinanceResult(0, 0);
 
             int ticketIncome = isHome ? CalculateTicketIncome(team, stadium, standings, opponentTierRank) : 0;
             finances.TicketIncome += ticketIncome;
 
-            int sponsorWinBonus = await CalculateSponsorWinBonusAsync(team, won);
-            finances.SponsorIncome += sponsorWinBonus;
-
             int merchandiseIncome = (int)(MerchandisePerMatchday * stadium.MerchandiseLevel);
             finances.MerchandiseIncome += merchandiseIncome;
 
-            finances.CurrentBalance += ticketIncome + sponsorWinBonus + merchandiseIncome;
+            finances.CurrentBalance += ticketIncome + merchandiseIncome;
 
-            return new MatchdayFinanceResult(ticketIncome, merchandiseIncome, sponsorWinBonus);
+            return new MatchdayFinanceResult(ticketIncome, merchandiseIncome);
         }
 
         // Real calendar-month settlement: fires once per calendar month once the 15th is
@@ -99,7 +106,13 @@ namespace RetroFootballManager.Common
             int playerWages = await CalculateMonthlyPlayerWagesAsync(team, currentDate);
             int staffWages = (int)Math.Round(team.Employees.Sum(e => e.Salary) / 12.0);
             int stadiumCost = team.Stadium is null ? 0 : (int)Math.Round(team.Stadium.MaintenanceCosts / 12.0);
-            int sponsorIncome = await CalculateMonthlySponsorIncomeAsync(team);
+
+            int sponsorIncome = 0;
+            if (finances.SponsorPaymentsThisSeason < SponsorPaymentMonths)
+            {
+                sponsorIncome = await CalculateMonthlySponsorIncomeAsync(team);
+                finances.SponsorPaymentsThisSeason++;
+            }
 
             int loanPayment = 0;
             if (team.ActiveLoan is not null)
@@ -161,26 +174,6 @@ namespace RetroFootballManager.Common
         private static double FormPoints(string form) =>
             form.Sum(c => c switch { 'W' => 3, 'D' => 1, _ => 0 });
 
-        private async Task<int> CalculateSponsorWinBonusAsync(Team team, bool won)
-        {
-            if (!won)
-                return 0;
-
-            var deals = await _sponsorships.GetByTeamAsync(team.Id);
-            if (deals.Count == 0)
-                return 0;
-
-            var catalog = await _sponsorCatalog.GetAllAsync();
-            int bonus = 0;
-            foreach (var deal in deals)
-            {
-                var sponsor = catalog.FirstOrDefault(s => s.Id == deal.SponsorId);
-                if (sponsor is not null)
-                    bonus += sponsor.BonusPerWin;
-            }
-            return bonus;
-        }
-
         private async Task<int> CalculateMonthlySponsorIncomeAsync(Team team)
         {
             var deals = await _sponsorships.GetByTeamAsync(team.Id);
@@ -193,7 +186,7 @@ namespace RetroFootballManager.Common
             {
                 var sponsor = catalog.FirstOrDefault(s => s.Id == deal.SponsorId);
                 if (sponsor is not null)
-                    income += sponsor.SeasonPayment / 12.0;
+                    income += sponsor.SeasonPayment / (double)SponsorPaymentMonths;
             }
             return (int)Math.Round(income);
         }
@@ -248,6 +241,7 @@ namespace RetroFootballManager.Common
             finances.PlayerWages = 0;
             finances.OtherIncome = 0;
             finances.OtherExpenses = 0;
+            finances.SponsorPaymentsThisSeason = 0;
         }
     }
 }

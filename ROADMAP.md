@@ -48,22 +48,6 @@ should become a real negotiation the manager actively conducts:
   (`TransferMarketViewModel`/`TransferMarketPage.xaml`) is the closest existing template to
   adapt rather than build from scratch.
 
-### Sponsor objectives
-
-Currently, sponsor offers (e.g. in League 4) always come as two offers where one is simply
-better than the other in every respect - there's no real decision to make. This should become
-a proper trade-off:
-
-- At least **3 distinct offers** per sponsor slot.
-- **1 unconditional offer**: no performance clause, but a lower base amount.
-- **2 conditional offers**: each tied to a season objective that varies per offer (e.g.
-  "finish top 5", "win the league", "get promoted", "finish mid-table", …). Meeting the
-  condition pays out an extra bonus at season end.
-- The size of the bonus should be inversely related to the base offer: a sponsor offering a
-  very high bonus for a hard condition should have a lower base amount than the unconditional
-  offer, not a higher one. The player has to weigh "can we realistically hit this condition,
-  and is the extra payout worth the risk?" before signing.
-
 ### Merchandise department (new)
 
 A new department to buy fan merchandise at wholesale cost and sell it at a markup:
@@ -86,17 +70,6 @@ A new main-menu section showing two live morale meters: **fan mood** and **board
   a cup round (+5% both), winning a cup (+25%, +30% for the Champions League/Europa Cup
   equivalents), winning the league (+30%), promotion (+25%), relegation (-30%), and similar
   events.
-
-### Formation position fixes
-
-The DM/CM assignment and the AV/WB toggle currently don't match real formation logic:
-
-- **4-2-3-1**: the two deepest midfielders should both be CMs, not one CM + one DM.
-- **4-3-3**: the middle of the three should be a DM, the other two should be CMs.
-- **4-2-2-2**: depending on team mentality, the two deepest midfielders should be CMs
-  (offensive), or DMs (defensive and balanced).
-- The FB/WB toggle button should only ever appear for LB/RB positions - it currently also
-  shows up (incorrectly) for LM/RM.
 
 ### Long-term player development
 
@@ -169,22 +142,6 @@ Erhöhung). Daraus soll eine echte, vom Manager aktiv geführte Verhandlung werd
   des Transfermarkts (`TransferMarketViewModel`/`TransferMarketPage.xaml`) eignet sich am besten
   als Vorlage, statt komplett neu zu bauen.
 
-### Sponsoren-Ziele
-
-Aktuell bestehen Sponsorenangebote (z. B. in Liga 4) immer aus zwei Angeboten, bei denen eines
-in jeder Hinsicht einfach besser ist als das andere - eine echte Entscheidung gibt es dabei
-nicht. Das soll zu einer echten Abwägung werden:
-
-- Mindestens **3 verschiedene Angebote** pro Sponsorenplatz.
-- **1 Angebot ohne Auflagen**: keine Leistungsklausel, dafür ein niedrigerer Grundbetrag.
-- **2 Angebote mit Auflagen**: jeweils an ein Saisonziel gekoppelt, das je Angebot variiert
-  (z. B. "mindestens 5. Platz", "werde Meister", "steige auf", "Platz im Mittelfeld", …). Wird
-  die Auflage erfüllt, gibt es am Saisonende einen zusätzlichen Bonus.
-- Die Bonushöhe soll umgekehrt zum Grundangebot stehen: ein Sponsor mit einem sehr hohen Bonus
-  für eine schwere Auflage soll ein niedrigeres Grundangebot haben als das auflagenfreie
-  Angebot, nicht ein höheres. Der Spieler muss abwägen: "Können wir diese Auflage realistisch
-  schaffen, und lohnt sich der zusätzliche Betrag das Risiko?", bevor er unterschreibt.
-
 ### Merchandise-Abteilung (neu)
 
 Eine neue Abteilung, um Fanartikel günstig einzukaufen und mit Aufschlag zu verkaufen:
@@ -209,19 +166,6 @@ Eine neue Sektion im Hauptmenü mit zwei Stimmungsanzeigen: **Fan-Stimmung** und
   (+5 % Fan-Stimmung), Weiterkommen in einer Pokalrunde (+5 % auf beides), Pokalsieg (+25 %,
   bei Champions League/Europa Pokal +30 %), Meisterschaft (+30 %), Aufstieg (+25 %), Abstieg
   (-30 %) und ähnliche Ereignisse.
-
-### Formations-Positionen korrigieren
-
-Die DM/ZM-Zuordnung und der AV/WB-Umschaltknopf entsprechen aktuell nicht der realen
-Formationslogik:
-
-- **4-2-3-1**: die beiden tiefsten Mittelfeldspieler sollen beide ZMs sein, nicht ein ZM und
-  ein DM.
-- **4-3-3**: der mittlere der drei soll ein DM sein, die anderen beiden ZMs.
-- **4-2-2-2**: je nach Mannschaftsausrichtung sollen die beiden tiefsten Mittelfeldspieler
-  ZMs sein (offensiv) oder DMs (defensiv und ausgeglichen).
-- Der AV/WB-Umschaltknopf darf nur bei LV/RV-Positionen erscheinen - aktuell wird er
-  fälschlicherweise auch bei LM/RM angezeigt.
 
 ### Langfristige Spielerentwicklung
 

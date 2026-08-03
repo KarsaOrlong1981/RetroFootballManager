@@ -102,7 +102,8 @@ namespace RetroFootballManager.ViewModels
             var seasonStats = _session.State is null
                 ? null
                 : await _saveGame.GetPlayerSeasonStatsAsync(SelectedPlayer.Id, _session.State.Season);
-            SelectedProfile = PlayerProfile.From(SelectedPlayer, _selectedProfileContract, _selectedProfileListing, seasonStats);
+            var careerStats = await _saveGame.GetPlayerCareerStatsAsync(SelectedPlayer.Id);
+            SelectedProfile = PlayerProfile.From(SelectedPlayer, _selectedProfileContract, _selectedProfileListing, seasonStats, careerStats);
             CanRenewContract = _selectedProfileContract is not null;
             RenewStatusText = string.Empty;
             IsPlayerProfileOpen = true;
@@ -121,7 +122,8 @@ namespace RetroFootballManager.ViewModels
             PlayerContractService.RenewContract(_selectedProfileContract, newSalary, additionalYears: 2);
             await _saveGame.SaveContractAsync(_selectedProfileContract);
 
-            SelectedProfile = PlayerProfile.From(SelectedPlayer, _selectedProfileContract, _selectedProfileListing);
+            var careerStats = await _saveGame.GetPlayerCareerStatsAsync(SelectedPlayer.Id);
+            SelectedProfile = PlayerProfile.From(SelectedPlayer, _selectedProfileContract, _selectedProfileListing, careerStats: careerStats);
             RenewStatusText = $"Verlängert bis {_selectedProfileContract.EndDate:MMMM yyyy}.";
         }
 

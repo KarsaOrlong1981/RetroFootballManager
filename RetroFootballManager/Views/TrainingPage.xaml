@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
+<local:BaseContentPage
     x:Class="RetroFootballManager.Views.TrainingPage"
     x:Name="Page"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:RetroFootballManager.Views"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
     xmlns:controls="clr-namespace:RetroFootballManager.Views.Controls"
     x:DataType="vm:TrainingViewModel"
@@ -11,7 +12,8 @@
     BackgroundColor="{StaticResource RfmBackground}">
 
     <Grid>
-        <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Padding="14" RowSpacing="10">
+        <Image Source="einzeltraining.png" Aspect="AspectFill"/>
+        <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Opacity="0.85" Padding="14" RowSpacing="10">
 
             <HorizontalStackLayout  Grid.Row="0" Spacing="20">
                 <Picker Title="Spieler"
@@ -22,7 +24,7 @@
                         TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
             </HorizontalStackLayout>
             <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,*">
-                <Label Grid.Column="0" Text="{Binding PlayerInfo}" FontSize="14" FontAttributes="Bold"
+                <Label Grid.Column="0" Text="{Binding PlayerInfo}" BackgroundColor="Black" HorizontalOptions="Start" FontSize="16" FontAttributes="Bold"
                        TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
                 <Border Grid.Column="1" 
                         Margin="8"
@@ -37,15 +39,15 @@
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding ShowProfileCommand}" />
                     </Border.GestureRecognizers>
-                    <Label  Text="ℹ" FontSize="40" TextColor="{StaticResource RfmText}" HorizontalOptions="Start" VerticalOptions="Start" />
+                    <Image Source="info.png" WidthRequest="40" HeightRequest="40" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
                 </Border>
             </Grid>
-            <Label Grid.Row="2" Text="{Binding CoachInfo}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
+            <Label Grid.Row="2" Text="{Binding CoachInfo}" BackgroundColor="Black" HorizontalOptions="Start" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
 
-            <CollectionView Grid.Row="3" ItemsSource="{Binding Attributes}">
+            <CollectionView Grid.Row="3" ItemsSource="{Binding Attributes}" WidthRequest="800" HorizontalOptions="Start">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="vm:AttributeRow">
-                        <Grid Padding="3">
+                        <Grid Padding="3" WidthRequest="800" >
                             <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
@@ -104,4 +106,4 @@
             </VerticalStackLayout>
         </Grid>
     </Grid>
-</ContentPage>
+</local:BaseContentPage>

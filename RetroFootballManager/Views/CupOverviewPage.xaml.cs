@@ -2,7 +2,7 @@ using RetroFootballManager.ViewModels;
 
 namespace RetroFootballManager.Views
 {
-    public partial class CupOverviewPage : ContentPage
+    public partial class CupOverviewPage : BaseContentPage
     {
         private readonly CupOverviewViewModel _viewModel;
 

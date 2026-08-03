@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
+<local:BaseContentPage
     x:Class="RetroFootballManager.Views.SponsorsPage"
     x:Name="Page"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:RetroFootballManager.Views"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
     xmlns:models="clr-namespace:RetroFootballManager.Models;assembly=RetroFootballManager.Core"
     x:DataType="vm:SponsorsViewModel"
@@ -14,8 +15,38 @@
         <VerticalStackLayout Padding="20" Spacing="14">
 
             <Label Text="Hauptsponsor" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-            <Label Text="{Binding CurrentMainText}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}" />
-            <CollectionView ItemsSource="{Binding MainOffers}" HeightRequest="160">
+            <Label Text="{Binding CurrentMainText}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}" IsVisible="{Binding IsMainSlotOpen}" />
+
+            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" IsVisible="{Binding IsMainSlotSigned}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="Auto,*" x:DataType="vm:SponsorsViewModel">
+                    <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding SignedMainSponsor.ImagePath}"/>
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" HorizontalOptions="Start" VerticalOptions="Center">
+                        <Label Text="{Binding SignedMainSponsor.Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                        <Label Text="{Binding SignedMainSponsor.SeasonPayment, StringFormat='{0:N0} € / Saison'}"
+                               FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                        <Label Text="{Binding SignedMainSponsor.PaymentPerMonth, StringFormat='{0:N0} € / Monat'}"
+                               FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                        <Label Text="{Binding MainSignedUntilText}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                        <Label Text="Mögliche Bonuszahlungen (am Saisonende):" FontSize="12" FontAttributes="Bold"
+                               TextColor="{StaticResource RfmText}" Margin="0,4,0,0" />
+                        <CollectionView ItemsSource="{Binding SignedMainSponsor.Offers}" ItemsLayout="VerticalList">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:BonusOffers">
+                                    <HorizontalStackLayout Spacing="10">
+                                        <Label Text="{Binding Offer}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                        <Label Text="{Binding Payment, StringFormat='{0:N0} €'}" TextColor="{StaticResource RfmAccentTeal}" FontAttributes="Bold" />
+                                    </HorizontalStackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <CollectionView ItemsSource="{Binding MainOffers}" MinimumHeightRequest="160" IsVisible="{Binding IsMainSlotOpen}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Sponsor">
                         <Grid Padding="3">
@@ -23,15 +54,33 @@
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <VerticalStackLayout Grid.Column="0">
+                                <Grid ColumnDefinitions="Auto,*,*,*">
+                                    <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding ImagePath}"/>
+                                    <VerticalStackLayout Grid.Column="1" HorizontalOptions="Start" VerticalOptions="Center">
                                         <Label Text="{Binding Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
                                         <Label Text="{Binding SeasonPayment, StringFormat='{0:N0} € / Saison'}"
+                                               FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                                        <Label Text="{Binding PaymentPerMonth, StringFormat='{0:N0} € / Monat'}"
                                                FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
                                     </VerticalStackLayout>
-                                    <Button Grid.Column="1" Text="Unterschreiben"
+                                    <CollectionView 
+                                        Grid.Column="2"
+                                        VerticalOptions="Center"
+                                        ItemsLayout="VerticalList"
+                                        ItemsSource="{Binding Offers}">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate  x:DataType="models:BonusOffers">
+                                                <HorizontalStackLayout Spacing="20">
+                                                    <Label Text="{Binding Offer}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                                    <Label Text="{Binding Payment, StringFormat='{0:N0} €'}" TextColor="{StaticResource RfmAccentTeal}" FontAttributes="Bold" />
+                                                </HorizontalStackLayout>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                    <Button Grid.Column="3" Text="Unterschreiben" VerticalOptions="Center" HorizontalOptions="Center"
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.SignCommand}"
                                             CommandParameter="{Binding .}"
+                                            WidthRequest="200"
                                             BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
                                 </Grid>
                             </Border>
@@ -41,8 +90,38 @@
             </CollectionView>
 
             <Label Text="Bandenwerbung" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
-            <Label Text="{Binding CurrentPerimeterText}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}" />
-            <CollectionView ItemsSource="{Binding PerimeterOffers}" HeightRequest="160">
+            <Label Text="{Binding CurrentPerimeterText}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}" IsVisible="{Binding IsPerimeterSlotOpen}" />
+
+            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" IsVisible="{Binding IsPerimeterSlotSigned}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="Auto,*" x:DataType="vm:SponsorsViewModel">
+                    <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding SignedPerimeterSponsor.ImagePath}"/>
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" HorizontalOptions="Start" VerticalOptions="Center">
+                        <Label Text="{Binding SignedPerimeterSponsor.Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                        <Label Text="{Binding SignedPerimeterSponsor.SeasonPayment, StringFormat='{0:N0} € / Saison'}"
+                               FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                        <Label Text="{Binding SignedPerimeterSponsor.PaymentPerMonth, StringFormat='{0:N0} € / Monat'}"
+                               FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                        <Label Text="{Binding PerimeterSignedUntilText}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                        <Label Text="Mögliche Bonuszahlungen (am Saisonende):" FontSize="12" FontAttributes="Bold"
+                               TextColor="{StaticResource RfmText}" Margin="0,4,0,0" />
+                        <CollectionView ItemsSource="{Binding SignedPerimeterSponsor.Offers}" ItemsLayout="VerticalList">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:BonusOffers">
+                                    <HorizontalStackLayout Spacing="10">
+                                        <Label Text="{Binding Offer}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                        <Label Text="{Binding Payment, StringFormat='{0:N0} €'}" TextColor="{StaticResource RfmAccentTeal}" FontAttributes="Bold" />
+                                    </HorizontalStackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <CollectionView ItemsSource="{Binding PerimeterOffers}" MinimumHeightRequest="160" IsVisible="{Binding IsPerimeterSlotOpen}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Sponsor">
                         <Grid Padding="3">
@@ -50,15 +129,33 @@
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <VerticalStackLayout Grid.Column="0">
+                                <Grid ColumnDefinitions="Auto,*,*,*">
+                                    <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding ImagePath}"/>
+                                    <VerticalStackLayout Grid.Column="1" HorizontalOptions="Start" VerticalOptions="Center">
                                         <Label Text="{Binding Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
                                         <Label Text="{Binding SeasonPayment, StringFormat='{0:N0} € / Saison'}"
+                                               FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                                        <Label Text="{Binding PaymentPerMonth, StringFormat='{0:N0} € / Monat'}"
                                                FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
                                     </VerticalStackLayout>
-                                    <Button Grid.Column="1" Text="Unterschreiben"
+                                    <CollectionView
+                                        Grid.Column="2"
+                                        VerticalOptions="Center"
+                                        ItemsLayout="VerticalList"
+                                        ItemsSource="{Binding Offers}">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate  x:DataType="models:BonusOffers">
+                                                <HorizontalStackLayout Spacing="20">
+                                                    <Label Text="{Binding Offer}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                                    <Label Text="{Binding Payment, StringFormat='{0:N0} €'}" TextColor="{StaticResource RfmAccentTeal}" FontAttributes="Bold" />
+                                                </HorizontalStackLayout>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                    <Button Grid.Column="3" Text="Unterschreiben" VerticalOptions="Center"
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.SignCommand}"
                                             CommandParameter="{Binding .}"
+                                            WidthRequest="200"
                                             BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
                                 </Grid>
                             </Border>
@@ -71,7 +168,37 @@
                    IsVisible="{Binding KitSlotAvailable}" />
             <Label Text="{Binding CurrentKitText}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}"
                    IsVisible="{Binding KitSlotAvailable}" />
-            <CollectionView ItemsSource="{Binding KitOffers}" HeightRequest="160" IsVisible="{Binding KitSlotAvailable}">
+
+            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" IsVisible="{Binding ShowKitSignedCard}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="Auto,*" x:DataType="vm:SponsorsViewModel">
+                    <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding SignedKitSponsor.ImagePath}"/>
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" HorizontalOptions="Start" VerticalOptions="Center">
+                        <Label Text="{Binding SignedKitSponsor.Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                        <Label Text="{Binding SignedKitSponsor.SeasonPayment, StringFormat='{0:N0} € / Saison'}"
+                               FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                        <Label Text="{Binding SignedKitSponsor.PaymentPerMonth, StringFormat='{0:N0} € / Monat'}"
+                               FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                        <Label Text="{Binding KitSignedUntilText}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                        <Label Text="Mögliche Bonuszahlungen (am Saisonende):" FontSize="12" FontAttributes="Bold"
+                               TextColor="{StaticResource RfmText}" Margin="0,4,0,0" />
+                        <CollectionView ItemsSource="{Binding SignedKitSponsor.Offers}" ItemsLayout="VerticalList">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:BonusOffers">
+                                    <HorizontalStackLayout Spacing="10">
+                                        <Label Text="{Binding Offer}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                        <Label Text="{Binding Payment, StringFormat='{0:N0} €'}" TextColor="{StaticResource RfmAccentTeal}" FontAttributes="Bold" />
+                                    </HorizontalStackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <CollectionView ItemsSource="{Binding KitOffers}" MinimumHeightRequest="160" IsVisible="{Binding ShowKitOffers}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Sponsor">
                         <Grid Padding="3">
@@ -79,15 +206,33 @@
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <VerticalStackLayout Grid.Column="0">
+                                <Grid ColumnDefinitions="Auto,*,*,*">
+                                    <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding ImagePath}"/>
+                                    <VerticalStackLayout Grid.Column="1" HorizontalOptions="Start" VerticalOptions="Center">
                                         <Label Text="{Binding Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
                                         <Label Text="{Binding SeasonPayment, StringFormat='{0:N0} € / Saison'}"
+                                               FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                                        <Label Text="{Binding PaymentPerMonth, StringFormat='{0:N0} € / Monat'}"
                                                FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
                                     </VerticalStackLayout>
-                                    <Button Grid.Column="1" Text="Unterschreiben"
+                                    <CollectionView
+                                        Grid.Column="2"
+                                        VerticalOptions="Center"
+                                        ItemsLayout="VerticalList"
+                                        ItemsSource="{Binding Offers}">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate  x:DataType="models:BonusOffers">
+                                                <HorizontalStackLayout Spacing="20">
+                                                    <Label Text="{Binding Offer}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                                    <Label Text="{Binding Payment, StringFormat='{0:N0} €'}" TextColor="{StaticResource RfmAccentTeal}" FontAttributes="Bold" />
+                                                </HorizontalStackLayout>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                    <Button Grid.Column="3" Text="Unterschreiben" VerticalOptions="Center"
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.SignCommand}"
                                             CommandParameter="{Binding .}"
+                                            WidthRequest="200"
                                             BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
                                 </Grid>
                             </Border>
@@ -99,4 +244,4 @@
             <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
         </VerticalStackLayout>
     </ScrollView>
-</ContentPage>
+</local:BaseContentPage>
