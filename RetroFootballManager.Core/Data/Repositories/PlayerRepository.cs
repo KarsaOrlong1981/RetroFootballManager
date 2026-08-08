@@ -33,6 +33,13 @@ namespace RetroFootballManager.Data.Repositories
         public Task<List<PlayerStats>> GetAllStatsAsync(int playerId) =>
             _db.Connection.Table<PlayerStats>().Where(s => s.PlayerId == playerId).ToListAsync();
 
+        // All-time (every season) rows for one Competition value - null = league, a real
+        // CompetitionType = that specific cup/friendly bucket. Used to build career totals
+        // scoped to a single competition instead of GetAllStatsAsync's "everything" blend.
+        public Task<List<PlayerStats>> GetAllStatsByCompetitionAsync(int playerId, CompetitionType? competition) =>
+            _db.Connection.Table<PlayerStats>()
+                .Where(s => s.PlayerId == playerId && s.Competition == competition).ToListAsync();
+
         public Task<List<PlayerStats>> GetStatsByCompetitionAsync(int season, CompetitionType competition) =>
             _db.Connection.Table<PlayerStats>()
                 .Where(s => s.Season == season && s.Competition == competition).ToListAsync();

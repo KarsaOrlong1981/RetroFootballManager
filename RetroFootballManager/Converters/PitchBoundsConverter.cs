@@ -28,8 +28,8 @@ namespace RetroFootballManager.Converters
     // Used with AbsoluteLayout.LayoutFlags="PositionProportional" (size stays absolute).
     public class PitchBoundsConverter : IValueConverter
     {
-        public double TokenWidth { get; set; } = 80;
-        public double TokenHeight { get; set; } = 84;
+        public double TokenWidth { get; set; } = 150;
+        public double TokenHeight { get; set; } = 104;
 
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {

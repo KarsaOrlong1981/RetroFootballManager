@@ -31,7 +31,7 @@ namespace RetroFootballManager.Tests
             _campRepo = new TrainingCampRepository(_db);
             _service = new FriendlyService(
                 _fixtureRepo, _teamRepo, _campRepo,
-                new MessageService(new MessageRepository(_db)), new Random(1));
+                new MessageService(new MessageRepository(_db)), random: new Random(1));
         }
 
         public async Task DisposeAsync()

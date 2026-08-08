@@ -24,5 +24,10 @@ namespace RetroFootballManager.Models
 
         // Controls how fast COM teams train/develop (see TrainingService).
         public Difficulty Difficulty { get; set; } = Difficulty.Normal;
+
+        // Set by ClubMoodService.CheckThresholds when board or fan mood drops below 30% - ends
+        // the career (manager dismissed). GameOverReason is a short label ("Vorstand"/"Fans").
+        public bool IsGameOver { get; set; }
+        public string? GameOverReason { get; set; }
     }
 }

@@ -101,6 +101,32 @@ namespace RetroFootballManager.Tests
         }
 
         [Fact]
+        public async Task PlayingAMatchday_ConvertsSubstitutedOffHumanPlayers_ToOnBench()
+        {
+            var (leagues, teams) = BuildUniverse();
+            var manager = teams.First(t => t.LeagueTier == 4);
+            var state = await _saveGame.StartNewCareerAsync(
+                "Test", 1, leagues, teams, manager, new DateTime(2026, 8, 1));
+
+            var fixtures = await _saveGame.GetFixturesAsync(1);
+            var humanFixture = fixtures.First(f => f.Matchday == 1 &&
+                (f.HomeTeamId == manager.Id || f.AwayTeamId == manager.Id));
+
+            var humanResult = SimulateHumanFixture(teams, humanFixture);
+
+            // A substitution made during the match leaves the outgoing player SubstitutedOff
+            // (Match.TrySubstitute) - PlayMatchdayAsync must convert this back to OnBench for
+            // the human team right after full time, or the Lineup page's Bench/Reserves would
+            // simply lose that player until the next matchday prep/calendar tick.
+            var subbedOff = manager.Players.First(p => p.Status == PlayerStatus.InStartingXI);
+            subbedOff.Status = PlayerStatus.SubstitutedOff;
+
+            await _matchDay.PlayMatchdayAsync(state, teams, 1, humanFixture, humanResult);
+
+            Assert.Equal(PlayerStatus.OnBench, subbedOff.Status);
+        }
+
+        [Fact]
         public async Task AdvancingSeason_AppliesPromotionRelegation_ResetsStatsAndFixtures()
         {
             var (leagues, teams) = BuildUniverse();

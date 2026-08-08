@@ -10,34 +10,35 @@
     BackgroundColor="{StaticResource RfmBackground}">
 
     <Grid>
-        <ScrollView>
+        <Image Source="credithai.png" Aspect="Fill"/>
+        <ScrollView Opacity="0.85">
             <VerticalStackLayout Padding="20" Spacing="14">
 
-                <Label Text="{Binding MaxAmountText}" FontSize="14" TextColor="{StaticResource RfmTextMuted}" />
+                <Label Text="{Binding MaxAmountText}" HorizontalOptions="Start" Style="{StaticResource RfmMutedLabel}" />
 
-                <Label Text="Kreditsumme" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <Label Text="Kreditsumme" Style="{StaticResource RfmLabel}" HorizontalOptions="Start" />
                 <Picker ItemsSource="{Binding AmountOptions}" SelectedItem="{Binding SelectedAmount}"
                         TextColor="{StaticResource RfmText}" BackgroundColor="{StaticResource RfmSurface}" />
 
-                <Label Text="Laufzeit (Monate)" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                <Picker ItemsSource="{Binding TermOptions}" SelectedItem="{Binding SelectedTerm}"
+                <Label Text="Laufzeit (Monate)" Style="{StaticResource RfmLabel}" HorizontalOptions="Start"/>
+                <Picker ItemsSource="{Binding TermOptions}" SelectedItem="{Binding SelectedTerm}" 
                         TextColor="{StaticResource RfmText}" BackgroundColor="{StaticResource RfmSurface}" />
 
-                <Border StrokeThickness="0" Padding="14" BackgroundColor="{StaticResource RfmSurface}">
+                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}">
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="12" />
                     </Border.StrokeShape>
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="{Binding InterestRateText}" TextColor="{StaticResource RfmText}" />
-                        <Label Text="{Binding MonthlyPaymentPreviewText}" FontAttributes="Bold" TextColor="#EF4444" />
+                        <Label Text="{Binding InterestRateText}" Style="{StaticResource RfmLabel}"  HorizontalOptions="Start"/>
+                        <Label Text="{Binding MonthlyPaymentPreviewText}" FontAttributes="Bold" HorizontalOptions="Start" TextColor="#EF4444" />
                     </VerticalStackLayout>
                 </Border>
 
-                <Label Text="{Binding StatusText}" FontSize="14" TextColor="{StaticResource RfmText}" />
+                <Label Text="{Binding StatusText}" Style="{StaticResource RfmLabel}"  HorizontalOptions="Start"/>
 
-                <Button Text="Kredit aufnehmen" Command="{Binding ConfirmCommand}"
+                <Button Text="Kredit aufnehmen" Command="{Binding ConfirmCommand}" WidthRequest="200" HorizontalOptions="Start"
                         BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
-                <Button Text="Abbrechen" Command="{Binding CancelCommand}"
+                <Button Text="Abbrechen" Command="{Binding CancelCommand}" WidthRequest="200" HorizontalOptions="Start"
                         BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmTextMuted}" />
             </VerticalStackLayout>
         </ScrollView>

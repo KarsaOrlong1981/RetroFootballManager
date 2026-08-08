@@ -10,8 +10,25 @@ namespace RetroFootballManager.Models
         [Indexed]
         public int TeamId { get; set; }
 
+        // Fires on every CurrentBalance write, regardless of which service caused it -
+        // subscribe here instead of hunting down every call site that touches the balance.
+        public event EventHandler<EventArgs>? CurrentBalanceChanged;
+
+        private int _currentBalance;
+
         // Basic team budget
-        public int CurrentBalance { get; set; }          // Available money
+        public int CurrentBalance
+        {
+            get => _currentBalance;
+            set
+            {
+                if (_currentBalance == value)
+                    return;
+                _currentBalance = value;
+                CurrentBalanceChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+        // Available money
         public int SeasonBudget { get; set; }            // Planned budget for the season
 
         // Income streams

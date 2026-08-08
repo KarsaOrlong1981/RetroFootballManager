@@ -154,14 +154,15 @@
                                 </Grid>
                             </Border>
                             <VerticalStackLayout Grid.Column="1" Spacing="2" >
-                                <Label Text="{Binding ClubName}" FontSize="20" FontAttributes="Bold"
+                                <Label Text="{Binding ClubName}" FontSize="24" FontAttributes="Bold"
                                TextColor="{StaticResource RfmText}" />
-                                <Label Text="{Binding Season}" FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
-                                <Label Text="{Binding CurrentDate}" FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
-                                <Label Text="{Binding NextMatchInfo}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}" />
-                                <Label Text="{Binding NextCupInfo}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}"
+                                <Label Text="{Binding Season}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                                <Label Text="{Binding CurrentDate}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                                <Label Text="{Binding NextMatchInfo}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
+                                <Label Text="{Binding NextCupInfo}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}"
                                IsVisible="{Binding NextCupInfo, Converter={StaticResource StringPresence}}" />
-                                <Label Text="{Binding Budget}" FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
+                                <Label IsVisible="{Binding IsPositiveBudget}" Text="{Binding Budget}" FontSize="16" TextColor="GreenYellow" />
+                                <Label IsVisible="{Binding IsPositiveBudget, Converter={StaticResource InvertedBool}}" Text="{Binding Budget}" FontSize="16" TextColor="Red" />
                             </VerticalStackLayout>
 
                             <!-- Sponsored by section-->
@@ -182,17 +183,17 @@
 
                             <!-- Transferfenster-Status (+ Vorbereitungsphase-Restwochen, falls zutreffend) -->
                             <VerticalStackLayout Grid.Column="3" VerticalOptions="Center" HorizontalOptions="Start" Spacing="4">
-                                <Label Text="{Binding PreSeasonInfo}" FontSize="12" FontAttributes="Bold"
+                                <Label Text="{Binding PreSeasonInfo}" FontSize="16" FontAttributes="Bold"
                                TextColor="{StaticResource RfmAccentTeal}" HorizontalOptions="Center"
                                IsVisible="{Binding HasPreSeasonInfo}" />
                                 <Border StrokeThickness="0" Padding="10,8" BackgroundColor="{StaticResource RfmSurface}">
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="10" />
                                     </Border.StrokeShape>
-                                    <Label Text="{Binding TransferWindowInfo}" FontSize="18" FontAttributes="Bold"
-                 TextColor="{Binding TransferWindowColor}" HorizontalOptions="Center" />
+                                    <Label Text="{Binding TransferWindowInfo}" Style="{StaticResource RfmLabel}"
+                                       TextColor="{Binding TransferWindowColor}" />
                                 </Border>
-                                <Label Text="{Binding StatusText}" FontSize="11" HorizontalOptions="Center" TextColor="{StaticResource RfmTextMuted}"
+                                <Label Text="{Binding StatusText}" FontSize="11" Style="{StaticResource RfmMutedLabel}"
                                     IsVisible="{Binding HasStatusText}" />
                                 <!-- Tooltip toggle: pinned top-left, always available on the main menu -->
                                 <Border StrokeThickness="0" Padding="10,6"  BackgroundColor="{StaticResource RfmSurface}"
@@ -201,30 +202,30 @@
                                         <RoundRectangle CornerRadius="10" />
                                     </Border.StrokeShape>
                                     <HorizontalStackLayout Spacing="6">
-                                        <CheckBox IsChecked="{Binding ShowTooltips}" Color="{StaticResource RfmAccentTeal}" />
-                                        <Label Text="Tooltips anzeigen" VerticalOptions="Center" TextColor="{StaticResource RfmText}" FontSize="13" />
+                                        <CheckBox IsChecked="{Binding ShowTooltips}" Margin="0,4,0,0" Color="{StaticResource RfmAccentTeal}" />
+                                        <Label Text="Tooltips anzeigen" VerticalOptions="Center" TextColor="{StaticResource RfmText}" FontSize="18" />
                                     </HorizontalStackLayout>
                                 </Border>
                             </VerticalStackLayout>
-                            
-                            <Button Grid.Column="4"
-                            WidthRequest="220"
-                            HeightRequest="40"
-                            HorizontalOptions="End"
-                            IsVisible="{Binding HasDueMatch}"
-                        Text="Zum Spieltag" Command="{Binding OpenMatchDayCommand}" FontAttributes="Bold" FontSize="18"
-                       BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
 
-                            
+                            <Button Grid.Column="4"
+                                    WidthRequest="220"
+                                    HeightRequest="40"
+                                    HorizontalOptions="End"
+                                    IsVisible="{Binding HasDueMatch}"
+                                    Text="Zum Spieltag" Command="{Binding OpenMatchDayCommand}" FontAttributes="Bold" FontSize="18"
+                                    BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+
+
                             <VerticalStackLayout Grid.Column="4" HorizontalOptions="End" Spacing="6"
                                          IsVisible="{Binding HasNoDueMatch}">
                                 <Button Text="Zeit vorstellen" Command="{Binding AdvanceTimeCommand}"
-                                BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" FontSize="13" />
+                                BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" FontSize="18" />
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="6" IsVisible="{Binding IsPreSeasonOrWinterBreak}">
                                     <Button Grid.Column="0" Text="Trainingslager" Command="{Binding OpenTrainingCampDialogCommand}"
-                                    BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" FontSize="12" />
+                                    BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" FontSize="18" />
                                     <Button Grid.Column="1" Text="Freundschaftsspiel" Command="{Binding OpenFriendlyPickerCommand}"
-                                    BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" FontSize="12" />
+                                    BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" FontSize="18" />
                                 </Grid>
                             </VerticalStackLayout>
 
@@ -255,29 +256,52 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- Overview: upcoming friendlies + active training camp - pinned to the bottom of the screen -->
-    <Border StrokeThickness="0" Padding="12,10" Margin="20" BackgroundColor="{StaticResource RfmSurface}"
-            Opacity="0.9" HorizontalOptions="End" VerticalOptions="End"
-            IsVisible="{Binding HasOverviewContent}">
-        <Border.StrokeShape>
-            <RoundRectangle CornerRadius="10" />
-        </Border.StrokeShape>
-        <VerticalStackLayout Spacing="4">
-            <Label Text="{Binding ActiveTrainingCampText}" FontSize="12" FontAttributes="Bold"
-                   TextColor="{StaticResource RfmAccentTeal}"
-                   IsVisible="{Binding HasActiveTrainingCamp}" />
-            <Label Text="Anstehende Freundschaftsspiele" FontSize="12" FontAttributes="Bold"
-                   TextColor="{StaticResource RfmTextMuted}"
-                   IsVisible="{Binding HasUpcomingFriendlies}" />
-            <VerticalStackLayout Spacing="2" BindableLayout.ItemsSource="{Binding UpcomingFriendlies}">
-                <BindableLayout.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                        <Label Text="{Binding .}" FontSize="12" TextColor="{StaticResource RfmText}" />
-                    </DataTemplate>
-                </BindableLayout.ItemTemplate>
-            </VerticalStackLayout>
-        </VerticalStackLayout>
-    </Border>
+        <HorizontalStackLayout Margin="20" HorizontalOptions="End" VerticalOptions="End" Spacing="20">
+            <Border StrokeThickness="0" Padding="16" BackgroundColor="{StaticResource RfmSurface}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="14" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Vereinsstimmung" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                            <Label Text="Fan-Stimmung" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Text="{Binding FanMood, StringFormat='{0}%'}" FontSize="20" FontAttributes="Bold"
+                       TextColor="{Binding FanMoodColor}" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <Label Text="Vorstands-Stimmung" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Text="{Binding BoardMood, StringFormat='{0}%'}" FontSize="20" FontAttributes="Bold"
+                       TextColor="{Binding BoardMoodColor}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+            <!-- Overview: upcoming friendlies + active training camp - pinned to the bottom of the screen -->
+            <Border StrokeThickness="0" Padding="12,10" Margin="0" BackgroundColor="{StaticResource RfmSurface}"
+                    Opacity="0.9" 
+                    IsVisible="{Binding HasOverviewContent}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="{Binding ActiveTrainingCampText}" FontSize="18" FontAttributes="Bold"
+               TextColor="{StaticResource RfmAccentTeal}"
+               IsVisible="{Binding HasActiveTrainingCamp}" />
+                    <Label Text="Anstehende Freundschaftsspiele" FontSize="18" FontAttributes="Bold"
+               TextColor="{StaticResource RfmTextMuted}"
+               IsVisible="{Binding HasUpcomingFriendlies}" />
+                    <VerticalStackLayout Spacing="2" BindableLayout.ItemsSource="{Binding UpcomingFriendlies}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Label Text="{Binding .}" FontSize="16" TextColor="{StaticResource RfmText}" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+        </HorizontalStackLayout>
+       
 
     <!-- Freundschaftsspiel ansetzen: Gegner + Termin wählen -->
     <Grid IsVisible="{Binding IsFriendlyPickerOpen}" BackgroundColor="#B0000000">

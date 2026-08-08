@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<local:BaseContentPage
+    x:Class="RetroFootballManager.Views.GameOverPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:RetroFootballManager.Views"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    x:DataType="vm:GameOverViewModel"
+    Title="Entlassen"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <Grid>
+        <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="20" Padding="30">
+            <Label Text="Du wurdest entlassen" FontSize="28" FontAttributes="Bold"
+                   TextColor="{StaticResource RfmText}" HorizontalOptions="Center" />
+            <Label Text="{Binding ReasonText}" FontSize="16" TextColor="{StaticResource RfmTextMuted}"
+                   HorizontalOptions="Center" HorizontalTextAlignment="Center" MaxLines="4" />
+            <Button Text="Zurück zum Start" Command="{Binding BackToStartCommand}"
+                    BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+        </VerticalStackLayout>
+    </Grid>
+</local:BaseContentPage>

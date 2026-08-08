@@ -11,5 +11,9 @@ namespace RetroFootballManager.Models
         Offensive,
         Defensive,
         WingPlay,
+
+        // Raises BaseFitness (Grundfitness) for every player on the team (incl. goalkeepers)
+        // for as long as this focus stays selected - see TrainingService.TrainBaseFitness.
+        Konditionstraining,
     }
 }

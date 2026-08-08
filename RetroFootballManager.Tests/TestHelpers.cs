@@ -50,6 +50,7 @@ namespace RetroFootballManager.Tests
                     Position = LineupPositions[i],
                     Rating = baseRating,
                     Fitness = fitness,
+                    BaseFitness = baseRating,
                     OffensivePower = baseRating,
                     DefensivePower = baseRating,
                     GameIntelligence = baseRating,

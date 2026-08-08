@@ -87,6 +87,17 @@ namespace RetroFootballManager.Models
         public int Moral { get; set; }
         public double Size { get; set; }
         public int Fitness { get; set; }
+
+        // Base fitness / "Grundfitness" (1-99): higher means less fatigue accumulated during
+        // a match (see Match.DecayFitness) and faster recovery afterwards (see
+        // MatchDayService.RegenerateFitness), though recovery always takes at least
+        // MatchDayService.MinFitnessRecoveryDays regardless of this value.
+        public int BaseFitness { get; set; }
+
+        // Game date of this player's last appearance (minutes played > 0) in any competition.
+        // Drives day-by-day fitness regeneration in MatchDayService.RegenerateFitness. Null =
+        // never played (or not tracked yet on an older save).
+        public DateTime? LastMatchDate { get; set; }
         public int OffensivePower { get; set; }
         public int DefensivePower { get; set; }
         public int GameIntelligence { get; set; }

@@ -55,7 +55,7 @@ namespace RetroFootballManager.Tests
             var result = new SeasonEndResult(
                 Season: 1,
                 Leagues: [new LeagueTableResult(Tier: 4, Table: [Row(1, team.Id, team.Name, wins: 20)], PromotedTeamIds: [team.Id], RelegatedTeamIds: [])],
-                ManagerFinalPosition: 1, ManagerTier: 4, PointsAwarded: 100, ManagerOutcome: "Aufstieg", ManagerPromoted: true);
+                ManagerFinalPosition: 1, ManagerTier: 4, PointsAwarded: 100, ManagerOutcome: "Aufstieg", ManagerPromoted: true, ManagerRelegated: false);
 
             await _saveGame.PaySponsorSeasonBonusesAsync([team], result);
 
@@ -80,7 +80,7 @@ namespace RetroFootballManager.Tests
             var result = new SeasonEndResult(
                 Season: 1,
                 Leagues: [new LeagueTableResult(Tier: 4, Table: [Row(9, team.Id, team.Name, wins: 0)], PromotedTeamIds: [], RelegatedTeamIds: [])],
-                ManagerFinalPosition: 9, ManagerTier: 4, PointsAwarded: 25, ManagerOutcome: "Klassenerhalt", ManagerPromoted: false);
+                ManagerFinalPosition: 9, ManagerTier: 4, PointsAwarded: 25, ManagerOutcome: "Klassenerhalt", ManagerPromoted: false, ManagerRelegated: false);
 
             await _saveGame.PaySponsorSeasonBonusesAsync([team], result);
 
@@ -97,7 +97,7 @@ namespace RetroFootballManager.Tests
             var result = new SeasonEndResult(
                 Season: 1,
                 Leagues: [new LeagueTableResult(Tier: 4, Table: [Row(1, team.Id, team.Name, wins: 20)], PromotedTeamIds: [team.Id], RelegatedTeamIds: [])],
-                ManagerFinalPosition: 1, ManagerTier: 4, PointsAwarded: 100, ManagerOutcome: "Aufstieg", ManagerPromoted: true);
+                ManagerFinalPosition: 1, ManagerTier: 4, PointsAwarded: 100, ManagerOutcome: "Aufstieg", ManagerPromoted: true, ManagerRelegated: false);
 
             await _saveGame.PaySponsorSeasonBonusesAsync([team], result);
 
@@ -125,7 +125,7 @@ namespace RetroFootballManager.Tests
             var result = new SeasonEndResult(
                 Season: 1,
                 Leagues: [new LeagueTableResult(Tier: 4, Table: [Row(1, team.Id, team.Name, wins: 25)], PromotedTeamIds: [team.Id], RelegatedTeamIds: [])],
-                ManagerFinalPosition: 1, ManagerTier: 4, PointsAwarded: 150, ManagerOutcome: "Meister", ManagerPromoted: true);
+                ManagerFinalPosition: 1, ManagerTier: 4, PointsAwarded: 150, ManagerOutcome: "Meister", ManagerPromoted: true, ManagerRelegated: false);
 
             await _saveGame.PaySponsorSeasonBonusesAsync([team], result);
 

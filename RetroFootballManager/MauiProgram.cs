@@ -126,6 +126,7 @@ namespace RetroFootballManager
             services.AddTransient<InboxViewModel>();
             services.AddTransient<FriendlyMatchDayViewModel>();
             services.AddTransient<OptionsViewModel>();
+            services.AddTransient<GameOverViewModel>();
 
             services.AddTransient<StartPage>();
             services.AddTransient<TeamSelectionPage>();
@@ -151,6 +152,7 @@ namespace RetroFootballManager
             services.AddTransient<InboxPage>();
             services.AddTransient<FriendlyMatchDayPage>();
             services.AddTransient<OptionsPage>();
+            services.AddTransient<GameOverPage>();
         }
     }
 }

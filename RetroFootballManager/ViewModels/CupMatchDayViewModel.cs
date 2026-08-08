@@ -351,13 +351,18 @@ namespace RetroFootballManager.ViewModels
                         break;
                     case GameEventType.RedCard when e.Player is not null:
                         Cards.Add(new MatchCardEntry(e.Player.Name, e.IsHomeTeam, IsRed: true));
-                        sawRedCard = true;
+                        // Only pause for the human team's own red card - the opponent's card
+                        // shouldn't interrupt play.
+                        if (e.IsHomeTeam == _isHumanHome)
+                            sawRedCard = true;
                         break;
                     case GameEventType.Goal when e.Player is not null:
                         AddOrUpdateScorer(e.Player.Name, e.IsHomeTeam, e.Minute);
                         break;
                     case GameEventType.Injury when e.Player is not null:
-                        sawInjury = true;
+                        // Only pause for the human team's own injury - same reasoning as above.
+                        if (e.IsHomeTeam == _isHumanHome)
+                            sawInjury = true;
                         break;
                 }
 
@@ -495,7 +500,8 @@ namespace RetroFootballManager.ViewModels
                 ? null
                 : await _saveGame.GetPlayerSeasonStatsAsync(player.Id, _session.State.Season);
             var careerStats = await _saveGame.GetPlayerCareerStatsAsync(player.Id);
-            SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats);
+            var competitionStats = await _saveGame.GetPlayerCompetitionBreakdownAsync(player.Id);
+            SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats, competitionStats);
             IsPlayerProfileOpen = true;
         }
 
@@ -612,7 +618,9 @@ namespace RetroFootballManager.ViewModels
             else
                 temp[slotB] = aId;
 
-            int unavailableCount = _managementTeam?.Players.Count(p => p.Status is PlayerStatus.Suspended or PlayerStatus.Injured) ?? 0;
+            // An injury doesn't reduce the squad below 11 - a healthy sub can fill the slot
+            // back up, so only suspensions (permanent for this match) count here.
+            int unavailableCount = _managementTeam?.Players.Count(p => p.Status is PlayerStatus.Suspended) ?? 0;
             int maxOnPitch = _managementFormation.Slots.Count - unavailableCount;
             if (temp.Count(id => id.HasValue) > maxOnPitch)
             {
@@ -727,7 +735,7 @@ namespace RetroFootballManager.ViewModels
             {
                 ManagementBench.Add(new SquadToken(
                     p.Id, p.Name, p.ShortPositionName, Math.Round(p.Rating, 0), IsSelected: false,
-                    Fitness: p.Fitness, YellowCards: YellowCardsFor(p.Id), IsDisabled: true));
+                    Fitness: p.Fitness, YellowCards: YellowCardsFor(p.Id), IsDisabled: true, DisabledLabel: "Verletzt"));
             }
 
             int pendingSubs = stagedIds.Count(id => !_originalOnPitchIds.Contains(id));
@@ -856,6 +864,7 @@ namespace RetroFootballManager.ViewModels
                     ? CupTieHelper.DetermineAggregateWinner([firstLeg, _tie])
                     : _tie.WinnerTeamId;
                 bool humanWon = winnerId == humanTeamId;
+                var humanTeam = _isHumanHome ? _homeTeam : _awayTeam;
 
                 if (_tie.Round == CupDrawService.RoundFinal)
                 {
@@ -867,11 +876,20 @@ namespace RetroFootballManager.ViewModels
                         TrophyImageSource = TrophyDisplay.ImageFileName(trophy);
                         TrophyTitleText = $"Herzlichen Glückwunsch, du gewinnst {TrophyDisplay.Label(trophy)}!";
                         IsTrophyDialogOpen = true;
+                        ClubMoodService.ApplyCupWin(humanTeam, _competition);
+                    }
+                    else
+                    {
+                        ClubMoodService.ApplyCupElimination(humanTeam);
                     }
                 }
                 else
                 {
                     StatusText = humanWon ? "Weitergekommen!" : "Ausgeschieden.";
+                    if (humanWon)
+                        ClubMoodService.ApplyCupRoundAdvance(humanTeam);
+                    else
+                        ClubMoodService.ApplyCupElimination(humanTeam);
                 }
             }
         }

@@ -15,7 +15,8 @@ namespace RetroFootballManager.Common
         int ManagerTier,
         int PointsAwarded,
         string ManagerOutcome,
-        bool ManagerPromoted);
+        bool ManagerPromoted,
+        bool ManagerRelegated);
 
     // Evaluates the end of season: tables per league, promotion/relegation (top 3 up, bottom 3
     // down; league 4 has no relegation) and awards global career points based on how the
@@ -83,7 +84,7 @@ namespace RetroFootballManager.Common
                     SetTier(teams, id, league.Tier + 1);
             }
 
-            return new SeasonEndResult(season, leagues, managerPos, managerTier, points, outcome, promotedManager);
+            return new SeasonEndResult(season, leagues, managerPos, managerTier, points, outcome, promotedManager, relegatedManager);
         }
 
         private static (int Points, string Outcome) ComputeManagerPoints(

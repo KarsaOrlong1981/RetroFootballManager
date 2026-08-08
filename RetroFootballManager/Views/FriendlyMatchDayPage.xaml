@@ -12,7 +12,8 @@
     BackgroundColor="{StaticResource RfmBackground}">
 
     <Grid RowDefinitions="Auto,*">
-        <VerticalStackLayout Grid.Row="0" Padding="16,16,16,0" Spacing="14">
+        <Image Source="matchday.png" Aspect="Fill" Grid.RowSpan="2" />
+        <VerticalStackLayout Opacity="0.85" Grid.Row="0" Padding="16,16,16,0" Spacing="14">
 
                 <!-- Scoreboard -->
                 <Border StrokeThickness="0" Padding="14" BackgroundColor="{StaticResource RfmSurface}">
@@ -152,8 +153,10 @@
                 </Border>
 
                 <!-- Ticker: events shown on the side of the team they belong to -->
+
                 <Grid IsVisible="{Binding IsMatchArea}" ColumnDefinitions="Auto,Auto" ColumnSpacing="14" HorizontalOptions="Center">
-                    <HorizontalStackLayout Grid.Column="0" Spacing="6">
+                
+                <HorizontalStackLayout Grid.Column="0" Spacing="6">
                         <BoxView Color="#22C55E" WidthRequest="10" HeightRequest="10" CornerRadius="5" />
                         <Label Text="{Binding HomeTeamShortName}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
                     </HorizontalStackLayout>
@@ -165,7 +168,7 @@
 
         </VerticalStackLayout>
 
-        <ScrollView Grid.Row="1">
+        <ScrollView Opacity="0.85" Grid.Row="1">
             <VerticalStackLayout Padding="16,0,16,16" Spacing="14">
 
                 <Border IsVisible="{Binding IsMatchArea}" StrokeThickness="0" Padding="10"
@@ -265,7 +268,9 @@
                             </Grid>
 
                             <!-- Pitch -->
-                            <Border StrokeThickness="0" BackgroundColor="{StaticResource RfmPitch}" HeightRequest="680">
+                            <Grid HeightRequest="640">
+                                <Image  Source="tactic.png" Aspect="Fill"/>
+                                <Border StrokeThickness="0"  >
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="14" />
                                 </Border.StrokeShape>
@@ -346,7 +351,7 @@
                                     </BindableLayout.ItemTemplate>
                                 </AbsoluteLayout>
                             </Border>
-
+                            </Grid>
                             <!-- Bench (BindableLayout, not CollectionView, for reliable drag&drop) -->
                             <Label Text="Bank" FontAttributes="Bold" FontSize="13" TextColor="{StaticResource RfmText}" />
                             <VerticalStackLayout Spacing="2" BindableLayout.ItemsSource="{Binding ManagementBench}">
@@ -373,7 +378,7 @@
                                                 <Label Grid.Column="2" Text="{Binding Name}" FontSize="13" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
                                                 <Label Grid.Column="3" Text="{Binding Rating}" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
                                                 <HorizontalStackLayout Grid.Column="4" Spacing="3" VerticalOptions="Center" HorizontalOptions="End">
-                                                    <Label Text="Gesperrt" FontSize="9" FontAttributes="Bold" IsVisible="{Binding IsDisabled}"
+                                                    <Label Text="{Binding DisabledLabel}" FontSize="9" FontAttributes="Bold" IsVisible="{Binding IsDisabled}"
                                                            TextColor="#EF4444" />
                                                     <Label Text="{Binding Fitness, StringFormat='{0}%'}" FontSize="10" TextColor="{Binding FitnessColor}" />
                                                     <Image Source="yellowcard.png" WidthRequest="10" HeightRequest="13" Aspect="AspectFit" IsVisible="{Binding HasYellowCard}" />

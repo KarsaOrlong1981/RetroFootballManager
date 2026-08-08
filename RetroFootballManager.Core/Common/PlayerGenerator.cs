@@ -149,6 +149,7 @@ namespace RetroFootballManager.Common
                 Moral = rng.Next(45, 70),
                 Size = Math.Round(1.68 + (rng.NextDouble() * 0.28), 2),
                 Fitness = rng.Next(80, 100),
+                BaseFitness = rng.Next(40, 90),
                 OffensivePower = offensive,
                 DefensivePower = defensive,
                 GameIntelligence = gameIntelligence,
@@ -213,6 +214,17 @@ namespace RetroFootballManager.Common
             var weights = GetPositionWeights(player.Position);
             player.Finishing = RollAttribute(baseQuality, weights.Finishing, 10, rng);
             player.Positioning = RollAttribute(baseQuality, weights.Positioning, 10, rng);
+        }
+
+        // Same legacy safety net as above, for the BaseFitness (Grundfitness) column added
+        // later - a no-op once the field is non-zero, safe to call on every load.
+        public static void BackfillBaseFitnessIfMissing(Player player, Random? random = null)
+        {
+            if (player.BaseFitness > 0)
+                return;
+
+            var rng = random ?? new Random(player.Id);
+            player.BaseFitness = rng.Next(40, 90);
         }
 
         // Assigns versatile players 1-2 secondary positions from related positions, so the

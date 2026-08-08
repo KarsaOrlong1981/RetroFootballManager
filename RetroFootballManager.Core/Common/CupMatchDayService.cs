@@ -91,7 +91,7 @@ namespace RetroFootballManager.Common
                     if (_messages is not null && humanTeamId != 0)
                         await MatchDayService.NotifyInjuriesAsync(_messages, result, home, away, humanTeamId, tie.Date);
 
-                    MatchDayService.ApplyCareerMinutes(result, home, away);
+                    MatchDayService.ApplyCareerMinutes(result, home, away, tie.Date);
                     if (_players is not null)
                         await MatchDayService.PersistPlayerStatsAsync(_players, [result], tie.Season, tie.CompetitionType);
                 }

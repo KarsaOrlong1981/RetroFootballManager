@@ -32,6 +32,7 @@ namespace RetroFootballManager.ViewModels
         private Fixture? _pendingFriendly;
         private SeasonPhase _phase;
         private DateTime? _windowEnd;
+        private Finances? _subscribedFinances;
 
         public MainMenuViewModel(
             IDispatcher dispatcher,
@@ -45,7 +46,8 @@ namespace RetroFootballManager.ViewModels
             TrainingCampService trainingCamps,
             INavigationService navigation,
             SponsorService sponsorService,
-            AppSettingsService appSettings)
+            AppSettingsService appSettings,
+            FinanceService financeService)
             : base(dispatcher)
         {
             _session = session;
@@ -72,6 +74,27 @@ namespace RetroFootballManager.ViewModels
         private void SponsorService_SponsorChanged(object? sender, EventArgs e)
         {
             _ = HandleActiveSponsors();
+        }
+
+        // Re-subscribes only if the instance changed - InitializeAsync runs on every day
+        // advance, so guard against piling up duplicate handlers on the same Finances object.
+        private void SubscribeToFinances(Finances? finances)
+        {
+            if (ReferenceEquals(_subscribedFinances, finances))
+                return;
+            if (_subscribedFinances is not null)
+                _subscribedFinances.CurrentBalanceChanged -= Finances_CurrentBalanceChanged;
+            _subscribedFinances = finances;
+            if (_subscribedFinances is not null)
+                _subscribedFinances.CurrentBalanceChanged += Finances_CurrentBalanceChanged;
+        }
+
+        private void Finances_CurrentBalanceChanged(object? sender, EventArgs e)
+        {
+            if (sender is not Finances finances)
+                return;
+            Budget = $"{finances.CurrentBalance:N0} €";
+            OnPropertyChanged(nameof(IsPositiveBudget));
         }
 
         [ObservableProperty]
@@ -139,6 +162,7 @@ namespace RetroFootballManager.ViewModels
         [NotifyPropertyChangedFor(nameof(HasNoDueMatch))]
         private bool _hasDueMatch;
 
+        public bool IsPositiveBudget => _session?.ManagerTeam?.Finances?.CurrentBalance > 0;
         public bool HasNoDueMatch => !HasDueMatch;
 
         [ObservableProperty]
@@ -202,12 +226,39 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty]
         private bool _hasSponsor;
 
+        [ObservableProperty]
+        private int _fanMood;
+        [ObservableProperty]
+        private int _boardMood;
+        [ObservableProperty]
+        private Color _fanMoodColor = Colors.Gray;
+        [ObservableProperty]
+        private Color _boardMoodColor = Colors.Gray;
+
+        // Green >= warning threshold, orange between warning and game-over, red below.
+        private static Color MoodColor(int mood) => mood >= ClubMoodService.WarningThreshold
+            ? Color.FromArgb("#22C55E")
+            : mood >= ClubMoodService.GameOverThreshold
+                ? Color.FromArgb("#F59E0B")
+                : Color.FromArgb("#EF4444");
+
         public async Task InitializeAsync()
         {
             var state = _session.State;
             var team = _session.ManagerTeam;
             if (state is null || team is null)
                 return;
+
+            if (state.IsGameOver)
+            {
+                await _navigation.GoToRootAsync("gameover");
+                return;
+            }
+
+            FanMood = team.FanMood;
+            BoardMood = team.BoardMood;
+            FanMoodColor = MoodColor(team.FanMood);
+            BoardMoodColor = MoodColor(team.BoardMood);
 
             ClubName = team.Name;
             ClubShortName = team.ShortName;
@@ -217,6 +268,7 @@ namespace RetroFootballManager.ViewModels
             Budget = team.Finances is not null
                 ? $"{team.Finances.CurrentBalance:N0} €"
                 : "–";
+            SubscribeToFinances(team.Finances);
 
             _nextLeagueFixtureDate = null;
             try
@@ -567,6 +619,8 @@ namespace RetroFootballManager.ViewModels
                     await _calendarAdvance.AdvanceOneDayAsync(_session.State, _session.Teams);
                     await InitializeAsync();
 
+                    if (_session.State.IsGameOver)
+                        break;
                     if (_cancelAdvanceRequested)
                     {
                         StatusText = "Zeit vorstellen abgebrochen.";

@@ -2,33 +2,46 @@ using RetroFootballManager.Models;
 
 namespace RetroFootballManager.Common
 {
-    // Seasonal player development: players age, young players grow (faster with talent and
-    // first-team minutes), older players decline, youth prospects mature (accelerated by a
-    // mentor) and graduate into the senior squad once they turn 20.
+    // Long-term player development: young players grow (faster with talent and first-team
+    // minutes), older players decline, youth prospects mature (accelerated by a mentor) and
+    // graduate into the senior squad once they turn 20. Growth/decline is spread across the
+    // season in monthly increments (ApplyMonthlyDevelopment) instead of one lump sum - DevelopSquad
+    // only handles season-end bookkeeping (aging, youth graduation, SeasonMinutes reset).
     public static class DevelopmentService
     {
         private const int GraduationAge = 20;
 
-        // Physical attributes that fade with age.
-        private static readonly TrainableAttribute[] Physical =
+        // The GrowthPoints/DeclinePoints/youth-growth formulas below express a full-SEASON total;
+        // ApplyMonthlyDevelopment divides by this to spread it across the season (pre-season +
+        // matchdays) instead of applying it all at once at season end.
+        public const int MonthsPerSeason = 10;
+
+        // Goalkeepers age via their own GK attributes - their outfield-only fields (incl.
+        // Jumping) are always 0, see Player.cs - outfield players decline via these three.
+        private static readonly TrainableAttribute[] OutfieldPhysical =
         [
             TrainableAttribute.CounterSpeed, TrainableAttribute.Pressing, TrainableAttribute.DuelHardness,
         ];
+        private static readonly TrainableAttribute[] GoalkeeperPhysical =
+        [
+            TrainableAttribute.GkReflexes, TrainableAttribute.GkOneOnOne,
+        ];
 
-        private static readonly TrainableAttribute[] AllAttributes = Enum.GetValues<TrainableAttribute>();
-
+        // Season-end bookkeeping: aging, youth graduation, SeasonMinutes reset. The actual
+        // attribute growth/decline happens monthly during the season - see ApplyMonthlyDevelopment.
         public static void DevelopSquad(Team team, DateTime newDate, Random? random = null)
         {
-            var rng = random ?? Random.Shared;
-
             foreach (var player in team.Players)
-                DevelopSenior(player, team, newDate, rng);
+            {
+                player.Age = player.AgeOn(newDate);
+                player.SeasonMinutes = 0;
+            }
 
-            // Youth: mature (mentor-accelerated), then graduate the over-age ones.
             var graduates = new List<Player>();
             foreach (var youth in team.YouthPlayers)
             {
-                DevelopYouth(youth, team, newDate, rng);
+                youth.Age = youth.AgeOn(newDate);
+                youth.SeasonMinutes = 0;
                 if (youth.Age >= GraduationAge)
                     graduates.Add(youth);
             }
@@ -42,42 +55,66 @@ namespace RetroFootballManager.Common
             }
         }
 
-        private static void DevelopSenior(Player player, Team team, DateTime newDate, Random rng)
+        // Applies one month's worth of growth/decline to the whole squad - a no-op (returns
+        // false) if already run for this (month, year), so it's safe to call once per day from
+        // CalendarAdvanceService.AdvanceOneDayAsync for every team. Returns true when it actually
+        // applied development, so the caller knows the team needs to be persisted.
+        public static bool ApplyMonthlyDevelopment(Team team, DateTime currentDate, Random? random = null)
         {
-            player.Age = player.AgeOn(newDate);
+            if (team.LastDevelopmentMonth == currentDate.Month && team.LastDevelopmentYear == currentDate.Year)
+                return false;
 
-            int growth = GrowthPoints(player, rng);
+            var rng = random ?? Random.Shared;
+
+            foreach (var player in team.Players)
+                DevelopSeniorMonthly(player, team, rng);
+
+            foreach (var youth in team.YouthPlayers)
+                DevelopYouthMonthly(youth, team, rng);
+
+            team.LastDevelopmentMonth = currentDate.Month;
+            team.LastDevelopmentYear = currentDate.Year;
+            return true;
+        }
+
+        private static void DevelopSeniorMonthly(Player player, Team team, Random rng)
+        {
+            double growthPerSeason = GrowthPointsPerSeason(player);
             if (player.Position == Position.Goalkeeper)
-                growth += GoalkeeperCoachBonus(team);
-            int decline = DeclinePoints(player.Age, rng);
+                growthPerSeason += GoalkeeperCoachBonus(team);
+            double declinePerSeason = DeclinePointsPerSeason(player.Age);
+
+            int growth = RollPoints(growthPerSeason / MonthsPerSeason, rng);
+            int decline = RollPoints(declinePerSeason / MonthsPerSeason, rng);
 
             if (growth > 0) ApplyGrowth(player, growth, rng);
             if (decline > 0) ApplyDecline(player, decline, rng);
 
-            player.SeasonMinutes = 0;
-            TrainingService.RecalculateRating(player);
+            if (growth > 0 || decline > 0)
+                TrainingService.RecalculateRating(player);
         }
 
-        private static void DevelopYouth(Player youth, Team team, DateTime newDate, Random rng)
+        private static void DevelopYouthMonthly(Player youth, Team team, Random rng)
         {
-            youth.Age = youth.AgeOn(newDate);
-
             // Youth grow strongly by talent, plus a mentor bonus and any first-team minutes.
-            int growth = 2 + youth.Talent / 30 + MentorBonus(youth, team) + MinutesBonus(youth.SeasonMinutes);
+            double growthPerSeason = 2 + (youth.Talent / 30.0) + MentorBonus(youth, team) + MinutesBonus(youth.SeasonMinutes);
             if (youth.Position == Position.Goalkeeper)
-                growth += GoalkeeperCoachBonus(team);
-            ApplyGrowth(youth, growth, rng);
+                growthPerSeason += GoalkeeperCoachBonus(team);
 
-            youth.SeasonMinutes = 0;
-            TrainingService.RecalculateRating(youth);
+            int growth = RollPoints(growthPerSeason / MonthsPerSeason, rng);
+            if (growth > 0)
+            {
+                ApplyGrowth(youth, growth, rng);
+                TrainingService.RecalculateRating(youth);
+            }
         }
 
-        private static int GrowthPoints(Player player, Random rng)
+        private static double GrowthPointsPerSeason(Player player)
         {
-            int baseGrowth = player.Age switch
+            double baseGrowth = player.Age switch
             {
-                <= 21 => 2 + player.Talent / 30,
-                <= 25 => player.Talent / 45,
+                <= 21 => 2 + (player.Talent / 30.0),
+                <= 25 => player.Talent / 45.0,
                 _ => 0,
             };
             return baseGrowth + MinutesBonus(player.SeasonMinutes);
@@ -118,65 +155,53 @@ namespace RetroFootballManager.Common
             return coach.GoalkeeperTraining >= 75 ? 2 : coach.GoalkeeperTraining >= 60 ? 1 : 0;
         }
 
-        private static int DeclinePoints(int age, Random rng) => age switch
+        // Season-total decline expressed as an expected value (was "2 + 50% chance of +1" etc. -
+        // same expected value, but RollPoints now handles the fractional rounding once the total
+        // is divided down to a monthly amount).
+        private static double DeclinePointsPerSeason(int age) => age switch
         {
-            >= 33 => 2 + (rng.NextDouble() < 0.5 ? 1 : 0),
-            >= 30 => 1 + (rng.NextDouble() < 0.4 ? 1 : 0),
+            >= 33 => 2.5,
+            >= 30 => 1.4,
             _ => 0,
         };
 
+        // Floor + probabilistic round-up on the remainder - same pattern TrainingService.Train
+        // uses to turn a fractional "potential" into a whole number of points without losing the
+        // fractional part's long-run effect.
+        private static int RollPoints(double expectedValue, Random rng)
+        {
+            if (expectedValue <= 0)
+                return 0;
+
+            int points = (int)Math.Floor(expectedValue);
+            double remainder = expectedValue - points;
+            if (rng.NextDouble() < remainder)
+                points++;
+            return points;
+        }
+
         private static void ApplyGrowth(Player player, int points, Random rng)
         {
+            var pool = TrainingService.ApplicableAttributes(player.Position);
+            int cap = Math.Min(99, player.Talent + 8);
             for (int i = 0; i < points; i++)
             {
-                var attr = AllAttributes[rng.Next(AllAttributes.Length)];
-                int cap = Math.Min(99, player.Talent + 8);
-                if (Get(player, attr) < cap)
-                    Set(player, attr, Get(player, attr) + 1);
+                var attr = pool[rng.Next(pool.Count)];
+                int current = TrainingService.Get(player, attr);
+                if (current < cap)
+                    TrainingService.Set(player, attr, current + 1);
             }
         }
 
         private static void ApplyDecline(Player player, int points, Random rng)
         {
+            var pool = player.Position == Position.Goalkeeper ? GoalkeeperPhysical : OutfieldPhysical;
             for (int i = 0; i < points; i++)
             {
-                var attr = Physical[rng.Next(Physical.Length)];
-                if (Get(player, attr) > 20)
-                    Set(player, attr, Get(player, attr) - 1);
-            }
-        }
-
-        private static int Get(Player p, TrainableAttribute a) => a switch
-        {
-            TrainableAttribute.Offensive => p.OffensivePower,
-            TrainableAttribute.Defensive => p.DefensivePower,
-            TrainableAttribute.GameIntelligence => p.GameIntelligence,
-            TrainableAttribute.Pressing => p.PressingIntensity,
-            TrainableAttribute.CounterSpeed => p.CounterSpeed,
-            TrainableAttribute.Passing => p.PassingAccuracy,
-            TrainableAttribute.DuelHardness => p.DuelHardness,
-            TrainableAttribute.DuelEfficiency => p.DuelEfficiency,
-            TrainableAttribute.Crossing => p.CrossingAccuracy,
-            TrainableAttribute.Finishing => p.Finishing,
-            TrainableAttribute.Positioning => p.Positioning,
-            _ => 0,
-        };
-
-        private static void Set(Player p, TrainableAttribute a, int value)
-        {
-            switch (a)
-            {
-                case TrainableAttribute.Offensive: p.OffensivePower = value; break;
-                case TrainableAttribute.Defensive: p.DefensivePower = value; break;
-                case TrainableAttribute.GameIntelligence: p.GameIntelligence = value; break;
-                case TrainableAttribute.Pressing: p.PressingIntensity = value; break;
-                case TrainableAttribute.CounterSpeed: p.CounterSpeed = value; break;
-                case TrainableAttribute.Passing: p.PassingAccuracy = value; break;
-                case TrainableAttribute.DuelHardness: p.DuelHardness = value; break;
-                case TrainableAttribute.DuelEfficiency: p.DuelEfficiency = value; break;
-                case TrainableAttribute.Crossing: p.CrossingAccuracy = value; break;
-                case TrainableAttribute.Finishing: p.Finishing = value; break;
-                case TrainableAttribute.Positioning: p.Positioning = value; break;
+                var attr = pool[rng.Next(pool.Length)];
+                int current = TrainingService.Get(player, attr);
+                if (current > 20)
+                    TrainingService.Set(player, attr, current - 1);
             }
         }
     }

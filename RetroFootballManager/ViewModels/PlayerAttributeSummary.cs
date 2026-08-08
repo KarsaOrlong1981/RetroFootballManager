@@ -17,6 +17,7 @@ namespace RetroFootballManager.ViewModels
                     new("INT", p.GameIntelligence),
                     new("PAS", p.PassingAccuracy),
                     new("FIT", p.Fitness),
+                    new("GRU", p.BaseFitness),
                 ]
                 : [
                     new("OFF", p.OffensivePower),
@@ -36,6 +37,7 @@ namespace RetroFootballManager.ViewModels
                     new("ELF", p.PenaltyKick),
                     new("FRS", p.FreeKick),
                     new("FIT", p.Fitness),
+                    new("GRU", p.BaseFitness),
                 ]);
     }
 }

@@ -34,11 +34,13 @@ namespace RetroFootballManager.ViewModels
         int CareerGoals,
         int CareerAssists,
         int CareerYellowCards,
-        int CareerRedCards)
+        int CareerRedCards,
+        IReadOnlyList<CompetitionStatsRow> CompetitionStats)
     {
         public static PlayerProfile From(
             Player p, Contract? contract = null, TransferListing? listing = null,
-            PlayerStats? seasonStats = null, PlayerStats? careerStats = null) => new(
+            PlayerStats? seasonStats = null, PlayerStats? careerStats = null,
+            IReadOnlyList<CompetitionStatsRow>? competitionStats = null) => new(
             p.Name,
             p.ShortPositionName,
             p.SecondaryPositions.Count == 0
@@ -47,7 +49,7 @@ namespace RetroFootballManager.ViewModels
             p.Age,
             p.DateOfBirth.ToString("dd.MM.yyyy"),
             p.Nationality.ToString(),
-            GetPersonalityTranslation(p.Personality),
+            PersonalityDisplay.Name(p.Personality),
             p.Rating,
             p.Talent,
             p.Moral,
@@ -69,29 +71,12 @@ namespace RetroFootballManager.ViewModels
             careerStats?.Goals ?? 0,
             careerStats?.Assists ?? 0,
             careerStats?.YellowCards ?? 0,
-            careerStats?.RedCards ?? 0);
+            careerStats?.RedCards ?? 0,
+            competitionStats ?? []);
 
         private static string ContractText(Contract? c) => c is null
             ? "Kein aktiver Vertrag."
             : $"Vertrag bis {c.EndDate:MMMM yyyy} · Gehalt {c.AnnualSalary:N0} €/Jahr";
-
-        private static string GetPersonalityTranslation(Personality personality)
-        {
-            return personality switch
-            {
-                Models.Personality.None => "Keine",
-                Models.Personality.Maestro => "Spielmacher",
-                Models.Personality.Hothead => "Hitzkopf",
-                Models.Personality.Workhorse => "Arbeiter",
-                Models.Personality.Sprinter => "Sprinter",
-                Models.Personality.Strategist => "Stratege",
-                Models.Personality.Leader => "Anführer",
-                Models.Personality.Technician => "Techniker",
-                Models.Personality.Enforcer => "Abräumer",
-                Models.Personality.HeaderBeast => "Kopfballungeheuer",
-                _ => "Unbekannt"
-            };
-        }
 
         private static string TransferStatusText(TransferListing? listing)
         {

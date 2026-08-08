@@ -787,15 +787,25 @@ namespace RetroFootballManager.Common
 
             var tactic = team.Tactic;
             double intensity = (tactic.PressingIntensityFactor + tactic.CounterSpeedFactor) / 2.0;
-            int decay = Math.Max(1, (int)Math.Round(intensity * FitnessCoachFactor(team)));
+            double baseDecay = intensity * FitnessCoachFactor(team);
 
             foreach (var player in TeamStrengthCalculator.GetLineup(team))
+            {
+                int decay = Math.Max(1, (int)Math.Round(baseDecay * StaminaFactor(player)));
                 player.Fitness = Math.Max(20, player.Fitness - decay);
+            }
         }
 
-        // A strong fitness coach makes players tire more slowly during the match - there's no
-        // day-to-day fitness regen curve to accelerate (see MatchDayService.RecoverForMatch),
-        // so this is the meaningful hook for "bessere allgemeine Fitness" in this codebase.
+        // Higher BaseFitness (Grundfitness) means less fatigue per tick: 1.3x decay at the
+        // lowest possible value (1), 0.7x at the highest (99), linear in between.
+        private static double StaminaFactor(Player player)
+        {
+            double t = Math.Clamp(player.BaseFitness, 1, 99) / 99.0;
+            return 1.3 - (0.6 * t);
+        }
+
+        // A strong fitness coach makes players tire more slowly during the match (on top of
+        // each player's own BaseFitness/Grundfitness - see StaminaFactor).
         private static double FitnessCoachFactor(Team team)
         {
             var coach = team.Employees

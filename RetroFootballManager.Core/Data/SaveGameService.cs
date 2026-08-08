@@ -474,13 +474,38 @@ namespace RetroFootballManager.Data
         public async Task<PlayerStats?> GetPlayerSeasonStatsAsync(int playerId, int season) =>
             (await _playerRepository.GetPlayerStatsAsync(playerId, season)).FirstOrDefault();
 
-        // All-time totals across every season/competition row for this player.
+        // All-time LEAGUE totals across every season for this player - cup and friendly stats
+        // are tracked separately (see GetPlayerCompetitionBreakdownAsync) and no longer blended
+        // in here.
         public async Task<PlayerStats> GetPlayerCareerStatsAsync(int playerId)
         {
             var career = new PlayerStats { PlayerId = playerId };
-            foreach (var row in await _playerRepository.GetAllStatsAsync(playerId))
+            foreach (var row in await _playerRepository.GetAllStatsByCompetitionAsync(playerId, competition: null))
                 career.AddMatchStats(row);
             return career;
+        }
+
+        private static readonly (string Label, CompetitionType Competition)[] NonLeagueCompetitions =
+        [
+            ("Freundschaftsspiele", CompetitionType.Friendly),
+            ("Deutscher Pokal", CompetitionType.GermanCup),
+            ("Champions League", CompetitionType.ChampionsLeague),
+            ("Europa Cup", CompetitionType.EuropaCup),
+        ];
+
+        // Career totals for every non-league competition (friendlies + each of the 3 cups),
+        // kept separate from the league-only GetPlayerCareerStatsAsync above.
+        public async Task<List<CompetitionStatsRow>> GetPlayerCompetitionBreakdownAsync(int playerId)
+        {
+            var rows = new List<CompetitionStatsRow>();
+            foreach (var (label, competition) in NonLeagueCompetitions)
+            {
+                var agg = new PlayerStats { PlayerId = playerId };
+                foreach (var row in await _playerRepository.GetAllStatsByCompetitionAsync(playerId, competition))
+                    agg.AddMatchStats(row);
+                rows.Add(new CompetitionStatsRow(label, agg.Appearances, agg.Goals, agg.Assists, agg.YellowCards, agg.RedCards));
+            }
+            return rows;
         }
 
         public Task<List<Fixture>> GetFixturesAsync(int season) =>
@@ -518,6 +543,19 @@ namespace RetroFootballManager.Data
 
             if (result.ManagerFinalPosition == 1)
                 await RecordTrophyWinAsync(state.ManagerTeamId, TrophyMapping.FromLeagueTier(result.ManagerTier), state.Season);
+
+            // Club mood: season-end structural events (champion/promotion/relegation) for the
+            // human team - see ClubMoodService.
+            var managerTeam = teams.FirstOrDefault(t => t.Id == state.ManagerTeamId);
+            if (managerTeam is not null)
+            {
+                if (result.ManagerFinalPosition == 1)
+                    ClubMoodService.ApplyChampionship(managerTeam);
+                if (result.ManagerPromoted)
+                    ClubMoodService.ApplyPromotion(managerTeam);
+                if (result.ManagerRelegated)
+                    ClubMoodService.ApplyRelegation(managerTeam);
+            }
 
             await PaySponsorSeasonBonusesAsync(teams, result);
 
@@ -638,11 +676,23 @@ namespace RetroFootballManager.Data
                 {
                     PlayerGenerator.BackfillGoalkeeperAttributesIfMissing(p);
                     PlayerGenerator.BackfillFinishingAndPositioningIfMissing(p);
+                    PlayerGenerator.BackfillBaseFitnessIfMissing(p);
                 }
                 foreach (var p in team.YouthPlayers)
                 {
                     PlayerGenerator.BackfillGoalkeeperAttributesIfMissing(p);
                     PlayerGenerator.BackfillFinishingAndPositioningIfMissing(p);
+                    PlayerGenerator.BackfillBaseFitnessIfMissing(p);
+                }
+
+                // Legacy safety net for saves created before club mood existed: both fields
+                // read 0 after the column is added - 0/0 simultaneously is not a realistic
+                // organic state, so treat it as "never initialized" and reset to the neutral
+                // starting value (matches Team.cs's property-initializer default for new teams).
+                if (team.FanMood == 0 && team.BoardMood == 0)
+                {
+                    team.FanMood = 65;
+                    team.BoardMood = 65;
                 }
             }
 

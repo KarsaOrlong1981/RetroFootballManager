@@ -46,7 +46,11 @@ namespace RetroFootballManager.Common
                 await MatchDayService.NotifyInjuryRecoveriesAsync(_messages, humanTeam, state.CurrentDate);
 
             foreach (var team in teams)
+            {
                 MatchDayService.RecoverForMatch(team, state.CurrentDate, isMatchDay: false);
+                if (DevelopmentService.ApplyMonthlyDevelopment(team, state.CurrentDate, _random))
+                    touchedTeamIds.Add(team.Id);
+            }
 
             await _aiManager.ReturnExpiredLoansAsync(state.CurrentDate, teamsById);
 
@@ -88,6 +92,7 @@ namespace RetroFootballManager.Common
 
             if (humanTeam is not null)
             {
+                await ClubMoodService.CheckThresholds(humanTeam, state, _messages, state.CurrentDate);
                 await _expiryWarnings.CheckAsync(humanTeam, state.CurrentDate);
                 await _finance.CheckFinanceWarningAsync(humanTeam, state.CurrentDate);
                 await _finance.ApplyMonthlySettlementAsync(humanTeam, state.CurrentDate);

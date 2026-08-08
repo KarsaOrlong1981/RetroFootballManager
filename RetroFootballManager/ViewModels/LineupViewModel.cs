@@ -112,6 +112,7 @@ namespace RetroFootballManager.ViewModels
             {
                 _formation = updated;
                 BuildInitialLineup();
+                ApplyLineup();
                 RebuildViews();
             }
         }
@@ -154,11 +155,16 @@ namespace RetroFootballManager.ViewModels
         {
             if (_team is not null && SelectedDialogItem is not null)
             {
+                // Non-destructive: re-map the EXISTING starting XI onto the new formation's
+                // slots by position fit (BuildInitialLineup + LineupSelector.MatchStartersToSlots)
+                // instead of re-picking a whole new best XI (LineupSelector.SelectLineup) - a
+                // formation change should only reposition the manager's chosen players, never
+                // silently swap who's in the squad or touch bench/reserve.
                 _formation = SelectedDialogItem.Formation;
                 _team.FormationName = _formation.Name;
                 CurrentFormationName = _formation.Name;
-                LineupSelector.SelectLineup(_team, _formation);
                 BuildInitialLineup();
+                ApplyLineup();
                 RebuildViews();
                 StatusText = $"Formation {_formation.Name} übernommen.";
             }
@@ -167,6 +173,20 @@ namespace RetroFootballManager.ViewModels
 
         [RelayCommand]
         private void CancelFormation() => IsFormationDialogOpen = false;
+
+        // The only place a full best-XI/bench re-pick (LineupSelector.SelectLineup) runs from
+        // this page - everything else (formation change, swaps) only repositions what's already
+        // there, per the manager's explicit choice.
+        [RelayCommand]
+        private void AskCoTrainer()
+        {
+            if (_team is null)
+                return;
+            LineupSelector.SelectLineup(_team, _formation);
+            BuildInitialLineup();
+            RebuildViews();
+            StatusText = "Co-Trainer hat eine Aufstellung vorgeschlagen.";
+        }
 
         // --- Player profile ---
 
@@ -188,7 +208,8 @@ namespace RetroFootballManager.ViewModels
                 ? null
                 : await _saveGame.GetPlayerSeasonStatsAsync(player.Id, _session.State.Season);
             var careerStats = await _saveGame.GetPlayerCareerStatsAsync(player.Id);
-            SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats);
+            var competitionStats = await _saveGame.GetPlayerCompetitionBreakdownAsync(player.Id);
+            SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats, competitionStats);
             IsPlayerProfileOpen = true;
         }
 
@@ -197,19 +218,21 @@ namespace RetroFootballManager.ViewModels
 
         // --- Swapping (tap + drag&drop) ---
 
-        // Injured players must never enter a pitch slot - they're excluded from auto-picks
-        // (LineupSelector) already, but manual drag&drop/tap-to-swap had no guard at all.
-        private bool IsInjured(int playerId) =>
-            _team?.Players.FirstOrDefault(p => p.Id == playerId)?.Status == PlayerStatus.Injured;
+        // Injured/suspended players must never enter a pitch slot - they're excluded from
+        // auto-picks (LineupSelector) already, but manual drag&drop/tap-to-swap had no guard at
+        // all. They're still shown (greyed out, in Reserves - see RebuildViews) so the manager
+        // can see who's unavailable and for how long, just not selectable.
+        private bool IsUnavailable(int playerId) =>
+            _team?.Players.FirstOrDefault(p => p.Id == playerId)?.Status is PlayerStatus.Injured or PlayerStatus.Suspended;
 
         [RelayCommand]
         private void SelectPlayer(int playerId)
         {
             if (playerId < 0)
                 return;
-            if (IsInjured(playerId))
+            if (IsUnavailable(playerId))
             {
-                StatusText = "Verletzte Spieler können nicht aufgestellt werden.";
+                StatusText = "Verletzte oder gesperrte Spieler können nicht aufgestellt werden.";
                 return;
             }
 
@@ -263,7 +286,7 @@ namespace RetroFootballManager.ViewModels
         [RelayCommand]
         private void BeginDrag(int playerId)
         {
-            if (IsInjured(playerId))
+            if (IsUnavailable(playerId))
                 return;
             _draggedPlayerId = playerId;
         }
@@ -271,9 +294,9 @@ namespace RetroFootballManager.ViewModels
         [RelayCommand]
         private void DropOn(int targetPlayerId)
         {
-            if (IsInjured(targetPlayerId))
+            if (IsUnavailable(targetPlayerId))
             {
-                StatusText = "Verletzte Spieler können nicht aufgestellt werden.";
+                StatusText = "Verletzte oder gesperrte Spieler können nicht aufgestellt werden.";
                 _draggedPlayerId = null;
                 return;
             }
@@ -428,6 +451,14 @@ namespace RetroFootballManager.ViewModels
             var reserves = _team.Players.Where(p => p.Status == PlayerStatus.Available)
                 .OrderBy(p => p.Position).Select(ToSquadToken).ToList();
 
+            // Injured/suspended players used to vanish from the page entirely once their status
+            // changed - list them too (greyed out, in Reserves) so the manager still has
+            // visibility into who's out and for how long.
+            reserves.AddRange(_team.Players
+                .Where(p => p.Status is PlayerStatus.Injured or PlayerStatus.Suspended)
+                .OrderBy(p => p.Position)
+                .Select(ToDisabledSquadToken));
+
             // A swap/toggle only ever changes 1-2 players, but Bench/Reserves render via
             // BindableLayout (not a virtualizing CollectionView - see LineupPage.xaml comment),
             // which tears down and recreates the ENTIRE native visual subtree on a Clear()/Reset.
@@ -467,6 +498,15 @@ namespace RetroFootballManager.ViewModels
         private SquadToken ToSquadToken(Player p) =>
             new(p.Id, p.Name, p.ShortPositionName, Math.Round(p.Rating, 0), p.Id == _selectedPlayerId,
                 PlayerAttributeSummary.From(p), Fitness: p.Fitness);
+
+        private SquadToken ToDisabledSquadToken(Player p)
+        {
+            string label = p.Status == PlayerStatus.Injured
+                ? p.InjuredUntil is DateTime until ? $"Verletzt bis {until:dd.MM.yyyy}" : "Verletzt"
+                : $"Gesperrt ({p.SuspensionMatchesRemaining} Spiel{(p.SuspensionMatchesRemaining == 1 ? "" : "e")})";
+            return new(p.Id, p.Name, p.ShortPositionName, Math.Round(p.Rating, 0), IsSelected: false,
+                PlayerAttributeSummary.From(p), Fitness: p.Fitness, IsDisabled: true, DisabledLabel: label);
+        }
 
         // Persists the lineup and returns to the main menu - the visible navigation IS the
         // confirmation, since a status label at the bottom of a long scrollable page is easy
@@ -527,7 +567,8 @@ namespace RetroFootballManager.ViewModels
         PlayerAttributeSummary? Attributes = null,
         int Fitness = 100,
         int YellowCards = 0,
-        bool IsDisabled = false)
+        bool IsDisabled = false,
+        string DisabledLabel = "Gesperrt")
     {
         public bool HasYellowCard => YellowCards > 0;
         public Color FitnessColor => Fitness >= 75 ? Color.FromArgb("#22C55E")

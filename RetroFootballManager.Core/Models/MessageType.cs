@@ -15,5 +15,6 @@ namespace RetroFootballManager.Models
         TrainingCampFinished,
         ScoutingCompleted,
         OpponentAnalysis,
+        ClubMoodWarning,
     }
 }

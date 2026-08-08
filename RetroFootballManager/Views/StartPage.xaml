@@ -19,29 +19,34 @@
                     Command="{Binding ContinueCommand}"
                     IsVisible="{Binding HasSaveGame}"
                     BackgroundColor="{StaticResource RfmStartButton}"
-                    TextColor="{StaticResource RfmText}" />
+                    HorizontalOptions="Fill"
+                    Style="{StaticResource RfmButton}"/>
 
             <Button Text="Spiel laden"
                     Command="{Binding LoadCommand}"
                     IsVisible="{Binding HasSaveGame}"
                     BackgroundColor="{StaticResource RfmSurface}"
-                    TextColor="{StaticResource RfmText}" />
+                    HorizontalOptions="Fill"
+                    Style="{StaticResource RfmButton}" />
 
             <Button Text="Neues Spiel starten"
                     Command="{Binding NewGameCommand}"
                     BackgroundColor="{StaticResource RfmStartButton}"
-                    TextColor="White" />
+                    HorizontalOptions="Fill"
+                    Style="{StaticResource RfmButton}" />
 
             <Button Text="Optionen"
                     Command="{Binding OptionsCommand}"
                     BackgroundColor="{StaticResource RfmSurface}"
-                    TextColor="{StaticResource RfmText}" />
+                    HorizontalOptions="Fill"
+                    Style="{StaticResource RfmButton}" />
 
             <Button Text="Spielstand löschen"
                     Command="{Binding DeleteSaveCommand}"
                     IsVisible="{Binding HasSaveGame}"
                     BackgroundColor="{StaticResource RfmSurfaceAlt}"
-                    TextColor="{StaticResource RfmTextMuted}" />
+                    HorizontalOptions="Fill"
+                    Style="{StaticResource RfmButton}" />
 
         </VerticalStackLayout>
 

@@ -145,7 +145,8 @@ namespace RetroFootballManager.ViewModels
                     ? null
                     : await _saveGame.GetPlayerSeasonStatsAsync(player.Id, _session.State.Season);
                 var careerStats = await _saveGame.GetPlayerCareerStatsAsync(player.Id);
-                SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats);
+                var competitionStats = await _saveGame.GetPlayerCompetitionBreakdownAsync(player.Id);
+                SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats, competitionStats);
             }
             IsPlayerProfileOpen = true;
         }

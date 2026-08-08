@@ -400,13 +400,18 @@ namespace RetroFootballManager.ViewModels
                         break;
                     case GameEventType.RedCard when e.Player is not null:
                         Cards.Add(new MatchCardEntry(e.Player.Name, e.IsHomeTeam, IsRed: true));
-                        sawRedCard = true;
+                        // Only pause for the human team's own red card - the opponent's card
+                        // shouldn't interrupt play.
+                        if (e.IsHomeTeam == _isHumanHome)
+                            sawRedCard = true;
                         break;
                     case GameEventType.Goal when e.Player is not null:
                         AddOrUpdateScorer(e.Player.Name, e.IsHomeTeam, e.Minute);
                         break;
                     case GameEventType.Injury when e.Player is not null:
-                        sawInjury = true;
+                        // Only pause for the human team's own injury - same reasoning as above.
+                        if (e.IsHomeTeam == _isHumanHome)
+                            sawInjury = true;
                         break;
                 }
 
@@ -553,7 +558,8 @@ namespace RetroFootballManager.ViewModels
                 ? null
                 : await _saveGame.GetPlayerSeasonStatsAsync(player.Id, _session.State.Season);
             var careerStats = await _saveGame.GetPlayerCareerStatsAsync(player.Id);
-            SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats);
+            var competitionStats = await _saveGame.GetPlayerCompetitionBreakdownAsync(player.Id);
+            SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats, competitionStats);
             IsPlayerProfileOpen = true;
         }
 
@@ -682,8 +688,10 @@ namespace RetroFootballManager.ViewModels
 
             // A red card permanently reduces the team below 11 - repositioning can move the
             // resulting gap to a different slot (net filled count unchanged), but no move may
-            // bring the total back up to a full XI, same rule for every further red card.
-            int unavailableCount = _managementTeam?.Players.Count(p => p.Status is PlayerStatus.Suspended or PlayerStatus.Injured) ?? 0;
+            // bring the total back up to a full XI, same rule for every further red card. An
+            // injury does NOT reduce the squad this way - a healthy sub can fill that slot back
+            // up to 11, so only suspensions count here.
+            int unavailableCount = _managementTeam?.Players.Count(p => p.Status is PlayerStatus.Suspended) ?? 0;
             int maxOnPitch = _managementFormation.Slots.Count - unavailableCount;
             if (temp.Count(id => id.HasValue) > maxOnPitch)
             {
@@ -815,7 +823,7 @@ namespace RetroFootballManager.ViewModels
             {
                 ManagementBench.Add(new SquadToken(
                     p.Id, p.Name, p.ShortPositionName, Math.Round(p.Rating, 0), IsSelected: false,
-                    Fitness: p.Fitness, YellowCards: YellowCardsFor(p.Id), IsDisabled: true));
+                    Fitness: p.Fitness, YellowCards: YellowCardsFor(p.Id), IsDisabled: true, DisabledLabel: "Verletzt"));
             }
 
             int pendingSubs = stagedIds.Count(id => !_originalOnPitchIds.Contains(id));

@@ -139,18 +139,20 @@ namespace RetroFootballManager.ViewModels
             UpdateAttendanceEstimate();
         }
 
+        // These four grow the stadium's capacity - "Stadionausbau" for club mood purposes.
+        // Comfort/Catering/Merchandise/Infrastructure below are quality upgrades, not expansion.
         [RelayCommand]
-        private void UpgradeSeating() => TryUpgrade(
+        private void UpgradeSeating() => TryExpansionUpgrade(
             StadiumService.GetSeatingUpgradeCost(_team!.Stadium!, SeatUpgradeStep).Amount,
             s => StadiumService.ApplySeatingUpgrade(s, SeatUpgradeStep));
 
         [RelayCommand]
-        private void UpgradeStanding() => TryUpgrade(
+        private void UpgradeStanding() => TryExpansionUpgrade(
             StadiumService.GetStandingUpgradeCost(_team!.Stadium!, StandingUpgradeStep).Amount,
             s => StadiumService.ApplyStandingUpgrade(s, StandingUpgradeStep));
 
         [RelayCommand]
-        private void UpgradeLoge() => TryUpgrade(
+        private void UpgradeLoge() => TryExpansionUpgrade(
             StadiumService.GetLogeUpgradeCost(_team!.Stadium!, LogeUpgradeStep).Amount,
             s => StadiumService.ApplyLogeUpgrade(s, LogeUpgradeStep));
 
@@ -163,7 +165,13 @@ namespace RetroFootballManager.ViewModels
                 return;
             }
 
-            TryUpgrade(StadiumService.GetRoofCost(_team!.Stadium!).Amount, StadiumService.ApplyRoof);
+            TryExpansionUpgrade(StadiumService.GetRoofCost(_team!.Stadium!).Amount, StadiumService.ApplyRoof);
+        }
+
+        private void TryExpansionUpgrade(double cost, Action<Stadium> upgrade)
+        {
+            if (TryUpgrade(cost, upgrade) && _team is not null)
+                ClubMoodService.ApplyStadiumExpansion(_team);
         }
 
         [RelayCommand]
@@ -186,10 +194,10 @@ namespace RetroFootballManager.ViewModels
             StadiumService.GetLevelUpgradeCost(_team!.Stadium!, StadiumUpgradeKind.Infrastructure).Amount,
             s => StadiumService.ApplyLevelUpgrade(s, StadiumUpgradeKind.Infrastructure));
 
-        private void TryUpgrade(double cost, Action<Stadium> upgrade)
+        private bool TryUpgrade(double cost, Action<Stadium> upgrade)
         {
             if (_team is null)
-                return;
+                return false;
 
             bool applied = StadiumService.TryApplyUpgrade(_team, upgrade, cost);
             StatusText = applied
@@ -198,6 +206,8 @@ namespace RetroFootballManager.ViewModels
 
             if (applied)
                 RefreshFromStadium();
+
+            return applied;
         }
 
         [RelayCommand]

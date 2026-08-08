@@ -58,32 +58,6 @@ A new department to buy fan merchandise at wholesale cost and sell it at a marku
 - Revenue should scale with how well the season is going (results, table position) - the
   better the team performs, the more merchandise income it generates.
 
-### Club morale (new)
-
-A new main-menu section showing two live morale meters: **fan mood** and **board mood**
-(both as percentages).
-
-- If **both** drop below 45%, the manager gets a warning that their job is at risk.
-- If **board mood** drops below 30%, the game ends (fired).
-- If **fan mood** drops below 30%, the game also ends and the manager loses their job.
-- Ways to raise morale: match wins, win streaks, stadium expansions (+5% fan mood), advancing
-  a cup round (+5% both), winning a cup (+25%, +30% for the Champions League/Europa Cup
-  equivalents), winning the league (+30%), promotion (+25%), relegation (-30%), and similar
-  events.
-
-### Long-term player development
-
-Players should improve not only through training but also gradually over the years, based on
-age and talent:
-
-- Younger players develop faster than older ones; higher talent also speeds up growth.
-- Growth must stay balanced - no overpowered players as a result.
-
-### Fitness & recovery
-
-- After a match, players should need at least **3 days** to return to 100% fitness, instead of
-  bouncing back to full fitness immediately after every game.
-
 ### Universe editor (new)
 
 A new "Editor" option in the start menu:
@@ -152,34 +126,6 @@ Eine neue Abteilung, um Fanartikel günstig einzukaufen und mit Aufschlag zu ver
   sich besser verkaufen als die generischen Trikots.
 - Die Einnahmen sollen mit dem Saisonverlauf skalieren (Ergebnisse, Tabellenplatz) - je besser
   es läuft, desto mehr Merchandise-Einnahmen werden generiert.
-
-### Vereinsstimmung (neu)
-
-Eine neue Sektion im Hauptmenü mit zwei Stimmungsanzeigen: **Fan-Stimmung** und
-**Vorstands-Stimmung** (jeweils in Prozent).
-
-- Fallen **beide** unter 45 %, erhält der Manager eine Warnung, dass sein Job in Gefahr ist.
-- Fällt die **Vorstands-Stimmung** unter 30 %, ist das Spiel vorbei (Entlassung).
-- Fällt die **Fan-Stimmung** unter 30 %, ist das Spiel ebenfalls vorbei und der Manager
-  verliert seinen Job.
-- Möglichkeiten, die Stimmung zu heben: gewonnene Spiele, Siegesserien, Stadionausbau
-  (+5 % Fan-Stimmung), Weiterkommen in einer Pokalrunde (+5 % auf beides), Pokalsieg (+25 %,
-  bei Champions League/Europa Pokal +30 %), Meisterschaft (+30 %), Aufstieg (+25 %), Abstieg
-  (-30 %) und ähnliche Ereignisse.
-
-### Langfristige Spielerentwicklung
-
-Spieler sollen sich nicht nur durch Training, sondern auch über die Jahre hinweg
-weiterentwickeln, abhängig von Alter und Talent:
-
-- Jüngere Spieler entwickeln sich schneller als ältere; höheres Talent beschleunigt die
-  Entwicklung zusätzlich.
-- Der Fortschritt muss dabei gesund bleiben - es sollen keine überstarken Spieler entstehen.
-
-### Fitness & Regeneration
-
-- Nach einem Spiel sollen Spieler mindestens **3 Tage** benötigen, um wieder auf 100 %
-  Fitness zu kommen, statt nach jedem Spiel sofort wieder voll fit zu sein.
 
 ### Universen-Editor (neu)
 

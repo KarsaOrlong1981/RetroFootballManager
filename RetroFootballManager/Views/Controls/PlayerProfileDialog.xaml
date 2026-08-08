@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    xmlns:models="clr-namespace:RetroFootballManager.Models;assembly=RetroFootballManager.Core"
     x:Name="Root">
 
     <Grid IsVisible="{Binding IsOpen, Source={x:Reference Root}}" BackgroundColor="#B0000000">
@@ -202,6 +203,28 @@
                         <Label Text="{Binding CareerYellowCards, StringFormat='Gelbe Karten gesamt: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
                         <Label Text="{Binding RedCards, StringFormat='Rote Karten diese Saison: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
                         <Label Text="{Binding CareerRedCards, StringFormat='Rote Karten gesamt: {0}'}" FontSize="12" TextColor="{StaticResource RfmText}" />
+
+                        <!-- Freundschaftsspiele/Pokal-Wettbewerbe zählen nicht in die Liga-Statistik oben -
+                             eigene Zeile je Wettbewerb. -->
+                        <VerticalStackLayout Spacing="1" BindableLayout.ItemsSource="{Binding CompetitionStats}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:CompetitionStatsRow">
+                                    <Label FontSize="12" TextColor="{StaticResource RfmTextMuted}">
+                                        <Label.Text>
+                                            <MultiBinding StringFormat="{}{0}: {1} Sp., {2} Tore, {3} Vorl., {4} Gelb, {5} Rot">
+                                                <Binding Path="Label" />
+                                                <Binding Path="Matches" />
+                                                <Binding Path="Goals" />
+                                                <Binding Path="Assists" />
+                                                <Binding Path="YellowCards" />
+                                                <Binding Path="RedCards" />
+                                            </MultiBinding>
+                                        </Label.Text>
+                                    </Label>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
                         <Label Text="Vertrag" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,6,0,0" />
                         <Label Text="{Binding MarketValue, StringFormat='Marktwert: {0}  €'}" FontSize="12" TextColor="{StaticResource RfmText}" />
                         <Label Text="{Binding ContractNote}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />

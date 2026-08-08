@@ -14,16 +14,18 @@ namespace RetroFootballManager.Common
         private readonly TeamRepository _teams;
         private readonly TrainingCampRepository _trainingCamps;
         private readonly MessageService _messages;
+        private readonly PlayerRepository? _players;
         private readonly Random _random;
 
         public FriendlyService(
             FixtureRepository fixtures, TeamRepository teams, TrainingCampRepository trainingCamps,
-            MessageService messages, Random? random = null)
+            MessageService messages, PlayerRepository? players = null, Random? random = null)
         {
             _fixtures = fixtures;
             _teams = teams;
             _trainingCamps = trainingCamps;
             _messages = messages;
+            _players = players;
             _random = random ?? Random.Shared;
         }
 
@@ -133,7 +135,9 @@ namespace RetroFootballManager.Common
             fixture.Played = true;
             result.ApplyInjuryDurations(fixture.Date);
             await MatchDayService.NotifyInjuriesAsync(_messages, result, home, away, humanTeamId, fixture.Date);
-            MatchDayService.ApplyCareerMinutes(result, home, away);
+            MatchDayService.ApplyCareerMinutes(result, home, away, fixture.Date, countsTowardCareerStats: false);
+            if (_players is not null)
+                await MatchDayService.PersistPlayerStatsAsync(_players, [result], fixture.Season, CompetitionType.Friendly);
             ApplyFriendlyIncome(home, away);
 
             await _fixtures.SaveAsync(fixture);

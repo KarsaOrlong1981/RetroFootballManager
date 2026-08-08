@@ -55,13 +55,33 @@ namespace RetroFootballManager.Common
         //   - isFriendly, or matchCompetition doesn't match the player's ban: not blocked here,
         //     available for this match, ban is left running for its own competition.
         //   - otherwise: this match serves one game of the ban.
+        // Fitness regen after playing always takes at least this many days, no matter how high
+        // BaseFitness (Grundfitness) is - see RegenerateFitness.
+        public const int MinFitnessRecoveryDays = 3;
+        // Days needed for full recovery at the lowest possible BaseFitness (1).
+        private const int MaxFitnessRecoveryDays = 7;
+        // Worst-case post-match fitness floor enforced by Match.DecayFitness.
+        private const int PostMatchFitnessFloor = 20;
+
         public static void RecoverForMatch(
             Team team, DateTime? currentDate = null, CompetitionType? matchCompetition = null,
             bool isFriendly = false, bool isMatchDay = true)
         {
             foreach (var p in team.Players)
             {
-                p.Fitness = 100;
+                // Fitness is only regenerated on the daily calendar tick (isMatchDay: false) -
+                // pre-match prep (isMatchDay: true) leaves it exactly as the last daily tick set
+                // it, so playing again shortly after a match finds the squad still tired (see
+                // RegenerateFitness). Without a currentDate (tests, no calendar context) fall
+                // back to the old instant-heal behaviour.
+                if (!isMatchDay)
+                {
+                    if (currentDate.HasValue)
+                        RegenerateFitness(p, currentDate.Value);
+                    else
+                        p.Fitness = 100;
+                }
+
                 if (p.Status == PlayerStatus.Injured)
                 {
                     bool stillOut = currentDate.HasValue && p.InjuredUntil.HasValue && p.InjuredUntil.Value > currentDate.Value;
@@ -99,6 +119,43 @@ namespace RetroFootballManager.Common
                 if (p.SuspensionMatchesRemaining <= 0)
                     p.SuspensionCompetition = null;
             }
+        }
+
+        // Gradual, BaseFitness-dependent fitness regen for one calendar day. Called once per
+        // day per team from CalendarAdvanceService.AdvanceOneDayAsync via RecoverForMatch
+        // (isMatchDay: false) - never from pre-match prep, so a day's regen is never applied
+        // twice. Recovery to 100 always takes at least MinFitnessRecoveryDays, even at the
+        // highest possible BaseFitness; the lowest possible BaseFitness takes
+        // MaxFitnessRecoveryDays.
+        private static void RegenerateFitness(Player p, DateTime currentDate)
+        {
+            if (p.Fitness >= 100)
+                return;
+
+            if (p.LastMatchDate is not DateTime last)
+            {
+                // No tracked appearance yet (new/legacy player) - just top up gently.
+                p.Fitness = Math.Min(100, p.Fitness + 10);
+                return;
+            }
+
+            int daysSince = (currentDate.Date - last.Date).Days;
+            if (daysSince < 0)
+                return;
+
+            double staminaFactor = Math.Clamp(p.BaseFitness, 1, 99) / 99.0;
+            int recoveryDays = Math.Max(MinFitnessRecoveryDays,
+                (int)Math.Round(MaxFitnessRecoveryDays - ((MaxFitnessRecoveryDays - MinFitnessRecoveryDays) * staminaFactor)));
+
+            if (daysSince >= recoveryDays)
+            {
+                p.Fitness = 100;
+                return;
+            }
+
+            int regenPerDay = (int)Math.Ceiling((100.0 - PostMatchFitnessFloor) / recoveryDays);
+            int cap = daysSince < MinFitnessRecoveryDays ? 99 : 100;
+            p.Fitness = Math.Min(cap, p.Fitness + regenPerDay);
         }
 
         // Recovers the team and then auto-picks a position-correct XI (used for COM teams).
@@ -162,6 +219,25 @@ namespace RetroFootballManager.Common
                 {
                     ApplyResult(fixture, humanResult, home, away);
                     matchResults.Add(humanResult);
+
+                    var managerTeam = home.Id == state.ManagerTeamId ? home : away;
+
+                    // Subs made during this match leave players stuck as SubstitutedOff, which
+                    // RebuildViews (Lineup page) doesn't render as Bench or Reserve - they'd
+                    // simply vanish until the next matchday prep/calendar tick runs
+                    // RecoverForMatch. Fix it up right here instead of a full RecoverForMatch
+                    // call, which would also touch fitness/suspension counters already handled
+                    // elsewhere and risk double-counting a ban served during pre-match prep.
+                    foreach (var p in managerTeam.Players.Where(p => p.Status == PlayerStatus.SubstitutedOff))
+                        p.Status = PlayerStatus.OnBench;
+
+                    bool humanIsHome = home.Id == state.ManagerTeamId;
+                    int humanGoals = humanIsHome ? humanResult.HomeGoals : humanResult.AwayGoals;
+                    int opponentGoals = humanIsHome ? humanResult.AwayGoals : humanResult.HomeGoals;
+                    if (humanGoals > opponentGoals)
+                        ClubMoodService.ApplyLeagueWin(managerTeam);
+                    else
+                        ClubMoodService.ApplyLeagueLossOrDraw(managerTeam);
 
                     if (_messages is not null)
                         await NotifyInjuriesAsync(_messages, humanResult, home, away, state.ManagerTeamId, fixture.Date);
@@ -295,7 +371,7 @@ namespace RetroFootballManager.Common
             result.ApplyToTeamStats(home.Statistics!, away.Statistics!);
             result.ApplyInjuryDurations(fixture.Date);
             result.ApplySuspensions(competition: null);
-            ApplyCareerMinutes(result, home, away);
+            ApplyCareerMinutes(result, home, away, fixture.Date);
         }
 
         // Sends a PlayerInjured message for every injured human-team player, including their
@@ -320,8 +396,17 @@ namespace RetroFootballManager.Common
         }
 
         // Public - CupMatchDayService/FriendlyMatchDayViewModel book career minutes for
-        // cup/friendly matches using the same pattern.
-        public static void ApplyCareerMinutes(MatchResult result, Team home, Team away)
+        // cup/friendly matches using the same pattern. Also stamps LastMatchDate for anyone
+        // who actually played (minutes > 0), the basis for RegenerateFitness's day-by-day
+        // recovery curve - covers league, cup and friendly matches since they all funnel
+        // through this one method.
+        //
+        // countsTowardCareerStats: false for friendlies - they still count for fitness/fatigue
+        // (LastMatchDate/SeasonMinutes) but must not inflate the player's displayed
+        // CareerMinutesPlayed/CareerAppearances (see PersistPlayerStatsAsync with
+        // CompetitionType.Friendly for the separate friendly stats these numbers now live in).
+        public static void ApplyCareerMinutes(
+            MatchResult result, Team home, Team away, DateTime matchDate, bool countsTowardCareerStats = true)
         {
             foreach (var (playerId, minutes) in result.MinutesPlayed)
             {
@@ -330,10 +415,15 @@ namespace RetroFootballManager.Common
                 if (player is null)
                     continue;
 
-                player.CareerMinutesPlayed += minutes;
+                if (countsTowardCareerStats)
+                    player.CareerMinutesPlayed += minutes;
                 player.SeasonMinutes += minutes;
                 if (minutes > 0)
-                    player.CareerAppearances++;
+                {
+                    if (countsTowardCareerStats)
+                        player.CareerAppearances++;
+                    player.LastMatchDate = matchDate;
+                }
             }
         }
 

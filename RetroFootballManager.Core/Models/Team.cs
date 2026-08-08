@@ -39,6 +39,23 @@ namespace RetroFootballManager.Models
         // attributes across the whole squad. null = no focus set.
         public TeamTrainingFocus? TeamTrainingFocus { get; set; }
 
+        // Which (month, year) DevelopmentService.ApplyMonthlyDevelopment last ran for this team -
+        // 0/0 (never set) is never a real month/year, so no backfill is needed for old saves.
+        public int LastDevelopmentMonth { get; set; }
+        public int LastDevelopmentYear { get; set; }
+
+        // Club mood (Vereinsstimmung), 0-100. See ClubMoodService - drops below 30 end the
+        // career (board/fan dismissal); both below 45 trigger a warning message.
+        public int FanMood { get; set; } = 65;
+        public int BoardMood { get; set; } = 65;
+
+        // Consecutive league wins for the human team - reset on a draw/loss, see ClubMoodService.
+        public int CurrentWinStreak { get; set; }
+
+        // Whether the "club mood is low" warning message has already been sent for the current
+        // dip below 45% - reset once both moods recover, so it can fire again on a later dip.
+        public bool ClubMoodWarningActive { get; set; }
+
         [Ignore]
         public Tactic Tactic => new Tactic(PlayingStyle, TacticalOrientation);
 

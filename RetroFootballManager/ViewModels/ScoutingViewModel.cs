@@ -145,7 +145,8 @@ namespace RetroFootballManager.ViewModels
                 var listing = await _saveGame.GetTransferListingForPlayerAsync(player.Id);
                 var seasonStats = state is null ? null : await _saveGame.GetPlayerSeasonStatsAsync(player.Id, state.Season);
                 var careerStats = await _saveGame.GetPlayerCareerStatsAsync(player.Id);
-                SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats);
+                var competitionStats = await _saveGame.GetPlayerCompetitionBreakdownAsync(player.Id);
+                SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats, competitionStats);
 
                 // Never offer for our own players - only for scouted players at other clubs, and
                 // only while no offer/listing already exists for them.

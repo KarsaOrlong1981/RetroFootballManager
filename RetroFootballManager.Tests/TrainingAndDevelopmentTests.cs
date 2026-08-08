@@ -285,6 +285,12 @@ namespace RetroFootballManager.Tests
 
             int before = old.CounterSpeed + old.PressingIntensity + old.DuelHardness;
             DevelopmentService.DevelopSquad(team, DevDate, new Random(5));
+            // Growth/decline now applies monthly during the season, not inside DevelopSquad
+            // (season-end bookkeeping only) - simulate several seasons of monthly ticks so a
+            // probabilistic single-season roll can't make this test flaky.
+            var rng = new Random(5);
+            for (int i = 0; i < DevelopmentService.MonthsPerSeason * 3; i++)
+                DevelopmentService.ApplyMonthlyDevelopment(team, DevDate.AddMonths(i), rng);
             int after = old.CounterSpeed + old.PressingIntensity + old.DuelHardness;
 
             Assert.True(after < before);

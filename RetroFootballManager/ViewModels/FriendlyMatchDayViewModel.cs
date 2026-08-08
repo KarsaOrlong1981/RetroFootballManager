@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RetroFootballManager.Common;
 using RetroFootballManager.Core.Models;
+using RetroFootballManager.Data;
 using RetroFootballManager.Data.Repositories;
 using RetroFootballManager.Logging;
 using RetroFootballManager.Models;
@@ -24,6 +25,8 @@ namespace RetroFootballManager.ViewModels
         private readonly TeamRepository _teams;
         private readonly MessageService _messages;
         private readonly INavigationService _navigation;
+        private readonly PlayerRepository _playerRepository;
+        private readonly SaveGameService _saveGame;
 
         private int _fixtureId;
         private Match? _match;
@@ -52,7 +55,9 @@ namespace RetroFootballManager.ViewModels
             TeamRepository teams,
             MessageService messages,
             INavigationService navigation,
-            AppSettingsService appSettings)
+            AppSettingsService appSettings,
+            PlayerRepository playerRepository,
+            SaveGameService saveGame)
             : base(dispatcher)
         {
             _session = session;
@@ -60,6 +65,8 @@ namespace RetroFootballManager.ViewModels
             _teams = teams;
             _messages = messages;
             _navigation = navigation;
+            _playerRepository = playerRepository;
+            _saveGame = saveGame;
             Title = "Freundschaftsspiel";
             SpeedLevel = appSettings.DefaultMatchSpeed;
         }
@@ -299,13 +306,18 @@ namespace RetroFootballManager.ViewModels
                         break;
                     case GameEventType.RedCard when e.Player is not null:
                         Cards.Add(new MatchCardEntry(e.Player.Name, e.IsHomeTeam, IsRed: true));
-                        sawRedCard = true;
+                        // Only pause for the human team's own red card - the opponent's card
+                        // shouldn't interrupt play.
+                        if (e.IsHomeTeam == _isHumanHome)
+                            sawRedCard = true;
                         break;
                     case GameEventType.Goal when e.Player is not null:
                         AddOrUpdateScorer(e.Player.Name, e.IsHomeTeam, e.Minute);
                         break;
                     case GameEventType.Injury when e.Player is not null:
-                        sawInjury = true;
+                        // Only pause for the human team's own injury - same reasoning as above.
+                        if (e.IsHomeTeam == _isHumanHome)
+                            sawInjury = true;
                         break;
                 }
 
@@ -429,13 +441,14 @@ namespace RetroFootballManager.ViewModels
         }
 
         [RelayCommand]
-        private void ShowProfile(int playerId)
+        private async Task ShowProfile(int playerId)
         {
             var player = _managementTeam?.Players.FirstOrDefault(p => p.Id == playerId);
             if (player is null)
                 return;
 
-            SelectedProfile = PlayerProfile.From(player, contract: null, listing: null);
+            var competitionStats = await _saveGame.GetPlayerCompetitionBreakdownAsync(player.Id);
+            SelectedProfile = PlayerProfile.From(player, contract: null, listing: null, competitionStats: competitionStats);
             IsPlayerProfileOpen = true;
         }
 
@@ -552,7 +565,9 @@ namespace RetroFootballManager.ViewModels
             else
                 temp[slotB] = aId;
 
-            int unavailableCount = _managementTeam?.Players.Count(p => p.Status is PlayerStatus.Suspended or PlayerStatus.Injured) ?? 0;
+            // An injury doesn't reduce the squad below 11 - a healthy sub can fill the slot
+            // back up, so only suspensions (permanent for this match) count here.
+            int unavailableCount = _managementTeam?.Players.Count(p => p.Status is PlayerStatus.Suspended) ?? 0;
             int maxOnPitch = _managementFormation.Slots.Count - unavailableCount;
             if (temp.Count(id => id.HasValue) > maxOnPitch)
             {
@@ -667,7 +682,7 @@ namespace RetroFootballManager.ViewModels
             {
                 ManagementBench.Add(new SquadToken(
                     p.Id, p.Name, p.ShortPositionName, Math.Round(p.Rating, 0), IsSelected: false,
-                    Fitness: p.Fitness, YellowCards: YellowCardsFor(p.Id), IsDisabled: true));
+                    Fitness: p.Fitness, YellowCards: YellowCardsFor(p.Id), IsDisabled: true, DisabledLabel: "Verletzt"));
             }
 
             int pendingSubs = stagedIds.Count(id => !_originalOnPitchIds.Contains(id));
@@ -763,7 +778,8 @@ namespace RetroFootballManager.ViewModels
             _match.Result.ApplyInjuryDurations(_fixture.Date);
             int humanTeamId = _isHumanHome ? _homeTeam.Id : _awayTeam.Id;
             await MatchDayService.NotifyInjuriesAsync(_messages, _match.Result, _homeTeam, _awayTeam, humanTeamId, _fixture.Date);
-            MatchDayService.ApplyCareerMinutes(_match.Result, _homeTeam, _awayTeam);
+            MatchDayService.ApplyCareerMinutes(_match.Result, _homeTeam, _awayTeam, _fixture.Date, countsTowardCareerStats: false);
+            await MatchDayService.PersistPlayerStatsAsync(_playerRepository, [_match.Result], _fixture.Season, CompetitionType.Friendly);
             FriendlyService.ApplyFriendlyIncome(_homeTeam, _awayTeam);
 
             SetPhase(FriendlyMatchdayUiPhase.FullTime);

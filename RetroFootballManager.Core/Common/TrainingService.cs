@@ -69,6 +69,7 @@ namespace RetroFootballManager.Common
             TeamTrainingFocus.Offensive => "Offensive",
             TeamTrainingFocus.Defensive => "Defensive",
             TeamTrainingFocus.WingPlay => "Flügelspiel",
+            TeamTrainingFocus.Konditionstraining => "Konditionstraining",
             _ => focus.ToString(),
         };
 
@@ -93,12 +94,53 @@ namespace RetroFootballManager.Common
 
             // Team-wide tactical focus (Pressing, Tiki-Taka, ...) only makes sense for outfield
             // attributes - goalkeepers keep developing solely through their individual GK focus.
-            if (team.TeamTrainingFocus is TeamTrainingFocus teamFocus)
+            // Konditionstraining is the exception: it raises BaseFitness for everyone, keepers
+            // included, since fitness/stamina isn't a position-specific skill.
+            if (team.TeamTrainingFocus is TeamTrainingFocus.Konditionstraining)
+            {
+                foreach (var player in team.Players)
+                    TrainBaseFitness(player, team, rng, scale * TeamTrainingScale);
+            }
+            else if (team.TeamTrainingFocus is TeamTrainingFocus teamFocus)
             {
                 foreach (var attribute in AttributesFor(teamFocus))
                     foreach (var player in team.Players.Where(p => p.Position != Position.Goalkeeper))
                         Train(player, attribute, team, rng, scale * TeamTrainingScale);
             }
+        }
+
+        // Konditionstraining's effect: raises BaseFitness (Grundfitness) over the season, same
+        // shape as Train() (age/coach/ceiling/morale factors) but not capped by Talent - stamina
+        // isn't a potential-limited skill the way the other attributes are.
+        private const int BaseFitnessCap = 99;
+
+        private static void TrainBaseFitness(Player player, Team team, Random rng, double externalScale)
+        {
+            if (player.BaseFitness >= BaseFitnessCap)
+                return;
+
+            double ageFactor = AgeFactor(player.Age);
+            double coachFactor = Math.Clamp(BestFitnessCoachRating(team) / 70.0, 0.7, 1.3);
+            double ceilingFactor = Math.Clamp((BaseFitnessCap - player.BaseFitness) / 20.0, 0.15, 1.0);
+            double moraleFactor = PlayerMoraleFactor(player.Moral);
+
+            double potential = WeeklyBaseRate * ageFactor * coachFactor * ceilingFactor * moraleFactor * externalScale;
+            int gain = (int)Math.Floor(potential);
+            if (rng.NextDouble() < potential - gain)
+                gain++;
+
+            gain = Math.Min(gain, BaseFitnessCap - player.BaseFitness);
+            if (gain > 0)
+                player.BaseFitness += gain;
+        }
+
+        private static int BestFitnessCoachRating(Team team)
+        {
+            var coach = team.Employees
+                .Where(e => e.EmployeeType == EmployeeType.FitnessCoach)
+                .OrderByDescending(e => e.FitnessTraining)
+                .FirstOrDefault();
+            return coach?.FitnessTraining ?? 50;
         }
 
         // Auto-picks a sensible training focus for AI-controlled players/teams that don't
@@ -263,7 +305,7 @@ namespace RetroFootballManager.Common
             _ => [],
         };
 
-        private static int Get(Player p, TrainableAttribute a) => a switch
+        internal static int Get(Player p, TrainableAttribute a) => a switch
         {
             TrainableAttribute.Offensive => p.OffensivePower,
             TrainableAttribute.Defensive => p.DefensivePower,
@@ -290,7 +332,7 @@ namespace RetroFootballManager.Common
             _ => 0,
         };
 
-        private static void Set(Player p, TrainableAttribute a, int value)
+        internal static void Set(Player p, TrainableAttribute a, int value)
         {
             switch (a)
             {

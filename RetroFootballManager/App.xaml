@@ -14,8 +14,8 @@
             <conv:BoolToOpacityConverter x:Key="LockedOpacity" TrueOpacity="1" FalseOpacity="0.4" />
             <conv:BoolToOpacityConverter x:Key="DisabledOpacity" TrueOpacity="0.4" FalseOpacity="1" />
             <conv:BoolToOpacityConverter x:Key="ReadOpacity" TrueOpacity="0.55" FalseOpacity="1" />
-            <conv:PitchBoundsConverter x:Key="PitchBounds" TokenWidth="84" TokenHeight="98" />
-            <conv:PitchBoundsConverter x:Key="PitchBoundsSmall" TokenWidth="68" TokenHeight="80" />
+            <conv:PitchBoundsConverter x:Key="PitchBounds" TokenWidth="150" TokenHeight="104" />
+            <conv:PitchBoundsConverter x:Key="PitchBoundsSmall" TokenWidth="98" TokenHeight="80" />
             <conv:PositionFitColorConverter x:Key="FitColor" />
             <conv:BoolToColorConverter x:Key="RoleToggleColor" TrueColor="{StaticResource RfmAccentTeal}" FalseColor="#40000000" />
             <conv:BoolToColorConverter x:Key="SelectedGreen" TrueColor="#22C55E" FalseColor="{StaticResource RfmSurface}" />
@@ -25,6 +25,7 @@
             <conv:StringPresenceConverter x:Key="HasLogo" />
             <conv:StringPresenceConverter x:Key="NoLogo" Invert="True" />
             <conv:StringPresenceConverter x:Key="StringPresence" />
+            <conv:InvertedBoolConverter x:Key="InvertedBool" />
             <conv:CompetitionKindDisplayConverter x:Key="CompetitionKindDisplay" />
             <conv:GroupConditionTypeDisplayConverter x:Key="GroupConditionTypeDisplay" />
         </ResourceDictionary>
