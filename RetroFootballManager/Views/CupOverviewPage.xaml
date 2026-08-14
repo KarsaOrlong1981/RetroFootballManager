@@ -13,47 +13,50 @@
         <VerticalStackLayout Padding="16" Spacing="14">
 
             <Picker Title="Wettbewerb"
+                    FontSize="22"
+                    WidthRequest="380"
                     BackgroundColor="Blue"
                     ItemsSource="{Binding Competitions}" ItemDisplayBinding="{Binding Label}"
                     SelectedItem="{Binding SelectedCompetition, Mode=TwoWay}"
                     TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
 
             <Picker Title="Gruppe" IsVisible="{Binding HasGroups}"
+                    FontSize="18"
                     BackgroundColor="Blue"
                     ItemsSource="{Binding Groups}" ItemDisplayBinding="{Binding Group}"
                     SelectedItem="{Binding SelectedGroup, Mode=TwoWay}"
                     TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
 
             <!-- Grouptables -->
-            <VerticalStackLayout Spacing="8" IsVisible="{Binding HasGroups}">
-                <Label Text="Gruppentabelle" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <VerticalStackLayout Spacing="8" IsVisible="{Binding HasGroups}" HorizontalOptions="Start" WidthRequest="880">
+                <Label Text="Gruppentabelle" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
                 <Border StrokeThickness="0" Padding="8" BackgroundColor="{StaticResource RfmSurface}">
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="12" />
                     </Border.StrokeShape>
                     <VerticalStackLayout>
                         <Grid ColumnDefinitions="26,*,28,26,26,32,30" Padding="6,4" ColumnSpacing="4">
-                            <Label Grid.Column="0" Text="#" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
-                            <Label Grid.Column="1" Text="Team" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
-                            <Label Grid.Column="2" Text="Sp" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
-                            <Label Grid.Column="3" Text="TG" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
-                            <Label Grid.Column="4" Text="TK" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
-                            <Label Grid.Column="5" Text="TD" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
-                            <Label Grid.Column="6" Text="Pkt" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="0" Text="#" FontSize="22" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="1" Text="Team" FontSize="22" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="2" Text="Sp" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="3" Text="TG" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="4" Text="TK" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="5" Text="TD" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="6" Text="Pkt" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
                         </Grid>
                         <CollectionView ItemsSource="{Binding GroupStandings}">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="vm:CupGroupStandingDisplayRow">
                                     <Grid BackgroundColor="{Binding RowColor}" Padding="0,1">
                                         <Grid ColumnDefinitions="26,*,28,26,26,32,30" Padding="6,5" ColumnSpacing="4">
-                                            <Label Grid.Column="0" Text="{Binding Row.Position}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
-                                            <Label Grid.Column="1" Text="{Binding Row.TeamName}" FontSize="12" TextColor="{StaticResource RfmText}"
+                                            <Label Grid.Column="0" Text="{Binding Row.Position}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Grid.Column="1" Text="{Binding Row.TeamName}" FontSize="18" TextColor="{StaticResource RfmText}"
                                                    LineBreakMode="TailTruncation" />
-                                            <Label Grid.Column="2" Text="{Binding Row.Played}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
-                                            <Label Grid.Column="3" Text="{Binding Row.GoalsFor}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
-                                            <Label Grid.Column="4" Text="{Binding Row.GoalsAgainst}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
-                                            <Label Grid.Column="5" Text="{Binding Row.GoalDifference}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
-                                            <Label Grid.Column="6" Text="{Binding Row.Points}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" />
+                                            <Label Grid.Column="2" Text="{Binding Row.Played}" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Grid.Column="3" Text="{Binding Row.GoalsFor}" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Grid.Column="4" Text="{Binding Row.GoalsAgainst}" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Grid.Column="5" Text="{Binding Row.GoalDifference}" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Grid.Column="6" Text="{Binding Row.Points}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" />
                                         </Grid>
                                     </Grid>
                                 </DataTemplate>
@@ -64,13 +67,13 @@
             </VerticalStackLayout>
 
             <!-- Ko-tree -->
-            <VerticalStackLayout Spacing="8" IsVisible="{Binding HasKoBracket}">
-                <Label Text="KO-Runden" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <VerticalStackLayout Spacing="8" IsVisible="{Binding HasKoBracket}" HorizontalOptions="Start" WidthRequest="880">
+                <Label Text="KO-Runden" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
                 <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding KoBracket}">
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="vm:KoRoundSection">
                             <VerticalStackLayout Spacing="4">
-                                <Label Text="{Binding RoundName}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmTextMuted}" />
+                                <Label Text="{Binding RoundName}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmTextMuted}" />
                                 <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Ties}">
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="vm:KoTieDisplayRow">
@@ -79,7 +82,7 @@
                                                     <RoundRectangle CornerRadius="8" />
                                                 </Border.StrokeShape>
                                                 <VerticalStackLayout Spacing="2">
-                                                    <Label FontSize="12" TextColor="{StaticResource RfmText}">
+                                                    <Label FontSize="18" TextColor="{StaticResource RfmText}">
                                                         <Label.FormattedText>
                                                             <FormattedString>
                                                                 <Span Text="{Binding HomeTeamName}" />
@@ -88,8 +91,8 @@
                                                             </FormattedString>
                                                         </Label.FormattedText>
                                                     </Label>
-                                                    <Label Text="{Binding ScoreText}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" />
-                                                    <Label Text="{Binding WinnerText}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                                    <Label Text="{Binding ScoreText}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" />
+                                                    <Label Text="{Binding WinnerText}" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
                                                 </VerticalStackLayout>
                                             </Border>
                                         </DataTemplate>
@@ -102,14 +105,16 @@
             </VerticalStackLayout>
 
             <!-- Player stats -->
-            <Label Text="Statistiken" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <Label Text="Statistiken" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
             <Picker Title="Kategorie"
+                    FontSize="18"
+                    WidthRequest="380"
                     BackgroundColor="Blue"
                     ItemsSource="{Binding StatCategories}" ItemDisplayBinding="{Binding Label}"
                     SelectedItem="{Binding SelectedStatCategory, Mode=TwoWay}"
                     TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
 
-            <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding TopPlayers}">
+            <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding TopPlayers}" WidthRequest="880" HorizontalOptions="Start">
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="vm:StatRankRow">
                         <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
@@ -117,15 +122,15 @@
                                 <RoundRectangle CornerRadius="8" />
                             </Border.StrokeShape>
                             <Grid ColumnDefinitions="28,*,Auto,Auto" ColumnSpacing="10">
-                                <Label Grid.Column="0" Text="{Binding Rank}" FontSize="13" FontAttributes="Bold"
+                                <Label Grid.Column="0" Text="{Binding Rank}" FontSize="18" FontAttributes="Bold"
                                        TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
                                 <VerticalStackLayout Grid.Column="1">
-                                    <Label Text="{Binding PlayerName}" FontSize="14" TextColor="{StaticResource RfmText}" />
-                                    <Label Text="{Binding TeamName}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                    <Label Text="{Binding PlayerName}" FontSize="18" TextColor="{StaticResource RfmText}" />
+                                    <Label Text="{Binding TeamName}" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
                                 </VerticalStackLayout>
-                                <Label Grid.Column="2" Text="{Binding PositionShort}" FontSize="12"
+                                <Label Grid.Column="2" Text="{Binding PositionShort}" FontSize="18"
                                        TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
-                                <Label Grid.Column="3" Text="{Binding Value}" FontSize="15" FontAttributes="Bold"
+                                <Label Grid.Column="3" Text="{Binding Value}" FontSize="18" FontAttributes="Bold"
                                        TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
                             </Grid>
                         </Border>
@@ -133,9 +138,7 @@
                 </BindableLayout.ItemTemplate>
             </VerticalStackLayout>
 
-            <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
-            <Button Text="Zurück" Command="{Binding BackCommand}"
-                    BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmTextMuted}" />
+            <Label Text="{Binding StatusText}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
         </VerticalStackLayout>
     </ScrollView>
 </local:BaseContentPage>

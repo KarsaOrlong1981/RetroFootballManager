@@ -13,29 +13,30 @@
     BackgroundColor="{StaticResource RfmBackground}">
 
     <Grid>
-        <Grid RowDefinitions="*,Auto" Padding="14" RowSpacing="10">
+        <Image Source="youth_academie.png" Aspect="Fill"/>
+        <Grid RowDefinitions="*,Auto" Padding="14" Opacity="0.85" RowSpacing="10">
 
             <CollectionView Grid.Row="0" ItemsSource="{Binding Youth}"
                             SelectionMode="Single" SelectedItem="{Binding SelectedYouth, Mode=TwoWay}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Player">
                         <Grid Padding="3">
-                            <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
+                            <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}" WidthRequest="850" HorizontalOptions="Start" StrokeThickness="0">
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
-                                <Grid ColumnDefinitions="*,Auto,Auto,26" ColumnSpacing="10">
-                                    <VerticalStackLayout Grid.Column="0">
-                                        <Label Text="{Binding Name}" FontSize="14" TextColor="{StaticResource RfmText}" />
-                                        <Label Text="{Binding ShortPositionName}" FontSize="12" TextColor="{StaticResource RfmText}" />
-                                        <Label Text="{Binding Age, StringFormat='{0} Jahre'}" FontSize="11"
+                                <Grid ColumnDefinitions="50,*,Auto,Auto,26" ColumnSpacing="10">
+                                    <VerticalStackLayout Grid.Column="1">
+                                        <Label Text="{Binding Name}" FontSize="18" TextColor="{StaticResource RfmText}" />
+                                        <Label Text="{Binding ShortPositionName}" FontSize="18" TextColor="{StaticResource RfmText}" />
+                                        <Label Text="{Binding Age, StringFormat='{0} Jahre'}" FontSize="16"
                                                TextColor="{StaticResource RfmTextMuted}" />
                                     </VerticalStackLayout>
-                                    <Label Grid.Column="1" Text="{Binding Rating, StringFormat='R {0:0}'}" FontSize="13"
+                                    <Label Grid.Column="2" Text="{Binding Rating, StringFormat='R {0:0}'}" FontSize="18"
                                            TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
-                                    <Label Grid.Column="2" Text="{Binding Talent, StringFormat='T {0}'}" FontSize="13"
+                                    <Label Grid.Column="3" Text="{Binding Talent, StringFormat='T {0}'}" FontSize="18"
                                            FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
-                                    <Border Grid.Column="3" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="22" HeightRequest="22" Padding="0" StrokeThickness="0">
+                                    <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0">
                                         <Border.StrokeShape>
                                             <RoundRectangle CornerRadius="11" />
                                         </Border.StrokeShape>
@@ -43,7 +44,7 @@
                                             <TapGestureRecognizer
                                                 Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}" />
                                         </Border.GestureRecognizers>
-                                        <Image Source="info.png" WidthRequest="14" HeightRequest="14" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        <Image Source="info.png" WidthRequest="26" HeightRequest="26" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
                                     </Border>
                                 </Grid>
                             </Border>
@@ -53,28 +54,29 @@
             </CollectionView>
 
             <VerticalStackLayout Grid.Row="1" Spacing="8">
-                <Label Text="{Binding YouthInfo}" FontSize="13" TextColor="{StaticResource RfmText}" />
-                <Label Text="{Binding CurrentMentorInfo}" FontSize="12" FontAttributes="Bold"
+                <Label Text="{Binding YouthInfo}" FontSize="18" TextColor="{StaticResource RfmText}" />
+                <Label Text="{Binding CurrentMentorInfo}" FontSize="18" FontAttributes="Bold"
                        TextColor="{StaticResource RfmAccentTeal}" />
-                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" WidthRequest="800" HorizontalOptions="Start">
                     <Picker Grid.Column="0" Title="Mentor auswählen"
                             BackgroundColor="Blue" 
-                            WidthRequest="200"
+                            FontSize="18"
+                            WidthRequest="380"
                             HorizontalOptions="Start"
                             ItemsSource="{Binding Mentors}" ItemDisplayBinding="{Binding Display}"
                             SelectedItem="{Binding SelectedMentor, Mode=TwoWay}"
-                            TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
-                    <Button Grid.Column="1" Text="Zuweisen" Command="{Binding AssignMentorCommand}"
-                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
-                    <Button Grid.Column="2" Text="Entfernen" Command="{Binding RemoveMentorCommand}"
+                            TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmText}" />
+                    <Button Grid.Column="1" Text="Zuweisen" FontSize="18" VerticalOptions="End" Command="{Binding AssignMentorCommand}"
+                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" />
+                    <Button Grid.Column="2" Text="Entfernen" FontSize="18" VerticalOptions="End" Command="{Binding RemoveMentorCommand}"
                             IsVisible="{Binding HasMentor}"
                             BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
                 </Grid>
-                <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
+                <Label Text="{Binding StatusText}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                    <Button Grid.Column="0" Text="Hochziehen" Command="{Binding PromoteCommand}"
-                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
-                    <Button Grid.Column="1" Text="Bestätigen" Command="{Binding ConfirmCommand}"
+                    <Button Grid.Column="0" Text="Hochziehen" FontSize="18" Command="{Binding PromoteCommand}"
+                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" />
+                    <Button Grid.Column="1" Text="Bestätigen" FontSize="18" Command="{Binding ConfirmCommand}"
                             BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
                 </Grid>
             </VerticalStackLayout>

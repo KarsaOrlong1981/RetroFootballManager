@@ -12,131 +12,136 @@
     Title="Transfermarkt"
     BackgroundColor="{StaticResource RfmBackground}">
 
-    <Grid>
-        <Image Source="transfermarket.png" Aspect="AspectFill"/>
-        <ScrollView>
-        <VerticalStackLayout Opacity="0.85"  Padding="20" Spacing="14">
-                
-                <Label Text="Transferstatus" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
+    <Grid RowDefinitions="60,300,50, *">
+        <Image Source="transfermarket.png" Aspect="AspectFill" Grid.RowSpan="4"/>
+        <Label Text="Transferstatus" FontSize="26"  FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="12" />
+        <ScrollView Opacity="0.85" Grid.Row="1">
+            <VerticalStackLayout  Margin="12" Spacing="14">
+                <Label Text="Eigene Angebote (Listungen)" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding OwnListings}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:OwnListingRow">
+                        <Border StrokeThickness="0" Padding="10" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="8" />
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="4">
+                                <Label FontAttributes="Bold" FontSize="18" TextColor="{StaticResource RfmText}">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding PlayerName}" />
+                                            <Span Text=" - " />
+                                            <Span Text="{Binding AskingPrice, StringFormat='{0:N0} €'}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                                <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsLoan}" Value="True">
+                                            <Setter Property="Text" Value="Zur Leihe angeboten" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsLoan}" Value="False">
+                                            <Setter Property="Text" Value="Zum Transfer angeboten" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
 
-                <Label Text="Eigene Angebote (Listungen)" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource RfmTextMuted}" />
-                <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding OwnListings}">
-                    <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="vm:OwnListingRow">
-                            <Border StrokeThickness="0" Padding="10" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
-                                <VerticalStackLayout Spacing="4">
-                                    <Label FontAttributes="Bold" TextColor="{StaticResource RfmText}">
-                                        <Label.FormattedText>
-                                            <FormattedString>
-                                                <Span Text="{Binding PlayerName}" />
-                                                <Span Text=" - " />
-                                                <Span Text="{Binding AskingPrice, StringFormat='{0:N0} €'}" />
-                                            </FormattedString>
-                                        </Label.FormattedText>
-                                    </Label>
-                                    <Label FontSize="11" TextColor="{StaticResource RfmTextMuted}">
-                                        <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding IsLoan}" Value="True">
-                                                <Setter Property="Text" Value="Zur Leihe angeboten" />
-                                            </DataTrigger>
-                                            <DataTrigger TargetType="Label" Binding="{Binding IsLoan}" Value="False">
-                                                <Setter Property="Text" Value="Zum Transfer angeboten" />
-                                            </DataTrigger>
-                                        </Label.Triggers>
-                                    </Label>
-
-                                    <VerticalStackLayout Spacing="4" IsVisible="{Binding HasOffers}"
+                                <VerticalStackLayout Spacing="4" IsVisible="{Binding HasOffers}"
                                          BindableLayout.ItemsSource="{Binding Offers}">
-                                        <BindableLayout.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:OwnOfferRow">
-                                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" Padding="0,3">
-                                                    <Label Grid.Column="0" TextColor="{StaticResource RfmAccentTeal}" FontSize="12">
-                                                        <Label.FormattedText>
-                                                            <FormattedString>
-                                                                <Span Text="{Binding OfferingTeamName}" />
-                                                                <Span Text=": " />
-                                                                <Span Text="{Binding Fee, StringFormat='{0:N0} €'}" />
-                                                                <Span Text=" · Gehaltsangebot " />
-                                                                <Span Text="{Binding Wage, StringFormat='{0:N0} €'}" />
-                                                            </FormattedString>
-                                                        </Label.FormattedText>
-                                                    </Label>
-                                                    <Button Grid.Column="1" Text="Annehmen" FontSize="11" Padding="8,4"
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:OwnOfferRow">
+                                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" Padding="0,3">
+                                                <Label Grid.Column="0" TextColor="{StaticResource RfmAccentTeal}" FontSize="18">
+                                                    <Label.FormattedText>
+                                                        <FormattedString>
+                                                            <Span Text="{Binding OfferingTeamName}" />
+                                                            <Span Text=": " />
+                                                            <Span Text="{Binding Fee, StringFormat='{0:N0} €'}" />
+                                                            <Span Text=" · Gehaltsangebot " />
+                                                            <Span Text="{Binding Wage, StringFormat='{0:N0} €'}" />
+                                                        </FormattedString>
+                                                    </Label.FormattedText>
+                                                </Label>
+                                                <Button Grid.Column="1" Text="Annehmen" FontSize="18" Padding="8,4"
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.AcceptOfferCommand}"
                                             CommandParameter="{Binding .}"
                                             BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
-                                                    <Button Grid.Column="2" Text="Ablehnen" FontSize="11" Padding="8,4"
+                                                <Button Grid.Column="2" Text="Ablehnen" FontSize="18" Padding="8,4"
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.RejectOfferCommand}"
                                             CommandParameter="{Binding .}"
                                             BackgroundColor="Transparent" BorderColor="{StaticResource RfmTextMuted}" BorderWidth="1"
                                             TextColor="{StaticResource RfmText}" />
-                                                </Grid>
-                                            </DataTemplate>
-                                        </BindableLayout.ItemTemplate>
-                                    </VerticalStackLayout>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
                                 </VerticalStackLayout>
-                            </Border>
-                        </DataTemplate>
-                    </BindableLayout.ItemTemplate>
-                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
 
-                <Label Text="Eigene abgegebene Angebote" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource RfmTextMuted}" Margin="0,4,0,0" />
+                <Label Text="Eigene abgegebene Angebote" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,4,0,0" />
                 <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding OutgoingOffers}">
-                    <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="vm:OutgoingOfferRow">
-                            <Border StrokeThickness="0" Padding="10" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
-                                <VerticalStackLayout Spacing="4">
-                                    <Label FontSize="12" TextColor="{StaticResource RfmText}">
+                
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:OutgoingOfferRow">
+                        <Border StrokeThickness="0" Padding="10" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="8" />
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="4">
+                                <Label FontSize="18" TextColor="{StaticResource RfmText}">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding PlayerName}" FontAttributes="Bold" />
+                                            <Span Text=" (" />
+                                            <Span Text="{Binding SellingTeamName}" />
+                                            <Span Text="): " />
+                                            <Span Text="{Binding Fee, StringFormat='{0:N0} €'}" />
+                                            <Span Text=" · Gehaltsangebot " />
+                                            <Span Text="{Binding Wage, StringFormat='{0:N0} €'}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" IsVisible="{Binding IsCountered}">
+                                    <Label Grid.Column="0" TextColor="{StaticResource RfmAccentTeal}" FontSize="18">
                                         <Label.FormattedText>
                                             <FormattedString>
-                                                <Span Text="{Binding PlayerName}" FontAttributes="Bold" />
-                                                <Span Text=" (" />
-                                                <Span Text="{Binding SellingTeamName}" />
-                                                <Span Text="): " />
-                                                <Span Text="{Binding Fee, StringFormat='{0:N0} €'}" />
-                                                <Span Text=" · Gehaltsangebot " />
-                                                <Span Text="{Binding Wage, StringFormat='{0:N0} €'}" />
+                                                <Span Text="Gegenangebot: " />
+                                                <Span Text="{Binding CounterFee, StringFormat='{0:N0} €'}" FontAttributes="Bold" />
                                             </FormattedString>
                                         </Label.FormattedText>
                                     </Label>
-
-                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" IsVisible="{Binding IsCountered}">
-                                        <Label Grid.Column="0" TextColor="{StaticResource RfmAccentTeal}" FontSize="12">
-                                            <Label.FormattedText>
-                                                <FormattedString>
-                                                    <Span Text="Gegenangebot: " />
-                                                    <Span Text="{Binding CounterFee, StringFormat='{0:N0} €'}" FontAttributes="Bold" />
-                                                </FormattedString>
-                                            </Label.FormattedText>
-                                        </Label>
-                                        <Button Grid.Column="1" Text="Annehmen" FontSize="11" Padding="8,4"
+                                    <Button Grid.Column="1" Text="Annehmen" FontSize="16" Padding="8,4"
                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.AcceptCounterOfferCommand}"
                                         CommandParameter="{Binding .}"
                                         BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
-                                        <Button Grid.Column="2" Text="Ablehnen" FontSize="11" Padding="8,4"
+                                    <Button Grid.Column="2" Text="Ablehnen" FontSize="16" Padding="8,4"
                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.RejectOutgoingOfferCommand}"
                                         CommandParameter="{Binding .}"
                                         BackgroundColor="Transparent" BorderColor="{StaticResource RfmTextMuted}" BorderWidth="1"
                                         TextColor="{StaticResource RfmText}" />
-                                    </Grid>
-                                </VerticalStackLayout>
-                            </Border>
-                        </DataTemplate>
-                    </BindableLayout.ItemTemplate>
-                </VerticalStackLayout>
-                <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
-              
-                <Label Text="Markt" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
-                <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding MarketListings}">
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <Label Text="{Binding StatusText}" FontSize="18" TextColor="{StaticResource RfmText}" />
+        </VerticalStackLayout>
+        </ScrollView>
+        <BoxView Grid.Row="2" BackgroundColor="White"  HeightRequest="3"/>
+        <ScrollView Grid.Row="3" Opacity="0.85">
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,*" Opacity="0.85">
+                <!-- Market side -->
+                <Label Text="Markt" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="12" />
+                <VerticalStackLayout Grid.Row="1" Margin="12" Spacing="6" BindableLayout.ItemsSource="{Binding MarketListings}">
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="vm:MarketListingRow">
-                            <Border StrokeThickness="0" Padding="10" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
+                            <Border StrokeThickness="0" Padding="10"  BackgroundColor="{StaticResource RfmSurface}">
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
@@ -152,11 +157,11 @@
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
                                             CommandParameter="{Binding PlayerId}" />
                                         </Border.GestureRecognizers>
-                                        <Image Source="info.png" WidthRequest="15" HeightRequest="15" Aspect="AspectFit"
+                                        <Image Source="info.png" WidthRequest="26" HeightRequest="26" Aspect="AspectFit"
                                            HorizontalOptions="Center" VerticalOptions="Center" />
                                     </Border>
                                     <VerticalStackLayout Grid.Column="1">
-                                        <Label FontAttributes="Bold" TextColor="{StaticResource RfmText}">
+                                        <Label FontAttributes="Bold" FontSize="18" TextColor="{StaticResource RfmText}">
                                             <Label.FormattedText>
                                                 <FormattedString>
                                                     <Span Text="{Binding PlayerName}" />
@@ -167,7 +172,7 @@
                                                 </FormattedString>
                                             </Label.FormattedText>
                                         </Label>
-                                        <Label FontSize="11" TextColor="{StaticResource RfmTextMuted}">
+                                        <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
                                             <Label.FormattedText>
                                                 <FormattedString>
                                                     <Span Text="{Binding TeamName}" />
@@ -176,26 +181,28 @@
                                                 </FormattedString>
                                             </Label.FormattedText>
                                         </Label>
-                                        <Label Text="Leihe" FontSize="11" TextColor="{StaticResource RfmAccentTeal}"
+                                        <Label Text="Leihe" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"
                                IsVisible="{Binding IsLoan}" />
                                     </VerticalStackLayout>
-                                    <Button Grid.Column="2" Text="Angebot abgeben" FontSize="12"
+                                    <Button Grid.Column="2" Text="Angebot abgeben" FontSize="18" 
                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.MakeOfferCommand}"
                             CommandParameter="{Binding .}"
-                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" />
                                 </Grid>
                             </Border>
                         </DataTemplate>
                     </BindableLayout.ItemTemplate>
                 </VerticalStackLayout>
 
-                
-              
-            <Label Text="Eigene Spieler" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                <VerticalStackLayout  Spacing="6" BindableLayout.ItemsSource="{Binding OwnPlayers}">
+
+
+                <!--Own Player side -->
+                <Label Text="Eigene Spieler" Grid.Column="1" Margin="12" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <VerticalStackLayout Grid.Column="1" Grid.Row="1" Margin="12"  Spacing="6" BindableLayout.ItemsSource="{Binding OwnPlayers}">
+                   
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="vm:OwnPlayerRow">
-                            <Border StrokeThickness="0" Padding="10" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
+                            <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}">
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
@@ -211,12 +218,12 @@
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
                                             CommandParameter="{Binding PlayerId}" />
                                         </Border.GestureRecognizers>
-                                        <Image Source="info.png" WidthRequest="15" HeightRequest="15" Aspect="AspectFit"
+                                        <Image Source="info.png" WidthRequest="26" HeightRequest="26" Aspect="AspectFit"
                                            HorizontalOptions="Center" VerticalOptions="Center" />
                                     </Border>
 
-                                    <VerticalStackLayout Grid.Column="1">
-                                        <Label FontAttributes="Bold" TextColor="{StaticResource RfmText}">
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                        <Label FontAttributes="Bold" FontSize="18" TextColor="{StaticResource RfmText}">
                                             <Label.FormattedText>
                                                 <FormattedString>
                                                     <Span Text="{Binding PlayerName}" />
@@ -227,7 +234,7 @@
                                                 </FormattedString>
                                             </Label.FormattedText>
                                         </Label>
-                                        <Label FontSize="11" TextColor="{StaticResource RfmTextMuted}">
+                                        <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
                                             <Label.FormattedText>
                                                 <FormattedString>
                                                     <Span Text="Gehalt: " />
@@ -237,23 +244,23 @@
                                                 </FormattedString>
                                             </Label.FormattedText>
                                         </Label>
-                                        <Label Text="Zum Transfer angeboten" FontSize="11" TextColor="{StaticResource RfmAccentTeal}"
-                                           IsVisible="{Binding IsListed}" />
-                                        <Label Text="Zur Leihe angeboten" FontSize="11" TextColor="{StaticResource RfmAccentTeal}"
+                                        <Label Text="Zum Transfer angeboten" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"
+                                           IsVisible="{Binding IsTransferListed}" />
+                                        <Label Text="Zur Leihe angeboten" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"
                                            IsVisible="{Binding IsLoanListed}" />
                                     </VerticalStackLayout>
 
                                     <VerticalStackLayout Grid.Column="2" Spacing="4" IsVisible="{Binding CanOffer}">
-                                        <Button Text="Zum Transfer anbieten" FontSize="10" Padding="6,4"
+                                        <Button Text="Zum Transfer anbieten" FontSize="16" Padding="6,4"
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.OfferForTransferCommand}"
                                             CommandParameter="{Binding .}"
                                             BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
-                                        <Button Text="Zur Leihe anbieten" FontSize="10" Padding="6,4"
+                                        <Button Text="Zur Leihe anbieten" FontSize="16" Padding="6,4"
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.OfferForLoanCommand}"
                                             CommandParameter="{Binding .}"
                                             BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
                                     </VerticalStackLayout>
-                                    <Button Grid.Column="2" Text="Zurückziehen" FontSize="10" Padding="6,4"
+                                    <Button Grid.Column="2" Text="Zurückziehen" FontSize="16" Padding="6,4"
                                         IsVisible="{Binding IsListed}"
                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.WithdrawListingCommand}"
                                         CommandParameter="{Binding .}"
@@ -264,11 +271,12 @@
                         </DataTemplate>
                     </BindableLayout.ItemTemplate>
                 </VerticalStackLayout>
-            </VerticalStackLayout>
-    </ScrollView>
+            </Grid>
+        </ScrollView>
 
     <!-- Player profile dialog -->
     <controls:PlayerProfileDialog
+        Grid.RowSpan="4"
         IsOpen="{Binding IsPlayerProfileOpen}"
         Title="{Binding SelectedPlayerName}"
         Profile="{Binding SelectedProfile}"
@@ -279,11 +287,11 @@
         UnlockCommand="{Binding ScoutPlayerCommand}" />
 
     <!-- Busy overlay -->
-    <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000">
+    <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000" Grid.RowSpan="4">
         <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="12">
             <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{StaticResource RfmAccentTeal}"
                                WidthRequest="48" HeightRequest="48" />
-            <Label Text="{Binding StatusText}" FontSize="14" TextColor="{StaticResource RfmText}"
+            <Label Text="{Binding StatusText}" FontSize="18" TextColor="{StaticResource RfmText}"
                    HorizontalOptions="Center" />
         </VerticalStackLayout>
     </Grid>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<local:BaseContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:RetroFootballManager.Views"
+             xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+             xmlns:models="clr-namespace:RetroFootballManager.Models;assembly=RetroFootballManager.Core"
+             x:Class="RetroFootballManager.Views.TalkToPlayerPage"
+             x:DataType="vm:TalkToPlayerViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="{StaticResource RfmBackground}">
+    <Grid>
+        <Image Source="playertalk.png" Aspect="Fill" />
+        <ScrollView Opacity="0.85">
+            <VerticalStackLayout Padding="20" Spacing="10"  HorizontalOptions="Start" VerticalOptions="End">
+                
+                <Label BackgroundColor="Black" Text="{Binding ReactionText}" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}"
+                       IsVisible="{Binding ReactionText, Converter={StaticResource StringPresence}}"
+                       HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+
+                <Label BackgroundColor="Black" Text="Der Spieler ist unzufrieden und denkt über einen Vereinswechsel nach."
+                       FontSize="20" FontAttributes="Bold" TextColor="#E5484D"
+                       IsVisible="{Binding WantsToLeaveClub}"
+                       HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                
+                <Border StrokeThickness="0" Padding="12" BackgroundColor="{StaticResource RfmSurface}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10" />
+                    </Border.StrokeShape>
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="8">
+                        <Label Text="{Binding Player.Name}" Grid.ColumnSpan="2" FontSize="38" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}"
+                               HorizontalOptions="Start" />
+                        <Label Grid.Row="1" Grid.Column="0" FontSize="22">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Moral: " TextColor="{StaticResource RfmText}" />
+                                    <Span Text="{Binding Player.Moral, StringFormat='{0}%'}" TextColor="{StaticResource RfmAccentTeal}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Grid.Row="1" Grid.Column="1" FontSize="22">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Fitness: " TextColor="{StaticResource RfmText}" />
+                                    <Span Text="{Binding Player.Fitness, StringFormat='{0}%'}" TextColor="{StaticResource RfmAccentTeal}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Grid.Row="2" Grid.Column="0" FontSize="22">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Minuten Saison: " TextColor="{StaticResource RfmText}" />
+                                    <Span Text="{Binding Profile.SeasonMinutes}" TextColor="{StaticResource RfmAccentTeal}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Grid.Row="2" Grid.Column="1" FontSize="22">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Karriere-Einsätze: " TextColor="{StaticResource RfmText}" />
+                                    <Span Text="{Binding Profile.CareerAppearances}" TextColor="{StaticResource RfmAccentTeal}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Grid.Row="3" Grid.Column="0" FontSize="22">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Tore Saison: " TextColor="{StaticResource RfmText}" />
+                                    <Span Text="{Binding Profile.Goals}" TextColor="{StaticResource RfmAccentTeal}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Grid.Row="3" Grid.Column="1" FontSize="22">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Vorlagen Saison: " TextColor="{StaticResource RfmText}" />
+                                    <Span Text="{Binding Profile.Assists}" TextColor="{StaticResource RfmAccentTeal}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Grid.Row="4" Grid.Column="0" FontSize="22">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Persönlichkeit: " TextColor="{StaticResource RfmText}" />
+                                    <Span Text="{Binding Profile.Personality}" TextColor="{StaticResource RfmAccentTeal}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </Grid>
+                </Border>
+
+                <Button Text="{Binding OptionAButtonText}" Command="{Binding ChooseOptionACommand}"
+                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="22" />
+                <Button Text="{Binding OptionBButtonText}" Command="{Binding ChooseOptionBCommand}"
+                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="22" />
+                <Button Text="{Binding OptionCButtonText}" Command="{Binding ChooseOptionCCommand}"
+                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="22" />
+                <Button Text="{Binding OptionDButtonText}" Command="{Binding ChooseOptionDCommand}"
+                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="22" />
+                <Button Text="{Binding OptionEButtonText}" Command="{Binding ChooseOptionECommand}"
+                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="22" />
+                <Button Text="{Binding OptionFButtonText}" Command="{Binding ChooseOptionFCommand}"
+                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="22" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</local:BaseContentPage>

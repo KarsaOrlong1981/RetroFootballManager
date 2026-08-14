@@ -14,14 +14,14 @@
         <ScrollView Opacity="0.85">
             <VerticalStackLayout Padding="20" Spacing="14">
 
-                <Label Text="{Binding MaxAmountText}" HorizontalOptions="Start" Style="{StaticResource RfmMutedLabel}" />
+                <Label Text="{Binding MaxAmountText}" FontSize="22" HorizontalOptions="Start" Style="{StaticResource RfmMutedLabel}" />
 
-                <Label Text="Kreditsumme" Style="{StaticResource RfmLabel}" HorizontalOptions="Start" />
-                <Picker ItemsSource="{Binding AmountOptions}" SelectedItem="{Binding SelectedAmount}"
+                <Label Text="Kreditsumme" FontSize="22" Style="{StaticResource RfmLabel}" HorizontalOptions="Start" />
+                <Picker ItemsSource="{Binding AmountOptions}" FontSize="18" SelectedItem="{Binding SelectedAmount}"
                         TextColor="{StaticResource RfmText}" BackgroundColor="{StaticResource RfmSurface}" />
 
-                <Label Text="Laufzeit (Monate)" Style="{StaticResource RfmLabel}" HorizontalOptions="Start"/>
-                <Picker ItemsSource="{Binding TermOptions}" SelectedItem="{Binding SelectedTerm}" 
+                <Label Text="Laufzeit (Monate)" FontSize="22" Style="{StaticResource RfmLabel}" HorizontalOptions="Start"/>
+                <Picker ItemsSource="{Binding TermOptions}" FontSize="18" SelectedItem="{Binding SelectedTerm}" 
                         TextColor="{StaticResource RfmText}" BackgroundColor="{StaticResource RfmSurface}" />
 
                 <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}">
@@ -36,9 +36,9 @@
 
                 <Label Text="{Binding StatusText}" Style="{StaticResource RfmLabel}"  HorizontalOptions="Start"/>
 
-                <Button Text="Kredit aufnehmen" Command="{Binding ConfirmCommand}" WidthRequest="200" HorizontalOptions="Start"
+                <Button Text="Kredit aufnehmen" Command="{Binding ConfirmCommand}" FontSize="18" WidthRequest="200" HorizontalOptions="Start"
                         BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
-                <Button Text="Abbrechen" Command="{Binding CancelCommand}" WidthRequest="200" HorizontalOptions="Start"
+                <Button Text="Abbrechen" Command="{Binding CancelCommand}" FontSize="18" WidthRequest="200" HorizontalOptions="Start"
                         BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmTextMuted}" />
             </VerticalStackLayout>
         </ScrollView>

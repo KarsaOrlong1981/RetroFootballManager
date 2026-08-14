@@ -1,18 +1,20 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using RetroFootballManager.Common;
 using RetroFootballManager.Core.Models;
 using RetroFootballManager.Data;
 using RetroFootballManager.Logging;
 using RetroFootballManager.Models;
 using RetroFootballManager.Services;
+using RetroFootballManager.ViewModels.Messages;
 
 namespace RetroFootballManager.ViewModels
 {
     public enum PositionFitLevel { Empty, Favorite, Secondary, OutOfPosition }
 
-    public partial class LineupViewModel : BaseViewModel
+    public partial class LineupViewModel : BaseViewModel, IRecipient<PlayerProfileChangedMessage>
     {
         private static readonly ILog Log = LogManager.GetLogger<LineupViewModel>();
         private const int BenchCap = 9;
@@ -36,6 +38,16 @@ namespace RetroFootballManager.ViewModels
             _saveGame = saveGame;
             _navigation = navigation;
             Title = "Aufstellung";
+            WeakReferenceMessenger.Default.Register(this);
+        }
+
+        // A talk on TalkToPlayerPage moves Moral/Fitness/etc. on the same Player instance we
+        // already hold, but SelectedProfile is a snapshot PlayerProfile record - it won't reflect
+        // that change on its own once the manager navigates back with the dialog still open.
+        public void Receive(PlayerProfileChangedMessage message)
+        {
+            if (SelectedPlayer is not null && SelectedPlayer.Id == message.PlayerId)
+                _ = ShowProfile(message.PlayerId);
         }
 
         public ObservableCollection<PitchToken> Pitch { get; } = [];
@@ -57,6 +69,7 @@ namespace RetroFootballManager.ViewModels
 
         [ObservableProperty] private bool _isPlayerProfileOpen;
         [ObservableProperty] private PlayerProfile? _selectedProfile;
+        [ObservableProperty] private Player? _selectedPlayer;
 
         public void Initialize()
         {
@@ -210,6 +223,7 @@ namespace RetroFootballManager.ViewModels
             var careerStats = await _saveGame.GetPlayerCareerStatsAsync(player.Id);
             var competitionStats = await _saveGame.GetPlayerCompetitionBreakdownAsync(player.Id);
             SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats, competitionStats);
+            SelectedPlayer = player;
             IsPlayerProfileOpen = true;
         }
 
@@ -274,6 +288,10 @@ namespace RetroFootballManager.ViewModels
             ApplyLineup();
             RebuildViews();
         }
+
+        [RelayCommand]
+        private Task OpenTalkToPlayerView(Player player) =>
+            _navigation.GoToAsync($"talktoplayer?playerId={player.Id}");
 
         private Position EffectiveSlotPositionFor(int slotIndex, Player? player)
         {

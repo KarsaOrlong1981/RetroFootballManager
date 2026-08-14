@@ -16,6 +16,7 @@ namespace RetroFootballManager.ViewModels
         bool IsListed, bool IsLoanListed)
     {
         public bool CanOffer => !IsListed;
+        public bool IsTransferListed => IsListed && !IsLoanListed;
     }
 
     public record MarketListingRow(

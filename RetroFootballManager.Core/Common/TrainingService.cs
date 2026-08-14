@@ -123,8 +123,9 @@ namespace RetroFootballManager.Common
             double coachFactor = Math.Clamp(BestFitnessCoachRating(team) / 70.0, 0.7, 1.3);
             double ceilingFactor = Math.Clamp((BaseFitnessCap - player.BaseFitness) / 20.0, 0.15, 1.0);
             double moraleFactor = PlayerMoraleFactor(player.Moral);
+            double talkMotivationFactor = 1.0 + player.TalkMotivationBoost;
 
-            double potential = WeeklyBaseRate * ageFactor * coachFactor * ceilingFactor * moraleFactor * externalScale;
+            double potential = WeeklyBaseRate * ageFactor * coachFactor * ceilingFactor * moraleFactor * talkMotivationFactor * externalScale;
             int gain = (int)Math.Floor(potential);
             if (rng.NextDouble() < potential - gain)
                 gain++;
@@ -179,8 +180,9 @@ namespace RetroFootballManager.Common
             double coachFactor = CoachFactor(team, attribute, player);
             double ceilingFactor = Math.Clamp((cap - current) / 20.0, 0.15, 1.0);
             double moraleFactor = PlayerMoraleFactor(player.Moral);
+            double talkMotivationFactor = 1.0 + player.TalkMotivationBoost;
 
-            double potential = WeeklyBaseRate * talentFactor * ageFactor * coachFactor * ceilingFactor * moraleFactor * externalScale;
+            double potential = WeeklyBaseRate * talentFactor * ageFactor * coachFactor * ceilingFactor * moraleFactor * talkMotivationFactor * externalScale;
             int gain = (int)Math.Floor(potential);
             if (rng.NextDouble() < potential - gain)
                 gain++;

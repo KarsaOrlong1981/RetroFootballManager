@@ -12,36 +12,38 @@
     BackgroundColor="{StaticResource RfmBackground}">
 
     <Grid>
-        <Grid RowDefinitions="Auto,*,Auto" Padding="14" RowSpacing="10">
+        <Image Source="headerscene.png" Aspect="Fill"/>
+        <Grid RowDefinitions="Auto,*,Auto" Opacity="0.85" Padding="14" RowSpacing="10">
 
             <Picker Grid.Row="0" Title="Kategorie"
                     BackgroundColor="Blue"
-                    WidthRequest="200"
+                    FontSize="28"
+                    WidthRequest="380"
                     HorizontalOptions="Start"
                     ItemsSource="{Binding Categories}" ItemDisplayBinding="{Binding Label}"
                     SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
-                    TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+                    TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmText}" />
 
             <CollectionView Grid.Row="1" ItemsSource="{Binding Rows}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="vm:StatRankRow">
                         <Grid Padding="3">
-                            <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
+                            <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}"  WidthRequest="850" HorizontalOptions="Start" StrokeThickness="0">
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
-                                <Grid ColumnDefinitions="28,*,Auto,Auto,26" ColumnSpacing="10">
-                                    <Label Grid.Column="0" Text="{Binding Rank}" FontSize="13" FontAttributes="Bold"
+                                <Grid ColumnDefinitions="58,36,*,50,80,26" ColumnSpacing="10">
+                                    <Label Grid.Column="1" Text="{Binding Rank}" FontSize="22" FontAttributes="Bold"
                                            TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
-                                    <VerticalStackLayout Grid.Column="1">
-                                        <Label Text="{Binding PlayerName}" FontSize="14" TextColor="{StaticResource RfmText}" />
-                                        <Label Text="{Binding TeamName}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                    <VerticalStackLayout Grid.Column="2">
+                                        <Label Text="{Binding PlayerName}" FontSize="22" TextColor="{StaticResource RfmText}" />
+                                        <Label Text="{Binding TeamName}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
                                     </VerticalStackLayout>
-                                    <Label Grid.Column="2" Text="{Binding PositionShort}" FontSize="12"
+                                    <Label Grid.Column="3" Text="{Binding PositionShort}" FontSize="22"
                                            TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
-                                    <Label Grid.Column="3" Text="{Binding Value}" FontSize="15" FontAttributes="Bold"
+                                    <Label Grid.Column="4" Text="{Binding Value}" FontSize="18" FontAttributes="Bold"
                                            TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
-                                    <Border Grid.Column="4" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="22" HeightRequest="22" Padding="0" StrokeThickness="0">
+                                    <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="26" HeightRequest="26" Padding="0" StrokeThickness="0">
                                         <Border.StrokeShape>
                                             <RoundRectangle CornerRadius="11" />
                                         </Border.StrokeShape>
@@ -50,7 +52,7 @@
                                                 Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
                                                 CommandParameter="{Binding PlayerId}" />
                                         </Border.GestureRecognizers>
-                                        <Image Source="info.png" WidthRequest="14" HeightRequest="14" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        <Image Source="info.png" WidthRequest="26" HeightRequest="26" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
                                     </Border>
                                 </Grid>
                             </Border>
@@ -60,9 +62,7 @@
             </CollectionView>
 
             <VerticalStackLayout Grid.Row="2" Spacing="8">
-                <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
-                <Button Text="Zurück" Command="{Binding BackCommand}"
-                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+                <Label Text="{Binding StatusText}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
             </VerticalStackLayout>
         </Grid>
 

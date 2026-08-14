@@ -35,6 +35,7 @@ namespace RetroFootballManager
             Routing.RegisterRoute("friendlymatchday", typeof(FriendlyMatchDayPage));
             Routing.RegisterRoute("options", typeof(OptionsPage));
             Routing.RegisterRoute("gameover", typeof(GameOverPage));
+            Routing.RegisterRoute("talktoplayer", typeof(TalkToPlayerPage));
         }
     }
 }

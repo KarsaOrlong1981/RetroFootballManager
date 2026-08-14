@@ -19,14 +19,14 @@
                             <Border.StrokeShape>
                                 <RoundRectangle CornerRadius="12" />
                             </Border.StrokeShape>
-                            <Grid ColumnDefinitions="80,*" ColumnSpacing="14">
+                            <Grid ColumnDefinitions="180,500" ColumnSpacing="14">
                                 <Image Grid.Column="0" Source="{Binding ImagePath}" Aspect="AspectFit"
-                                       HeightRequest="72" WidthRequest="72"
+                                       HeightRequest="176" WidthRequest="176"
                                        Opacity="{Binding HasWonAtLeastOnce, Converter={StaticResource LockedOpacity}}" />
-                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="4">
-                                    <Label Text="{Binding Label}" FontSize="16" FontAttributes="Bold"
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center" Spacing="4">
+                                    <Label Text="{Binding Label}" FontSize="26" FontAttributes="Bold"
                                            TextColor="{StaticResource RfmText}" />
-                                    <Label FontSize="13" TextColor="{StaticResource RfmAccentTeal}">
+                                    <Label FontSize="18" TextColor="{StaticResource RfmAccentTeal}">
                                         <Label.Triggers>
                                             <DataTrigger TargetType="Label" Binding="{Binding HasWonAtLeastOnce}" Value="False">
                                                 <Setter Property="Text" Value="Noch nicht gewonnen" />
@@ -43,9 +43,6 @@
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
             </VerticalStackLayout>
-
-            <Button Text="Zurück" Command="{Binding BackCommand}"
-                    BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmTextMuted}" />
         </VerticalStackLayout>
     </ScrollView>
 </local:BaseContentPage>

@@ -85,6 +85,19 @@ namespace RetroFootballManager.Models
         }
         public double Rating { get; set; }
         public int Moral { get; set; }
+
+        // Talk-to-player state (see ConversationService). TalkMotivationBoost is a temporary,
+        // morale-independent training multiplier that decays weekly; RecentTalkStreak tracks
+        // consecutive Praise/Criticize talks (positive = praise streak, negative = criticism
+        // streak) to detect overpraise/overcriticism tipping points; RecentPersonalTalkStreak
+        // counts consecutive personal (Neutral) talks the same way, to detect when small talk
+        // becomes overfamiliar; WantsToLeaveClub is a warning flag (no automatic transfer
+        // listing yet); LastTalkDate enforces a one-talk-per-week cooldown per player.
+        public double TalkMotivationBoost { get; set; }
+        public int RecentTalkStreak { get; set; }
+        public int RecentPersonalTalkStreak { get; set; }
+        public bool WantsToLeaveClub { get; set; }
+        public DateTime? LastTalkDate { get; set; }
         public double Size { get; set; }
         public int Fitness { get; set; }
 

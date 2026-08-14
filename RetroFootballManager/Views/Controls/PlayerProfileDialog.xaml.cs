@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using RetroFootballManager.Models;
 using RetroFootballManager.ViewModels;
 
 namespace RetroFootballManager.Views.Controls
@@ -32,8 +33,17 @@ namespace RetroFootballManager.Views.Controls
         public static readonly BindableProperty IsLockedBusyProperty =
             BindableProperty.Create(nameof(IsLockedBusy), typeof(bool), typeof(PlayerProfileDialog), false);
 
+        public static readonly BindableProperty CanTalkWithPlayerProperty =
+            BindableProperty.Create(nameof(CanTalkWithPlayer), typeof(bool), typeof(PlayerProfileDialog), false);
+
         public static readonly BindableProperty UnlockCommandProperty =
             BindableProperty.Create(nameof(UnlockCommand), typeof(ICommand), typeof(PlayerProfileDialog));
+
+        public static readonly BindableProperty OpenTalkWithPlayerViewCommandProperty =
+            BindableProperty.Create(nameof(OpenTalkWithPlayerViewCommand), typeof(ICommand), typeof(PlayerProfileDialog));
+
+        public static readonly BindableProperty OpenTalkWithPlayerViewCommandParameterProperty =
+            BindableProperty.Create(nameof(OpenTalkWithPlayerViewCommandParameter), typeof(object), typeof(PlayerProfileDialog));
 
         public static readonly BindableProperty ExtraContentProperty =
             BindableProperty.Create(nameof(ExtraContent), typeof(View), typeof(PlayerProfileDialog),
@@ -68,12 +78,30 @@ namespace RetroFootballManager.Views.Controls
             set => SetValue(CloseCommandProperty, value);
         }
 
+        public ICommand? OpenTalkWithPlayerViewCommand
+        {
+            get => (ICommand?)GetValue(OpenTalkWithPlayerViewCommandProperty);
+            set => SetValue(OpenTalkWithPlayerViewCommandProperty, value);
+        }
+
+        public object? OpenTalkWithPlayerViewCommandParameter
+        {
+            get => (object?)GetValue(OpenTalkWithPlayerViewCommandParameterProperty);
+            set => SetValue(OpenTalkWithPlayerViewCommandParameterProperty, value);
+        }
+
         // When true, shows the "not scouted yet" prompt instead of the profile body
         // (used by Statistics/TransferMarket/Scouting; unused pages simply never set it).
         public bool IsLocked
         {
             get => (bool)GetValue(IsLockedProperty);
             set => SetValue(IsLockedProperty, value);
+        }
+
+        public bool CanTalkWithPlayer
+        {
+            get => (bool)GetValue(CanTalkWithPlayerProperty);
+            set => SetValue(CanTalkWithPlayerProperty, value);
         }
 
         public string LockedStatusText

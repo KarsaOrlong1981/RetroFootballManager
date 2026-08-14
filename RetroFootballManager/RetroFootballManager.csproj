@@ -52,10 +52,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Resources\Images\Backgrounds\clubpage.png" />
 	  <None Remove="Resources\Images\Backgrounds\credithai.png" />
 	  <None Remove="Resources\Images\Backgrounds\einzeltraining.png" />
 	  <None Remove="Resources\Images\Backgrounds\empty_table_cropped.png" />
 	  <None Remove="Resources\Images\Backgrounds\finaces.png" />
+	  <None Remove="Resources\Images\Backgrounds\headerscene.png" />
 	  <None Remove="Resources\Images\Backgrounds\hintergrund_finanzen.png" />
 	  <None Remove="Resources\Images\Backgrounds\hintergrund_scouts.jpg" />
 	  <None Remove="Resources\Images\Backgrounds\hintergrund_stadion_aussen.png" />
@@ -70,11 +72,13 @@
 	  <None Remove="Resources\Images\Backgrounds\mainmenu_no_label.png" />
 	  <None Remove="Resources\Images\Backgrounds\matchday.png" />
 	  <None Remove="Resources\Images\Backgrounds\meetingroom.png" />
+	  <None Remove="Resources\Images\Backgrounds\playertalk.png" />
 	  <None Remove="Resources\Images\Backgrounds\scouting.png" />
 	  <None Remove="Resources\Images\Backgrounds\start_transparent.png" />
 	  <None Remove="Resources\Images\Backgrounds\tactic.png" />
 	  <None Remove="Resources\Images\Backgrounds\teamtraining.png" />
 	  <None Remove="Resources\Images\Backgrounds\transfermarket.png" />
+	  <None Remove="Resources\Images\Backgrounds\youth_academie.png" />
 	  <None Remove="Resources\Images\Sponors\autoservice_klein.png" />
 	  <None Remove="Resources\Images\Sponors\baeckerei_krause.png" />
 	  <None Remove="Resources\Images\Sponors\bauzentrum_krampe.png" />
@@ -96,10 +100,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiImage Include="Resources\Images\Backgrounds\clubpage.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\credithai.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\einzeltraining.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\empty_table_cropped.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\finaces.png" />
+	  <MauiImage Include="Resources\Images\Backgrounds\headerscene.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\hintergrund_finanzen.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\hintergrund_scouts.jpg" />
 	  <MauiImage Include="Resources\Images\Backgrounds\hintergrund_stadion_aussen.png" />
@@ -114,12 +120,14 @@
 	  <MauiImage Include="Resources\Images\Backgrounds\mainmenu_no_label.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\matchday.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\meetingroom.png" />
+	  <MauiImage Include="Resources\Images\Backgrounds\playertalk.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\scouting.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\start_transparent.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\sub.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\tactic.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\teamtraining.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\transfermarket.png" />
+	  <MauiImage Include="Resources\Images\Backgrounds\youth_academie.png" />
 	  <MauiImage Include="Resources\Images\Sponors\autoservice_klein.png" />
 	  <MauiImage Include="Resources\Images\Sponors\baeckerei_krause.png" />
 	  <MauiImage Include="Resources\Images\Sponors\bauzentrum_krampe.png" />
@@ -151,6 +159,12 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\RetroFootballManager.Core\RetroFootballManager.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="Views\TalkToPlayerPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	</ItemGroup>
 
 </Project>

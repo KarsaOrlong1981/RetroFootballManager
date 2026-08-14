@@ -285,6 +285,7 @@ namespace RetroFootballManager.Common
                 var team = teamById[id];
                 bool isHuman = id == state.ManagerTeamId;
                 TrainingService.ApplyWeeklyTraining(team, isHuman, state.Difficulty, _random);
+                ConversationService.ApplyWeeklyDecay(team);
 
                 if (!isHuman && _aiManager is not null)
                     await _aiManager.RunWeeklyTickAsync(team, state.Season, state.CurrentDate, state.Difficulty, _random, teamById, state.ManagerTeamId);
