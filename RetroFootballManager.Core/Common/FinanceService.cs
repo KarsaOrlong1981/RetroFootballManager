@@ -29,6 +29,21 @@ namespace RetroFootballManager.Common
         private const double MerchandisePerMatchday = 2_000;
         private const int FinanceWarningThreshold = 0;
 
+        private const int FinancialCrisisThreshold = -500_000;
+        private const int FinancialCrisisGraceMonths = 3;
+        private const int FinancialCrisisBoardMoodCrash = 30;
+
+        // FinancialHealth was previously only ever set once at generation (see
+        // UniverseGenerator.cs's rng.Next(55, 85)) and never updated afterward - recomputed
+        // here from CurrentBalance so it becomes a live signal instead of a frozen initial
+        // roll. +/-500k around 0 swings it by up to 40 points around the neutral 50.
+        private const double FinancialHealthReferenceBalance = 500_000;
+
+        // Shared spending gate: a team with a negative balance can't take on more fixed
+        // costs (new staff, new player transfers) - the only ways back into the black are
+        // selling players, signing sponsors, or a club loan (none of those check this).
+        public static bool HasSpendableBalance(Team team) => (team.Finances?.CurrentBalance ?? 0) >= 0;
+
         private readonly SponsorRepository _sponsorCatalog;
         private readonly SponsorshipRepository _sponsorships;
         private readonly ContractRepository _contracts;
@@ -68,6 +83,76 @@ namespace RetroFootballManager.Common
             }
         }
 
+        // Season-end balance projection crisis: once EstimateSeasonEndBalance drops below
+        // -500k, the board gives a 3-month grace period (one ultimatum mail, one crisis-start
+        // date); still unresolved after that crashes BoardMood by 30 (once per crisis) into
+        // ClubMoodService's existing GameOverThreshold, so the pre-existing dismissal path
+        // (ClubMoodService.CheckThresholds) handles the actual firing - no new dismissal logic
+        // needed here. Recovering before the deadline clears the crisis with no penalty.
+        public async Task CheckSeasonEndProjectionAsync(Team team, GameState state, DateTime currentDate)
+        {
+            var finances = team.Finances;
+            if (finances is null)
+                return;
+
+            var (projected, isReliable) = EstimateSeasonEndBalance(finances, state.MatchdayIndex, team.ActiveLoan);
+            if (!isReliable)
+                return;
+
+            if (projected < FinancialCrisisThreshold)
+            {
+                if (finances.FinancialCrisisStartDate is null)
+                {
+                    finances.FinancialCrisisStartDate = currentDate;
+                    finances.FinancialCrisisEscalated = false;
+                    if (_messages is not null)
+                        await _messages.SendAsync(MessageType.BoardUltimatum, "Ultimatum des Vorstands",
+                            $"Die Saisonprognose liegt bei rund {projected:N0} € - der Vorstand gibt dir 3 Monate Zeit, die Finanzen zu stabilisieren.",
+                            currentDate, team.Id);
+                    return;
+                }
+
+                if (!finances.FinancialCrisisEscalated
+                    && currentDate >= finances.FinancialCrisisStartDate.Value.AddMonths(FinancialCrisisGraceMonths))
+                {
+                    finances.FinancialCrisisEscalated = true;
+                    team.BoardMood = Math.Clamp(team.BoardMood - FinancialCrisisBoardMoodCrash, 0, 100);
+                    if (_messages is not null)
+                        await _messages.SendAsync(MessageType.BoardUltimatum, "Der Vorstand verliert die Geduld",
+                            "Die Finanzen wurden nicht rechtzeitig stabilisiert - der Vorstand zweifelt ernsthaft an dir.",
+                            currentDate, team.Id);
+                }
+            }
+            else if (finances.FinancialCrisisStartDate is not null)
+            {
+                finances.FinancialCrisisStartDate = null;
+                finances.FinancialCrisisEscalated = false;
+                if (_messages is not null)
+                    await _messages.SendAsync(MessageType.BoardUltimatum, "Finanzkrise abgewendet",
+                        "Die Saisonprognose hat sich erholt - der Vorstand ist vorerst beruhigt.", currentDate, team.Id);
+            }
+        }
+
+        public static void RecalculateFinancialHealth(Finances finances)
+        {
+            double ratio = Math.Clamp(finances.CurrentBalance / FinancialHealthReferenceBalance, -1.0, 1.0);
+            finances.FinancialHealth = Math.Clamp(50 + (int)Math.Round(ratio * 40), 0, 100);
+        }
+
+        // Small monthly nudge of BoardMood toward/away from neutral based on FinancialHealth -
+        // independent of, and gentler than, the harder crisis escalation above.
+        public static void ApplyFinancialHealthMoodCoupling(Team team)
+        {
+            if (team.Finances is null)
+                return;
+
+            RecalculateFinancialHealth(team.Finances);
+            int health = team.Finances.FinancialHealth;
+            int delta = health >= 70 ? 1 : health <= 30 ? -1 : 0;
+            if (delta != 0)
+                team.BoardMood = Math.Clamp(team.BoardMood + delta, 0, 100);
+        }
+
         // Purely match-dependent items - wages/stadium upkeep/sponsor base rate run
         // separately via ApplyMonthlySettlementAsync.
         public MatchdayFinanceResult ApplyMatchdayFinance(
@@ -104,7 +189,8 @@ namespace RetroFootballManager.Common
                 return false;
 
             int playerWages = await CalculateMonthlyPlayerWagesAsync(team, currentDate);
-            int staffWages = (int)Math.Round(team.Employees.Sum(e => e.Salary) / 12.0);
+            int managerSalary = team.ManagerProfile is null ? 0 : ManagerEffects.AnnualSalary(team.ManagerProfile);
+            int staffWages = (int)Math.Round((team.Employees.Sum(e => e.Salary) + managerSalary) / 12.0);
             int stadiumCost = team.Stadium is null ? 0 : (int)Math.Round(team.Stadium.MaintenanceCosts / 12.0);
 
             int sponsorIncome = 0;
@@ -242,6 +328,13 @@ namespace RetroFootballManager.Common
             finances.OtherIncome = 0;
             finances.OtherExpenses = 0;
             finances.SponsorPaymentsThisSeason = 0;
+
+            // A stale crisis-start date from last season would otherwise look like the grace
+            // period had already elapsed on day 1 of the new season (EstimateSeasonEndBalance
+            // needs matchdaysPlayed > 0 to even project, so the crisis check is naturally
+            // dormant until then anyway, but there's no reason to carry it over).
+            finances.FinancialCrisisStartDate = null;
+            finances.FinancialCrisisEscalated = false;
         }
     }
 }

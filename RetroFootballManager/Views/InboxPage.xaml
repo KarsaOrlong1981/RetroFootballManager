@@ -13,7 +13,7 @@
     <Grid RowDefinitions="*,Auto" Padding="14" RowSpacing="10">
 
         <ScrollView Grid.Row="0">
-            <VerticalStackLayout Spacing="8" HorizontalOptions="Start" MaximumWidthRequest="880" BindableLayout.ItemsSource="{Binding Rows}">
+            <VerticalStackLayout Spacing="8" HorizontalOptions="Start" MinimumWidthRequest="880" BindableLayout.ItemsSource="{Binding Rows}">
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="vm:InboxMessageRow">
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
@@ -29,12 +29,12 @@
                                 </Border.GestureRecognizers>
                                 <VerticalStackLayout Spacing="4">
                                     <Grid ColumnDefinitions="*,Auto">
-                                        <Label Grid.Column="0" Text="{Binding Title}" FontSize="14"
+                                        <Label Grid.Column="0" Text="{Binding Title}" FontSize="24"
                                                FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                                        <Label Grid.Column="1" Text="{Binding DateText}" FontSize="11"
+                                        <Label Grid.Column="1" Text="{Binding DateText}" FontSize="20"
                                                TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
                                     </Grid>
-                                    <Label Text="{Binding Body}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
+                                    <Label Text="{Binding Body}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
                                 </VerticalStackLayout>
                             </Border>
                             <Border Grid.Column="1" WidthRequest="48" HeightRequest="48" Padding="0"
@@ -57,9 +57,7 @@
         </ScrollView>
 
         <VerticalStackLayout Grid.Row="1" Spacing="8">
-            <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
-            <Button Text="Zurück" Command="{Binding BackCommand}"
-                    BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+            <Label Text="{Binding StatusText}" FontSize="22" TextColor="{StaticResource RfmAccentTeal}" />
         </VerticalStackLayout>
     </Grid>
 </local:BaseContentPage>

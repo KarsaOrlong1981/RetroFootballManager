@@ -61,14 +61,14 @@ namespace RetroFootballManager.ViewModels
                 IsOverwriteConfirmationOpen = true;
                 return Task.CompletedTask;
             }
-            return _navigation.GoToAsync("teamselection");
+            return _navigation.GoToAsync("managercreation");
         }
 
         [RelayCommand]
         private Task ConfirmOverwrite()
         {
             IsOverwriteConfirmationOpen = false;
-            return _navigation.GoToAsync("teamselection");
+            return _navigation.GoToAsync("managercreation");
         }
 
         [RelayCommand]

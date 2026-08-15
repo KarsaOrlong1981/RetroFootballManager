@@ -103,6 +103,7 @@ namespace RetroFootballManager
         private static void RegisterViewModelsAndPages(IServiceCollection services)
         {
             services.AddTransient<StartViewModel>();
+            services.AddTransient<ManagerCreationViewModel>();
             services.AddTransient<TeamSelectionViewModel>();
             services.AddTransient<MainMenuViewModel>();
             services.AddTransient<FixturesTablesViewModel>();
@@ -130,6 +131,7 @@ namespace RetroFootballManager
             services.AddTransient<TalkToPlayerViewModel>();
 
             services.AddTransient<StartPage>();
+            services.AddTransient<ManagerCreationPage>();
             services.AddTransient<TeamSelectionPage>();
             services.AddTransient<MainMenuPage>();
             services.AddTransient<FixturesTablesPage>();

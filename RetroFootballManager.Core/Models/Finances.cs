@@ -76,5 +76,17 @@ namespace RetroFootballManager.Models
         // where the monthly settlement still fires but no season is running. Reset in
         // FinanceService.RolloverSeason.
         public int SponsorPaymentsThisSeason { get; set; }
+
+        // First date the projected season-end balance dropped below the crisis threshold
+        // (-500k) - null while finances are fine. Set once, reset once the projection
+        // recovers (see FinanceService.CheckSeasonEndProjectionAsync). Three months
+        // unresolved crashes BoardMood, letting ClubMoodService.CheckThresholds handle the
+        // actual dismissal - see FinancialCrisisEscalated.
+        public DateTime? FinancialCrisisStartDate { get; set; }
+
+        // Whether the 3-month-unresolved BoardMood crash has already been applied for the
+        // CURRENT crisis (reset together with FinancialCrisisStartDate) - prevents crashing
+        // BoardMood further every single day once the deadline has passed.
+        public bool FinancialCrisisEscalated { get; set; }
     }
 }

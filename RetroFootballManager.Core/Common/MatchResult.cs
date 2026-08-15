@@ -40,6 +40,15 @@ namespace RetroFootballManager.Common
         // player development (mainly youth players).
         public Dictionary<int, int> MinutesPlayed { get; } = [];
 
+        // Minutes each side spent under an Offensive/VeryOffensive resp. Defensive/
+        // VeryDefensive TacticalOrientation - basis for ManagerGrowthService's Offensive
+        // Creation/Defensive Organization skill growth (a match "qualifies" once a side
+        // spent enough of it playing that way, see ManagerGrowthService.OrientationMinuteThreshold).
+        public int HomeOffensiveOrientationMinutes { get; set; }
+        public int HomeDefensiveOrientationMinutes { get; set; }
+        public int AwayOffensiveOrientationMinutes { get; set; }
+        public int AwayDefensiveOrientationMinutes { get; set; }
+
         public char HomeResult => HomeGoals > AwayGoals ? 'W' : HomeGoals < AwayGoals ? 'L' : 'D';
         public char AwayResult => AwayGoals > HomeGoals ? 'W' : AwayGoals < HomeGoals ? 'L' : 'D';
 
@@ -69,6 +78,12 @@ namespace RetroFootballManager.Common
             home.Fouls += MatchStatsHome.Fouls;
             home.YellowCards += MatchStatsHome.YellowCards;
             home.RedCards += MatchStatsHome.RedCards;
+            home.Corners += MatchStatsHome.Corners;
+            home.FreeKicks += MatchStatsHome.FreeKicks;
+            home.Penaltys += MatchStatsHome.Penaltys;
+            home.Offsides += MatchStatsHome.Offsides;
+            home.Passes += MatchStatsHome.Passes;
+            home.SuccessfulPasses += MatchStatsHome.SuccessfulPasses;
             home.AddPossession(MatchStatsHome.Possession);
             home.AddPassAccuracy(MatchStatsHome.PassAccuracy);
 
@@ -77,6 +92,12 @@ namespace RetroFootballManager.Common
             away.Fouls += MatchStatsAway.Fouls;
             away.YellowCards += MatchStatsAway.YellowCards;
             away.RedCards += MatchStatsAway.RedCards;
+            away.Corners += MatchStatsAway.Corners;
+            away.FreeKicks += MatchStatsAway.FreeKicks;
+            away.Penaltys += MatchStatsAway.Penaltys;
+            away.Offsides += MatchStatsAway.Offsides;
+            away.Passes += MatchStatsAway.Passes;
+            away.SuccessfulPasses += MatchStatsAway.SuccessfulPasses;
             away.AddPossession(MatchStatsAway.Possession);
             away.AddPassAccuracy(MatchStatsAway.PassAccuracy);
         }

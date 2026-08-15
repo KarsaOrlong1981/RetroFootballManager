@@ -10,6 +10,22 @@ namespace RetroFootballManager.Common
         // Positions with more players than this threshold are considered overstocked.
         private const int SurplusThreshold = 4;
 
+        // DirectorOfFootball negotiates better transfer prices - up to +/-15% depending on his
+        // Rating. Only one DoF can ever be on staff (see StaffMarketService.MaxEmployeesPerType),
+        // so there is no stacking case to consider.
+        private const double DirectorOfFootballMaxPriceSwing = 0.15;
+
+        // Public - pure and deterministic, directly unit-testable.
+        public static double DirectorOfFootballPriceFactor(Team? team, bool favorSeller)
+        {
+            var dof = team?.Employees.FirstOrDefault(e => e.EmployeeType == EmployeeType.DirectorOfFootball);
+            if (dof is null)
+                return 1.0;
+
+            double swing = (dof.Rating / 100.0) * DirectorOfFootballMaxPriceSwing;
+            return favorSeller ? 1.0 + swing : 1.0 - swing;
+        }
+
         private static double ActivityChance(Difficulty difficulty) => difficulty switch
         {
             Difficulty.Easy => 0.15,
@@ -29,7 +45,7 @@ namespace RetroFootballManager.Common
             var surplus = FindSurplusPlayer(team, alreadyListedIds);
             if (surplus is not null)
             {
-                double askingPrice = EstimateMarketValue(surplus);
+                double askingPrice = EstimateMarketValue(surplus) * DirectorOfFootballPriceFactor(team, favorSeller: true);
                 await market.ListPlayerAsync(surplus, team, askingPrice, season, currentDate);
             }
 
@@ -39,7 +55,7 @@ namespace RetroFootballManager.Common
                 .FirstOrDefault();
             if (target is not null)
             {
-                double fee = target.AskingPrice * (0.85 + rng.NextDouble() * 0.3);
+                double fee = target.AskingPrice * (0.85 + rng.NextDouble() * 0.3) * DirectorOfFootballPriceFactor(team, favorSeller: false);
                 // Rough heuristic (no access to the other team's actual player here) -
                 // ~15% of market value as annual salary, matching PlayerValuationService.EstimateAnnualSalary.
                 double wage = target.AskingPrice * 0.15;
@@ -74,7 +90,7 @@ namespace RetroFootballManager.Common
                 if (!teamsById.TryGetValue(bestOffer.OfferingTeamId, out var buyingTeam))
                     continue;
 
-                if (ShouldAcceptOffer(listing, bestOffer))
+                if (ShouldAcceptOffer(listing, bestOffer, team, buyingTeam))
                 {
                     if (listing.IsLoanListing)
                     {
@@ -95,7 +111,8 @@ namespace RetroFootballManager.Common
                 // instant no, they either flatly refuse or name their own (higher) price.
                 if (listing.IsUnsolicited && (rng ?? new Random()).NextDouble() >= UnsolicitedFlatRefusalChance)
                 {
-                    double counterFee = listing.IsLoanListing ? listing.AskingPrice * 0.25 : listing.AskingPrice * 1.3;
+                    double counterFee = (listing.IsLoanListing ? listing.AskingPrice * 0.25 : listing.AskingPrice * 1.3)
+                        * DirectorOfFootballPriceFactor(team, favorSeller: true);
                     await market.CounterOfferAsync(bestOffer, listing, counterFee, currentDate, humanTeamId);
                     foreach (var other in pendingOffers.Where(o => o.Id != bestOffer.Id))
                         await market.RejectOfferAsync(other, team, player, "der Verein hat einem anderen Bieter ein Gegenangebot gemacht", humanTeamId);
@@ -115,13 +132,20 @@ namespace RetroFootballManager.Common
         // TransferMarketService.LoanOutAsync). Unsolicited offers (player never put up for
         // transfer, see TransferMarketService.MakeUnsolicitedOfferAsync) demand a clear premium -
         // the club wasn't looking to sell, so a fair-value bid isn't enough to change their mind.
-        private static bool ShouldAcceptOffer(TransferListing listing, TransferOffer offer)
+        // Both sides' DirectorOfFootball adjusts the effective threshold - a good seller-side DoF
+        // raises the bar (better sale price), a good buyer-side DoF lowers it (better purchase
+        // price) - applied here rather than to the raw fee so it works uniformly for AI- and
+        // human-initiated offers alike.
+        private static bool ShouldAcceptOffer(TransferListing listing, TransferOffer offer, Team sellingTeam, Team? buyingTeam)
         {
+            double factor = DirectorOfFootballPriceFactor(sellingTeam, favorSeller: true)
+                * DirectorOfFootballPriceFactor(buyingTeam, favorSeller: false);
+
             if (listing.IsUnsolicited)
                 return listing.IsLoanListing
-                    ? offer.WageOffer >= listing.AskingPrice * 0.25
-                    : offer.OfferedFee >= listing.AskingPrice * 1.3;
-            return listing.IsLoanListing ? offer.WageOffer > 0 : offer.OfferedFee >= listing.AskingPrice * 0.8;
+                    ? offer.WageOffer >= listing.AskingPrice * 0.25 * factor
+                    : offer.OfferedFee >= listing.AskingPrice * 1.3 * factor;
+            return listing.IsLoanListing ? offer.WageOffer > 0 : offer.OfferedFee >= listing.AskingPrice * 0.8 * factor;
         }
 
         private static Player? FindSurplusPlayer(Team team, HashSet<int> alreadyListedIds)
@@ -135,6 +159,7 @@ namespace RetroFootballManager.Common
         }
 
         private static bool CanAfford(Team team, TransferListing listing) =>
-            team.Finances is not null && team.Finances.CurrentBalance > listing.AskingPrice * 1.2;
+            team.Finances is not null && FinanceService.HasSpendableBalance(team)
+            && team.Finances.CurrentBalance > listing.AskingPrice * 1.2;
     }
 }

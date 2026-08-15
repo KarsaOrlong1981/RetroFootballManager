@@ -8,6 +8,7 @@ namespace RetroFootballManager.Services
         {
             ["start"] = "Start",
             ["mainmenu"] = "Hauptmenü",
+            ["managercreation"] = "Trainer erstellen",
             ["teamselection"] = "Vereinswahl",
             ["fixtures"] = "Spiele & Tabellen",
             ["cupoverview"] = "Pokal-Übersicht",

@@ -19,14 +19,19 @@ namespace RetroFootballManager.Models
         // Basic actions
         public int Passes { get; set; }
         public int SuccessfulPasses { get; set; }
+        public int Crosses { get; set; }
+        public int SuccessfulCrosses { get; set; }
         public int Shots { get; set; }
         public int ShotsOnTarget { get; set; }
         public int Goals { get; set; }
         public int Assists { get; set; }
+        public int Offsides { get; set; }
 
         // Duels
         public int Tackles { get; set; }
         public int TacklesWon { get; set; }
+        public int HeaderDuels { get; set; }
+        public int HeaderDuelsWon { get; set; }
 
         // Ball actions
         public int Dribbles { get; set; }
@@ -47,6 +52,7 @@ namespace RetroFootballManager.Models
         // Goalkeeper-specific (optional)
         public int Saves { get; set; }             // saves
         public int GoalsConceded { get; set; }     // goals conceded
+        public int CleanSheets { get; set; }       // matches with GoalsConceded == 0 (min. playing time)
 
         // Running / fitness
         public int DistanceCovered { get; set; }   // meters or km
@@ -57,7 +63,7 @@ namespace RetroFootballManager.Models
         public int ChancesCreated { get; set; }    // chances created
 
         // Rating
-        public double Rating { get; set; }         // live player rating (0-10)
+        public double Rating { get; set; }         // school grade: 1.0 (best) - 6.0 (worst)
 
         // Number of appearances these stats were collected over (for rating average)
         public int Appearances { get; set; }
@@ -67,12 +73,17 @@ namespace RetroFootballManager.Models
         {
             Passes += matchStats.Passes;
             SuccessfulPasses += matchStats.SuccessfulPasses;
+            Crosses += matchStats.Crosses;
+            SuccessfulCrosses += matchStats.SuccessfulCrosses;
             Shots += matchStats.Shots;
             ShotsOnTarget += matchStats.ShotsOnTarget;
             Goals += matchStats.Goals;
             Assists += matchStats.Assists;
+            Offsides += matchStats.Offsides;
             Tackles += matchStats.Tackles;
             TacklesWon += matchStats.TacklesWon;
+            HeaderDuels += matchStats.HeaderDuels;
+            HeaderDuelsWon += matchStats.HeaderDuelsWon;
             Dribbles += matchStats.Dribbles;
             SuccessfulDribbles += matchStats.SuccessfulDribbles;
             BallLosses += matchStats.BallLosses;
@@ -85,6 +96,7 @@ namespace RetroFootballManager.Models
             RedCards += matchStats.RedCards;
             Saves += matchStats.Saves;
             GoalsConceded += matchStats.GoalsConceded;
+            CleanSheets += matchStats.CleanSheets;
             DistanceCovered += matchStats.DistanceCovered;
             KeyPasses += matchStats.KeyPasses;
             ChancesCreated += matchStats.ChancesCreated;

@@ -30,7 +30,40 @@
 
                 <VerticalStackLayout Spacing="14" IsVisible="{Binding HasScout}">
 
-                    <Label Text="Scout scoutet aktuell diese Spieler" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                    <Label Text="Scouts" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                    <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Scouts}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ScoutRow">
+                                <Border StrokeThickness="0" Padding="12,8" HorizontalOptions="Start" WidthRequest="850" BackgroundColor="{StaticResource RfmSurface}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="10" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                                        <VerticalStackLayout Grid.Column="0">
+                                            <Label FontSize="18" TextColor="{StaticResource RfmText}">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="{Binding Name}" />
+                                                        <Span Text="  ·  Fähigkeit " TextColor="{StaticResource RfmTextMuted}" />
+                                                        <Span Text="{Binding ScoutingAbility}" TextColor="{StaticResource RfmAccentTeal}" />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                            <Label Text="{Binding FocusSummary}" FontSize="14" TextColor="{StaticResource RfmTextMuted}" />
+                                        </VerticalStackLayout>
+                                        <Label Grid.Column="1" Text="{Binding ActiveAssignments, StringFormat='{0}/6'}"
+                                               FontSize="18" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
+                                        <Button Grid.Column="2" Text="Fokus"
+                                                Command="{Binding Source={x:Reference Page}, Path=BindingContext.OpenScoutingFocusCommand}"
+                                                CommandParameter="{Binding EmployeeId}"
+                                                BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" FontSize="18" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                    <Label Text="Scout scoutet aktuell diese Spieler" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
                     <Label Text="Noch keine laufenden Aufträge." BackgroundColor="Black" HorizontalOptions="Start" FontSize="18" TextColor="{StaticResource RfmTextMuted}" IsVisible="False">
                         <Label.Triggers>
                             <DataTrigger TargetType="Label" Binding="{Binding ActiveScouting.Count}" Value="0">
@@ -168,6 +201,78 @@
                 <Label Text="{Binding StatusText}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
             </VerticalStackLayout>
         </ScrollView>
+
+        <!-- Scouting-Fokus dialog: assign search criteria to one scout - falls back to the
+             team-weakness analysis when no filter is set. -->
+        <Grid IsVisible="{Binding IsScoutingFocusDialogOpen}" BackgroundColor="#B0000000">
+            <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                    BackgroundColor="{StaticResource RfmBackground}"
+                    Margin="16" Padding="16"
+                    MaximumWidthRequest="560" MaximumHeightRequest="720"
+                    HorizontalOptions="Center" VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+                <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
+                    <Label Grid.Row="0" Text="{Binding FocusScoutName, StringFormat='Scouting-Fokus: {0}'}"
+                           FontSize="20" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+
+                    <ScrollView Grid.Row="1">
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Alle Filter sind optional - ist keiner gesetzt, sucht der Scout gezielt nach Kaderschwächen."
+                                   FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
+
+                            <Picker Title="Position" ItemsSource="{Binding PositionFilterOptions}" ItemDisplayBinding="{Binding Label}"
+                                    SelectedItem="{Binding FocusPosition, Mode=TwoWay}"
+                                    TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                <Entry Grid.Column="0" Placeholder="Alter min." Keyboard="Numeric"
+                                       Text="{Binding FocusMinAgeText, Mode=TwoWay}" TextColor="{StaticResource RfmText}" />
+                                <Entry Grid.Column="1" Placeholder="Alter max." Keyboard="Numeric"
+                                       Text="{Binding FocusMaxAgeText, Mode=TwoWay}" TextColor="{StaticResource RfmText}" />
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                <Entry Grid.Column="0" Placeholder="Talent min." Keyboard="Numeric"
+                                       Text="{Binding FocusMinTalentText, Mode=TwoWay}" TextColor="{StaticResource RfmText}" />
+                                <Entry Grid.Column="1" Placeholder="Rating min." Keyboard="Numeric"
+                                       Text="{Binding FocusMinRatingText, Mode=TwoWay}" TextColor="{StaticResource RfmText}" />
+                            </Grid>
+
+                            <Picker Title="Charakter" ItemsSource="{Binding CharacterFilterOptions}" ItemDisplayBinding="{Binding Label}"
+                                    SelectedItem="{Binding FocusCharacter, Mode=TwoWay}"
+                                    TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+
+                            <Picker Title="Persönlichkeit" ItemsSource="{Binding PersonalityFilterOptions}" ItemDisplayBinding="{Binding Label}"
+                                    SelectedItem="{Binding FocusPersonality, Mode=TwoWay}"
+                                    TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+
+                            <Picker Title="Land" ItemsSource="{Binding NationalityFilterOptions}" ItemDisplayBinding="{Binding Label}"
+                                    SelectedItem="{Binding FocusNationality, Mode=TwoWay}"
+                                    TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                <Picker Grid.Column="0" Title="Attribut" ItemsSource="{Binding AttributeFilterOptions}" ItemDisplayBinding="{Binding Label}"
+                                        SelectedItem="{Binding FocusAttribute, Mode=TwoWay}"
+                                        TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+                                <Entry Grid.Column="1" Placeholder="Mindestwert" Keyboard="Numeric"
+                                       Text="{Binding FocusAttributeMinValueText, Mode=TwoWay}" TextColor="{StaticResource RfmText}" />
+                            </Grid>
+
+                            <Label Text="{Binding FocusStatusText}" FontSize="14" TextColor="{StaticResource RfmAccentTeal}" />
+                        </VerticalStackLayout>
+                    </ScrollView>
+
+                    <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Button Grid.Column="0" Text="Abbrechen" Command="{Binding CloseScoutingFocusCommand}"
+                                BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}" FontSize="18" />
+                        <Button Grid.Column="1" Text="Speichern" Command="{Binding SaveScoutingFocusCommand}"
+                                BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="18" />
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
 
         <!-- Player profile dialog: full profile if scouted, otherwise "?" + Scouten button. -->
         <controls:PlayerProfileDialog

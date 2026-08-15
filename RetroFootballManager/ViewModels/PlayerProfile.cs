@@ -35,6 +35,10 @@ namespace RetroFootballManager.ViewModels
         int CareerAssists,
         int CareerYellowCards,
         int CareerRedCards,
+        double AverageMatchRating,
+        int Saves,
+        int CleanSheets,
+        string CharacterLabel,
         IReadOnlyList<CompetitionStatsRow> CompetitionStats)
     {
         public static PlayerProfile From(
@@ -72,6 +76,10 @@ namespace RetroFootballManager.ViewModels
             careerStats?.Assists ?? 0,
             careerStats?.YellowCards ?? 0,
             careerStats?.RedCards ?? 0,
+            seasonStats?.Rating ?? 0,
+            seasonStats?.Saves ?? 0,
+            seasonStats?.CleanSheets ?? 0,
+            InMatchCharacterDisplay.Name(p.InMatchCharacter),
             competitionStats ?? []);
 
         private static string ContractText(Contract? c) => c is null

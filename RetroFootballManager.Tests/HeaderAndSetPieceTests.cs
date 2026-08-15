@@ -12,7 +12,7 @@ namespace RetroFootballManager.Tests
             var random = new Random(51);
             int goalsStrongAerial = 0;
             int goalsWeakAerial = 0;
-            const int matches = 80;
+            const int matches = 400;
 
             for (int i = 0; i < matches; i++)
             {

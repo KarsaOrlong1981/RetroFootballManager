@@ -97,7 +97,8 @@ namespace RetroFootballManager.Common
         private static void DevelopYouthMonthly(Player youth, Team team, Random rng)
         {
             // Youth grow strongly by talent, plus a mentor bonus and any first-team minutes.
-            double growthPerSeason = 2 + (youth.Talent / 30.0) + MentorBonus(youth, team) + MinutesBonus(youth.SeasonMinutes);
+            double growthPerSeason = 2 + (youth.Talent / 30.0) + MentorBonus(youth, team) + MinutesBonus(youth.SeasonMinutes)
+                + YouthCoachBonus(team);
             if (youth.Position == Position.Goalkeeper)
                 growthPerSeason += GoalkeeperCoachBonus(team);
 
@@ -140,6 +141,14 @@ namespace RetroFootballManager.Common
             // A strong, experienced mentor accelerates development.
             return mentor.Rating >= 75 ? 2 : mentor.Rating >= 60 ? 1 : 0;
         }
+
+        // YouthCoach speeds up youth development, reading YouthDevelopment (previously dead -
+        // written by StaffGenerator but never read anywhere). Stacks across multiple hires
+        // (sum of each coach's own tiered bonus), unlike GoalkeeperCoachBonus's best-of-type.
+        private static int YouthCoachBonus(Team team) =>
+            team.Employees
+                .Where(e => e.EmployeeType == EmployeeType.YouthCoach)
+                .Sum(c => c.YouthDevelopment >= 75 ? 2 : c.YouthDevelopment >= 60 ? 1 : 0);
 
         // A strong goalkeeper coach speeds up development for keepers specifically - mirrors
         // MentorBonus's tiered shape but keyed on the team's best GoalkeeperCoach employee.

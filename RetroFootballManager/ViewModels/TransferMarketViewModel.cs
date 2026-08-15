@@ -338,6 +338,12 @@ namespace RetroFootballManager.ViewModels
             if (_team is null || _session.State is null || !_listingsById.TryGetValue(row.ListingId, out var listing))
                 return;
 
+            if (!TransferMarketService.CanBuy(_team, out string? balanceError))
+            {
+                StatusText = balanceError!;
+                return;
+            }
+
             IsBusy = true;
             StatusText = $"Angebot für {row.PlayerName} wird abgegeben …";
             try
@@ -415,6 +421,12 @@ namespace RetroFootballManager.ViewModels
             var player = sellingTeam?.Players.FirstOrDefault(p => p.Id == listing.PlayerId);
             if (sellingTeam is null || player is null)
                 return;
+
+            if (!TransferMarketService.CanBuy(_team, out string? balanceError))
+            {
+                StatusText = balanceError!;
+                return;
+            }
 
             IsBusy = true;
             StatusText = "Gegenangebot wird angenommen …";

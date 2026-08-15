@@ -7,7 +7,7 @@ namespace RetroFootballManager.ViewModels
         public static string LabelFor(PlayingStyle s) => s switch
         {
             PlayingStyle.CounterAttack => "Konter",
-            PlayingStyle.TikiTaka => "Tiki-Taka",
+            PlayingStyle.TikiTaka => "Ballbesitz",
             PlayingStyle.Pressing => "Pressing",
             PlayingStyle.WingPlay => "Flügelspiel",
             PlayingStyle.CrossesToStriker => "Flanken auf Stürmer",

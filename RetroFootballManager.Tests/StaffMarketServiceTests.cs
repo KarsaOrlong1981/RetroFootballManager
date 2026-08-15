@@ -35,6 +35,27 @@ namespace RetroFootballManager.Tests
         }
 
         [Fact]
+        public void CanHire_NegativeBalance_BlocksHiring()
+        {
+            var team = TestHelpers.CreateTeam("Miese FC", baseRating: 55);
+            team.Finances = new Finances { CurrentBalance = -1 };
+
+            bool canHire = StaffMarketService.CanHire(team, EmployeeType.Scout, out string? error);
+
+            Assert.False(canHire);
+            Assert.NotNull(error);
+        }
+
+        [Fact]
+        public void CanHire_ZeroOrPositiveBalance_AllowsHiring()
+        {
+            var team = TestHelpers.CreateTeam("Solvente FC", baseRating: 55);
+            team.Finances = new Finances { CurrentBalance = 0 };
+
+            Assert.True(StaffMarketService.CanHire(team, EmployeeType.Scout, out _));
+        }
+
+        [Fact]
         public void GenerateCandidates_ProducesRequestedCount_WithVariedTypes()
         {
             var candidates = _service.GenerateCandidates(teamTier: 2, count: 10);

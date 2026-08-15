@@ -26,9 +26,14 @@
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="10" />
                     </Border.StrokeShape>
-                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="8">
-                        <Label Text="{Binding Player.Name}" Grid.ColumnSpan="2" FontSize="38" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}"
-                               HorizontalOptions="Start" />
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="8">
+                        <HorizontalStackLayout Spacing="18">
+                            <Label Text="{Binding Player.Name}" Grid.ColumnSpan="2" FontSize="38" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}"
+                                 HorizontalOptions="Start" />
+                            <Label Text="{Binding Player.ShortPositionName}" Grid.ColumnSpan="2" FontSize="38" FontAttributes="Bold" TextColor="{StaticResource RfmText}"
+                                 HorizontalOptions="Start" />
+                        </HorizontalStackLayout>
+                        
                         <Label Grid.Row="1" Grid.Column="0" FontSize="22">
                             <Label.FormattedText>
                                 <FormattedString>
@@ -61,7 +66,7 @@
                                 </FormattedString>
                             </Label.FormattedText>
                         </Label>
-                        <Label Grid.Row="3" Grid.Column="0" FontSize="22">
+                        <Label Grid.Row="3" Grid.Column="0" FontSize="22" IsVisible="{Binding IsGoalKeeper, Converter={StaticResource InvertedBool}}">
                             <Label.FormattedText>
                                 <FormattedString>
                                     <Span Text="Tore Saison: " TextColor="{StaticResource RfmText}" />
@@ -69,11 +74,27 @@
                                 </FormattedString>
                             </Label.FormattedText>
                         </Label>
-                        <Label Grid.Row="3" Grid.Column="1" FontSize="22">
+                        <Label Grid.Row="3" Grid.Column="1" FontSize="22" IsVisible="{Binding IsGoalKeeper, Converter={StaticResource InvertedBool}}">
                             <Label.FormattedText>
                                 <FormattedString>
                                     <Span Text="Vorlagen Saison: " TextColor="{StaticResource RfmText}" />
                                     <Span Text="{Binding Profile.Assists}" TextColor="{StaticResource RfmAccentTeal}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Grid.Row="5" Grid.Column="0" FontSize="22" IsVisible="{Binding IsGoalKeeper}">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Paraden Saison: " TextColor="{StaticResource RfmText}" />
+                                    <Span Text="{Binding Profile.Saves}" TextColor="{StaticResource RfmAccentTeal}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Grid.Row="5" Grid.Column="1" FontSize="22" IsVisible="{Binding IsGoalKeeper}">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Zu Null gespielt: " TextColor="{StaticResource RfmText}" />
+                                    <Span Text="{Binding Profile.CleanSheets}" TextColor="{StaticResource RfmAccentTeal}" />
                                 </FormattedString>
                             </Label.FormattedText>
                         </Label>
@@ -82,6 +103,14 @@
                                 <FormattedString>
                                     <Span Text="Persönlichkeit: " TextColor="{StaticResource RfmText}" />
                                     <Span Text="{Binding Profile.Personality}" TextColor="{StaticResource RfmAccentTeal}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Grid.Row="4" Grid.Column="1" FontSize="22">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Ø-Note Saison: " TextColor="{StaticResource RfmText}" />
+                                    <Span Text="{Binding Profile.AverageMatchRating, StringFormat='{0:0.0}'}" TextColor="{StaticResource RfmAccentTeal}" />
                                 </FormattedString>
                             </Label.FormattedText>
                         </Label>

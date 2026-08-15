@@ -57,6 +57,10 @@ namespace RetroFootballManager.Common
         // Direct free-kick chance per dangerous attack (a foul just outside the box).
         private const double FreeKickChance = 0.006;
         private const double FreeKickConversionBase = 0.10;
+        // Minimum minutes played for a clean sheet to count (same reference as
+        // MatchRatingCalculator's clean-sheet rating bonus) - a keeper who only came on for
+        // the last few minutes of a shutout shouldn't be credited a clean sheet.
+        private const int CleanSheetMinMinutes = 60;
 
         private readonly Team _homeTeam;
         private readonly Team _awayTeam;
@@ -64,9 +68,15 @@ namespace RetroFootballManager.Common
 
         private double _homePossessionSum;
         private double _awayPossessionSum;
-        private double _homePassAccuracySum;
-        private double _awayPassAccuracySum;
         private int _sampledMinutes;
+
+        // Per-player InMatchMoral baseline (PlayerId -> value at kickoff, after the
+        // SlowStarter deduction) - ApplyInMatchMoraleDrift slowly pulls InMatchMoral back
+        // toward this, not toward a shared constant.
+        private readonly Dictionary<int, int> _moraleBaseline = [];
+        private const int MinutesBetweenMoraleDrift = 5;
+        private const double MoraleDriftFraction = 0.1;
+        private const int LowMoraleThreshold = 40;
 
         private MatchResult _result = new();
         private IProgress<MatchEvent>? _progress;
@@ -75,6 +85,8 @@ namespace RetroFootballManager.Common
         private int _secondHalfEnd;
         private int _homeSubsUsed;
         private int _awaySubsUsed;
+        private bool _homeEmotionalTeamTalkUsed;
+        private bool _awayEmotionalTeamTalkUsed;
 
         public Match(Team homeTeam, Team awayTeam, Random? random = null)
         {
@@ -99,6 +111,15 @@ namespace RetroFootballManager.Common
 
         public int SubsUsed(bool isHome) => isHome ? _homeSubsUsed : _awaySubsUsed;
         public int SubsRemaining(bool isHome) => MaxSubstitutions - SubsUsed(isHome);
+
+        // "Emotional aufbauen" team talk is usable once per match per side (see TeamTalkService).
+        public bool HasUsedEmotionalTeamTalk(bool isHome) => isHome ? _homeEmotionalTeamTalkUsed : _awayEmotionalTeamTalkUsed;
+
+        public void MarkEmotionalTeamTalkUsed(bool isHome)
+        {
+            if (isHome) _homeEmotionalTeamTalkUsed = true;
+            else _awayEmotionalTeamTalkUsed = true;
+        }
 
         public IReadOnlyList<Player> OnPitch(bool isHome) =>
             TeamStrengthCalculator.GetLineup(isHome ? _homeTeam : _awayTeam);
@@ -141,6 +162,9 @@ namespace RetroFootballManager.Common
             _homeSubsUsed = 0;
             _awaySubsUsed = 0;
 
+            SeedInMatchMoral(_homeTeam);
+            SeedInMatchMoral(_awayTeam);
+
             EmitEvent(_result, _progress, 0, GameEventType.KickOff, true, null, "Anpfiff");
 
             int extraTime1 = _random.Next(1, 5);
@@ -170,18 +194,20 @@ namespace RetroFootballManager.Common
             _minute++;
             SimulateMinute(_result, _progress, _minute);
             TrackMinutesPlayed();
+            ApplyInMatchMoraleDrift(_minute);
             RunCoaches();
 
             if (Phase == MatchPhase.FirstHalf && _minute >= _firstHalfEnd)
             {
                 EmitEvent(_result, _progress, _firstHalfEnd, GameEventType.HalfTime, true, null, "Halbzeit");
+                ApplyHalfTimeCharacterEffects();
                 Phase = MatchPhase.HalfTime;
             }
             else if (Phase == MatchPhase.SecondHalf && _minute >= _secondHalfEnd)
             {
                 EmitEvent(_result, _progress, _secondHalfEnd, GameEventType.FullTime, true, null,
                     $"Abpfiff: {_homeTeam.Name} {_result.HomeGoals}:{_result.AwayGoals} {_awayTeam.Name}");
-                FinalizePossessionAndPassing(_result);
+                FinalizeRatings(_result);
                 Phase = MatchPhase.Finished;
             }
 
@@ -254,10 +280,27 @@ namespace RetroFootballManager.Common
         private void TrackMinutesPlayed()
         {
             foreach (var p in TeamStrengthCalculator.GetLineup(_homeTeam))
+            {
                 _result.MinutesPlayed[p.Id] = _result.MinutesPlayed.GetValueOrDefault(p.Id) + 1;
+                GetOrCreateMatchStats(_result, p);
+            }
             foreach (var p in TeamStrengthCalculator.GetLineup(_awayTeam))
+            {
                 _result.MinutesPlayed[p.Id] = _result.MinutesPlayed.GetValueOrDefault(p.Id) + 1;
+                GetOrCreateMatchStats(_result, p);
+            }
+
+            if (IsOffensiveOrientation(_homeTeam.TacticalOrientation)) _result.HomeOffensiveOrientationMinutes++;
+            else if (IsDefensiveOrientation(_homeTeam.TacticalOrientation)) _result.HomeDefensiveOrientationMinutes++;
+            if (IsOffensiveOrientation(_awayTeam.TacticalOrientation)) _result.AwayOffensiveOrientationMinutes++;
+            else if (IsDefensiveOrientation(_awayTeam.TacticalOrientation)) _result.AwayDefensiveOrientationMinutes++;
         }
+
+        private static bool IsOffensiveOrientation(TacticalOrientation orientation) =>
+            orientation is TacticalOrientation.Offensive or TacticalOrientation.VeryOffensive;
+
+        private static bool IsDefensiveOrientation(TacticalOrientation orientation) =>
+            orientation is TacticalOrientation.Defensive or TacticalOrientation.VeryDefensive;
 
         private static string OrientationName(TacticalOrientation orientation) => orientation switch
         {
@@ -271,7 +314,7 @@ namespace RetroFootballManager.Common
         private static string StyleName(PlayingStyle style) => style switch
         {
             PlayingStyle.CounterAttack => "Konter",
-            PlayingStyle.TikiTaka => "Tiki-Taka",
+            PlayingStyle.TikiTaka => "Ballbesitz",
             PlayingStyle.Pressing => "Pressing",
             PlayingStyle.WingPlay => "Flügelspiel",
             PlayingStyle.CrossesToStriker => "Flanken auf Stürmer",
@@ -283,18 +326,151 @@ namespace RetroFootballManager.Common
             var homeProfile = TeamStrengthCalculator.Calculate(_homeTeam, isHome: true);
             var awayProfile = TeamStrengthCalculator.Calculate(_awayTeam, isHome: false);
 
-            RecordPossessionSample(homeProfile, awayProfile);
+            RecordPossessionSample(result, homeProfile, awayProfile);
+
+            var homeLineup = TeamStrengthCalculator.GetLineup(_homeTeam);
+            var awayLineup = TeamStrengthCalculator.GetLineup(_awayTeam);
 
             ProcessAttack(result, progress, minute, _homeTeam, _awayTeam, homeProfile, awayProfile,
                 isHomeAttacking: true, result.MatchStatsHome, result.MatchStatsAway);
             ProcessAttack(result, progress, minute, _awayTeam, _homeTeam, awayProfile, homeProfile,
                 isHomeAttacking: false, result.MatchStatsAway, result.MatchStatsHome);
 
-            ProcessDisciplineAndInjury(result, progress, minute, _homeTeam, homeProfile, isHome: true, result.MatchStatsHome);
-            ProcessDisciplineAndInjury(result, progress, minute, _awayTeam, awayProfile, isHome: false, result.MatchStatsAway);
+            ProcessPassingAndCrossing(result, homeLineup, _homeTeam, awayLineup, _awayTeam);
+            ProcessPassingAndCrossing(result, awayLineup, _awayTeam, homeLineup, _homeTeam);
+
+            ProcessGroundDuels(result, homeLineup, _homeTeam, awayLineup, _awayTeam);
+            ProcessGroundDuels(result, awayLineup, _awayTeam, homeLineup, _homeTeam);
+
+            ProcessDisciplineAndInjury(result, progress, minute, _homeTeam, homeProfile, isHome: true, result.MatchStatsHome, homeLineup);
+            ProcessDisciplineAndInjury(result, progress, minute, _awayTeam, awayProfile, isHome: false, result.MatchStatsAway, awayLineup);
 
             DecayFitness(_homeTeam, minute);
             DecayFitness(_awayTeam, minute);
+        }
+
+        // Per-minute, per-team passing simulation: 3-6 pass attempts weighted by
+        // PassingAccuracy, success rolled against the passer's own accuracy. Crossing is
+        // handled separately (ProcessCrossAttempt) since it's restricted to wide positions
+        // and directly triggers a header duel.
+        private void ProcessPassingAndCrossing(
+            MatchResult result, List<Player> lineup, Team owningTeam, List<Player> defendingLineup, Team defendingTeam)
+        {
+            if (lineup.Count == 0)
+                return;
+
+            // In-Game-Coaching sharpens the manager's own side's effective passing accuracy -
+            // purely a magnitude scaler on top of the existing PassingAccuracy-weighted roll.
+            double passingFactor = ManagerEffects.InGameCoachingFactor(owningTeam.ManagerProfile);
+
+            int passAttempts = _random.Next(3, 7);
+            for (int i = 0; i < passAttempts; i++)
+            {
+                var passer = PickWeightedPlayer(lineup, p => p.PassingAccuracy);
+                if (passer is null)
+                    continue;
+
+                var passerStats = GetOrCreateMatchStats(result, passer);
+                passerStats.Passes++;
+                double effectiveAccuracy = Math.Clamp(passer.PassingAccuracy * passingFactor, 0, 100);
+                if (Roll(effectiveAccuracy / 100.0))
+                    passerStats.SuccessfulPasses++;
+            }
+
+            ProcessCrossAttempt(result, lineup, owningTeam, defendingLineup, defendingTeam);
+        }
+
+        private static readonly Position[] WidePositions =
+        {
+            Position.LeftDefender, Position.RightDefender, Position.LeftWingBack, Position.RightWingBack,
+            Position.LeftMidfielder, Position.RightMidfielder, Position.LeftOffenseMidfielder, Position.RightOffenseMidfielder,
+        };
+
+        private void ProcessCrossAttempt(
+            MatchResult result, List<Player> lineup, Team owningTeam, List<Player> defendingLineup, Team defendingTeam)
+        {
+            if (!Roll(0.20))
+                return;
+
+            var wide = lineup.Where(p => WidePositions.Contains(p.EffectivePosition)).ToList();
+            var crosser = PickWeightedPlayer(wide, p => p.CrossingAccuracy * p.CrossingAccuracy);
+            if (crosser is null)
+                return;
+
+            var crosserStats = GetOrCreateMatchStats(result, crosser);
+            crosserStats.Crosses++;
+            if (Roll(crosser.CrossingAccuracy / 100.0))
+                crosserStats.SuccessfulCrosses++;
+
+            // Header duels arise from crosses regardless of whether the cross itself is
+            // deemed "successful" - reuses the same HeaderPower/BestHeaderDefender logic as
+            // the header-goal chance in ProcessAttack, purely additive for statistics here.
+            var attacker = PickWeightedPlayer(lineup, HeaderPower);
+            var defender = BestHeaderDefender(defendingLineup);
+            if (attacker is null || defender is null)
+                return;
+
+            double attackerPower = HeaderPower(attacker);
+            // A defender with poor Positioning (reading crosses/runs) loses more aerial duels
+            // than their raw HeaderPower alone would suggest; a defensively-minded manager's
+            // In-Game-Coaching sharpens that reading further.
+            double defenderPower = HeaderPower(defender)
+                * (IsDefensivePosition(defender.EffectivePosition)
+                    ? PositioningFactor(defender) * ManagerEffects.InGameCoachingFactor(defendingTeam.ManagerProfile)
+                    : 1.0);
+            double attackerWinProb = attackerPower / Math.Max(0.001, attackerPower + defenderPower);
+
+            var attackerStats = GetOrCreateMatchStats(result, attacker);
+            var defenderStats = GetOrCreateMatchStats(result, defender);
+            attackerStats.HeaderDuels++;
+            defenderStats.HeaderDuels++;
+            if (Roll(attackerWinProb))
+                attackerStats.HeaderDuelsWon++;
+            else
+                defenderStats.HeaderDuelsWon++;
+        }
+
+        // 2-4 ground duels per minute and attacking direction: ball carrier (weighted by
+        // Dribbling/OffensivePower) against a defender (weighted by DuelHardness/
+        // DefensivePower, goalkeeper excluded). Winner decided by DuelEfficiency - the same
+        // duel from both perspectives (defender: Tackles/TacklesWon, attacker: Dribbles/
+        // SuccessfulDribbles).
+        private void ProcessGroundDuels(
+            MatchResult result, List<Player> attackingLineup, Team attackingTeam, List<Player> defendingLineup, Team defendingTeam)
+        {
+            var defenders = defendingLineup.Where(p => p.EffectivePosition != Position.Goalkeeper).ToList();
+            if (attackingLineup.Count == 0 || defenders.Count == 0)
+                return;
+
+            double attackFactor = ManagerEffects.InGameCoachingFactor(attackingTeam.ManagerProfile);
+            double defenseFactor = ManagerEffects.InGameCoachingFactor(defendingTeam.ManagerProfile);
+
+            int duelCount = _random.Next(2, 5);
+            for (int i = 0; i < duelCount; i++)
+            {
+                var ballCarrier = PickWeightedPlayer(attackingLineup, p => p.Dribbling * (1 + (p.OffensivePower / 100.0)));
+                var defender = PickWeightedPlayer(defenders, p => p.DuelHardness * (1 + (p.DefensivePower / 100.0)));
+                if (ballCarrier is null || defender is null)
+                    continue;
+
+                var carrierStats = GetOrCreateMatchStats(result, ballCarrier);
+                var defenderStats = GetOrCreateMatchStats(result, defender);
+                carrierStats.Dribbles++;
+                defenderStats.Tackles++;
+
+                // A midfielder with poor Positioning arrives late to challenges, losing more
+                // ground duels than their raw DuelEfficiency alone would suggest. Each side's
+                // own In-Game-Coaching sharpens its own player's effective DuelEfficiency.
+                double defenderDuelEfficiency = defender.DuelEfficiency
+                    * (IsMidfieldPosition(defender.EffectivePosition) ? PositioningFactor(defender) : 1.0)
+                    * defenseFactor;
+                double attackerDuelEfficiency = ballCarrier.DuelEfficiency * attackFactor;
+                double defenderWinProb = defenderDuelEfficiency / Math.Max(0.001, defenderDuelEfficiency + attackerDuelEfficiency);
+                if (Roll(defenderWinProb))
+                    defenderStats.TacklesWon++;
+                else
+                    carrierStats.SuccessfulDribbles++;
+            }
         }
 
         private void ProcessAttack(
@@ -367,6 +543,18 @@ namespace RetroFootballManager.Common
                     p => p.OffensivePower * (1 + PersonalityEffects.Get(p.Personality).AerialThreat - 1));
             }
 
+            // Offside: only advanced attackers can be caught out - chance scales inversely
+            // with Positioning (reading the run of play), so a striker with poor positioning
+            // gets flagged noticeably more often than one with good positioning.
+            if (shooter is not null && IsAdvancedPosition(shooter.EffectivePosition) && Roll(OffsideChance(shooter)))
+            {
+                attackingStats.Offsides++;
+                GetOrCreateMatchStats(result, shooter).Offsides++;
+                EmitEvent(result, progress, minute, GameEventType.Offside, isHomeAttacking, shooter,
+                    EventTextHelper.OffsideText(shooter, _random));
+                return;
+            }
+
             attackingStats.Shots++;
             GetOrCreateMatchStats(result, shooter).Shots++;
             EmitEvent(result, progress, minute, GameEventType.Shot, isHomeAttacking, shooter,
@@ -422,12 +610,14 @@ namespace RetroFootballManager.Common
             if (Roll(goalProb))
             {
                 RegisterGoal(result, progress, minute, attacking, isHomeAttacking, shooter, attackingStats,
-                    allowAssist: true, preferredAssist: preferredAssist);
+                    allowAssist: true, preferredAssist: preferredAssist, concedingGoalkeeper: goalkeeper);
             }
             else
             {
                 EmitEvent(result, progress, minute, GameEventType.Save, !isHomeAttacking, goalkeeper,
                     EventTextHelper.SaveText(defending, _random));
+                if (goalkeeper is not null)
+                    GetOrCreateMatchStats(result, goalkeeper).Saves++;
 
                 // Good handling (GkHandling) more often puts the ball safely out of play
                 // instead of letting it rebound dangerously to an opponent's feet.
@@ -455,6 +645,40 @@ namespace RetroFootballManager.Common
                   .OrderByDescending(HeaderPower)
                   .FirstOrDefault();
 
+        private const double OffsideBaseChance = 0.05;
+
+        private static readonly Position[] AdvancedPositions =
+        {
+            Position.Forward, Position.CentralOffenseMidfielder,
+            Position.LeftOffenseMidfielder, Position.RightOffenseMidfielder,
+        };
+
+        private static readonly Position[] DefensivePositions =
+        {
+            Position.CentralDefender, Position.LeftDefender, Position.RightDefender,
+            Position.LeftWingBack, Position.RightWingBack,
+        };
+
+        private static readonly Position[] MidfieldPositions =
+        {
+            Position.DefensiveMidfielder, Position.CentralMidfielder,
+            Position.LeftMidfielder, Position.RightMidfielder,
+        };
+
+        private static bool IsAdvancedPosition(Position position) => AdvancedPositions.Contains(position);
+        private static bool IsDefensivePosition(Position position) => DefensivePositions.Contains(position);
+        private static bool IsMidfieldPosition(Position position) => MidfieldPositions.Contains(position);
+
+        // Ranges 0.7 (Positioning 1, worst reading of the game) to 1.0 (Positioning 99) -
+        // a multiplier applied to power/win-probability in duels sensitive to positioning.
+        private static double PositioningFactor(Player p) =>
+            0.7 + (Math.Clamp(p.Positioning, 1, 99) / 99.0 * 0.3);
+
+        // Worse Positioning roughly doubles the offside chance versus a player with elite
+        // positioning (0.5x-1.5x around the base rate).
+        private static double OffsideChance(Player shooter) =>
+            OffsideBaseChance * (1.5 - (Math.Clamp(shooter.Positioning, 1, 99) / 99.0));
+
         private void RegisterGoal(
             MatchResult result,
             IProgress<MatchEvent>? progress,
@@ -464,9 +688,12 @@ namespace RetroFootballManager.Common
             Player? shooter,
             MatchStats attackingStats,
             bool allowAssist,
-            Player? preferredAssist = null)
+            Player? preferredAssist = null,
+            Player? concedingGoalkeeper = null)
         {
             attackingStats.Goals++;
+            if (concedingGoalkeeper is not null)
+                GetOrCreateMatchStats(result, concedingGoalkeeper).GoalsConceded++;
 
             if (isHomeAttacking)
             {
@@ -478,6 +705,8 @@ namespace RetroFootballManager.Common
                 result.AwayGoals++;
                 if (shooter is not null) result.AwayScorers.Add(shooter);
             }
+
+            ApplyGoalMoraleReactions(isHomeAttacking);
 
             if (shooter is null)
                 return;
@@ -510,7 +739,8 @@ namespace RetroFootballManager.Common
             var defendingLineup = TeamStrengthCalculator.GetLineup(defending);
             var fouler = PickWeightedPlayer(defendingLineup,
                 p => p.DuelHardness * PersonalityEffects.Get(p.Personality).FoulChance
-                   * TacklingIntensityEffects.GetFoulCardRiskMultiplier(p, defending));
+                   * TacklingIntensityEffects.GetFoulCardRiskMultiplier(p, defending)
+                   * LowMoraleFoulRiskMultiplier(p));
 
             defendingStats.Fouls++;
             attackingStats.Penaltys++;
@@ -556,7 +786,8 @@ namespace RetroFootballManager.Common
             {
                 attackingStats.ShotsOnTarget++;
                 GetOrCreateMatchStats(result, taker).ShotsOnTarget++;
-                RegisterGoal(result, progress, minute, attacking, isHomeAttacking, taker, attackingStats, allowAssist: false);
+                RegisterGoal(result, progress, minute, attacking, isHomeAttacking, taker, attackingStats,
+                    allowAssist: false, concedingGoalkeeper: goalkeeper);
             }
             else if (taker is not null && Roll(PenaltySavedGivenMissChance))
             {
@@ -564,6 +795,8 @@ namespace RetroFootballManager.Common
                 GetOrCreateMatchStats(result, taker).ShotsOnTarget++;
                 EmitEvent(result, progress, minute, GameEventType.Save, !isHomeAttacking, goalkeeper,
                     EventTextHelper.PenaltySavedText(defending, taker, _random));
+                if (goalkeeper is not null)
+                    GetOrCreateMatchStats(result, goalkeeper).Saves++;
             }
             else if (taker is not null)
             {
@@ -597,6 +830,7 @@ namespace RetroFootballManager.Common
             if (taker is null)
                 return;
 
+            attackingStats.FreeKicks++;
             attackingStats.Shots++;
             GetOrCreateMatchStats(result, taker).Shots++;
             EmitEvent(result, progress, minute, GameEventType.Shot, isHomeAttacking, taker,
@@ -615,12 +849,15 @@ namespace RetroFootballManager.Common
                 GetOrCreateMatchStats(result, taker).ShotsOnTarget++;
                 EmitEvent(result, progress, minute, GameEventType.ShotOnTarget, isHomeAttacking, taker,
                     EventTextHelper.ShotOnTargetText(taker, _random));
-                RegisterGoal(result, progress, minute, attacking, isHomeAttacking, taker, attackingStats, allowAssist: false);
+                RegisterGoal(result, progress, minute, attacking, isHomeAttacking, taker, attackingStats,
+                    allowAssist: false, concedingGoalkeeper: goalkeeper);
             }
             else
             {
                 EmitEvent(result, progress, minute, GameEventType.Save, !isHomeAttacking, goalkeeper,
                     EventTextHelper.SaveText(defending, _random));
+                if (goalkeeper is not null)
+                    GetOrCreateMatchStats(result, goalkeeper).Saves++;
             }
         }
 
@@ -631,9 +868,9 @@ namespace RetroFootballManager.Common
             Team team,
             TeamStrengthProfile profile,
             bool isHome,
-            MatchStats matchStats)
+            MatchStats matchStats,
+            List<Player> lineup)
         {
-            var lineup = TeamStrengthCalculator.GetLineup(team);
             if (lineup.Count == 0)
                 return;
 
@@ -641,7 +878,8 @@ namespace RetroFootballManager.Common
             {
                 var fouler = PickWeightedPlayer(lineup,
                     p => p.DuelHardness * PersonalityEffects.Get(p.Personality).FoulChance
-                       * TacklingIntensityEffects.GetFoulCardRiskMultiplier(p, team));
+                       * TacklingIntensityEffects.GetFoulCardRiskMultiplier(p, team)
+                       * LowMoraleFoulRiskMultiplier(p));
 
                 matchStats.Fouls++;
                 if (fouler is not null)
@@ -706,19 +944,30 @@ namespace RetroFootballManager.Common
             return rng.Next(28, 57);
         }
 
-        // A strong physiotherapist/medical staff member shortens the injury duration - same
-        // tiered form as DevelopmentService.MentorBonus, just using FitnessTraining as the
-        // "medical" skill (no dedicated field needed, see StaffGenerator).
-        private static int ApplyMedicalStaffReduction(int days, Team team)
+        // The whole Physiotherapist+MedicalStaff pool shortens injury duration (stacks across
+        // multiple hires, unlike the best-of-type pattern elsewhere) - tiered form as
+        // DevelopmentService.MentorBonus, using FitnessTraining as the "medical" skill (no
+        // dedicated field needed, see StaffGenerator). Scaled by an overload factor: plenty of
+        // staff relative to how many players are currently injured keeps the full reduction,
+        // too few for too many injuries stretches them thin and can even lengthen recovery.
+        // Public (like PenaltyConversionProbability above) - pure and deterministic given its
+        // inputs, so it's directly unit-testable without needing to force a rare in-match
+        // injury roll (InjuryBase is tiny) across many simulated matches.
+        public static int ApplyMedicalStaffReduction(int days, Team team)
         {
             var staff = team.Employees
                 .Where(e => e.EmployeeType is EmployeeType.Physiotherapist or EmployeeType.MedicalStaff)
-                .OrderByDescending(e => e.FitnessTraining)
-                .FirstOrDefault();
-            if (staff is null)
+                .ToList();
+            if (staff.Count == 0)
                 return days;
 
-            double factor = staff.FitnessTraining >= 75 ? 0.75 : staff.FitnessTraining >= 60 ? 0.9 : 1.0;
+            int currentlyInjured = Math.Max(1, team.Players.Count(p => p.Status == PlayerStatus.Injured));
+            double avgFitnessTraining = staff.Average(e => e.FitnessTraining);
+            double staffPerInjured = staff.Count / (double)currentlyInjured;
+            double overloadFactor = Math.Clamp(1.5 - (staffPerInjured * 0.5), 0.7, 1.5);
+
+            double baseFactor = avgFitnessTraining >= 75 ? 0.75 : avgFitnessTraining >= 60 ? 0.9 : 1.0;
+            double factor = Math.Clamp(baseFactor * overloadFactor, 0.4, 1.8);
             return Math.Max(1, (int)Math.Round(days * factor));
         }
 
@@ -796,6 +1045,97 @@ namespace RetroFootballManager.Common
             }
         }
 
+        // Seeds InMatchMoral from the persistent Moral at kickoff (for the whole squad, not
+        // just the starting XI, so a substitute coming on later also has a proper value
+        // instead of a stale one from a previous match), applies the one-time SlowStarter
+        // deduction, and records the post-deduction value as this match's drift baseline.
+        private void SeedInMatchMoral(Team team)
+        {
+            foreach (var player in team.Players)
+            {
+                int seeded = player.Moral + (int)InMatchCharacterEffects.Get(player.InMatchCharacter).SlowStartPenalty;
+                player.InMatchMoral = Math.Clamp(seeded, 0, 100);
+                _moraleBaseline[player.Id] = player.InMatchMoral;
+            }
+        }
+
+        // Every 5 minutes, InMatchMoral slowly regresses toward each player's own baseline
+        // (see SeedInMatchMoral) instead of staying wherever a goal/team-talk left it -
+        // MoraleVolatility scales how fast a character drifts back (IceCold barely moved away
+        // from baseline in the first place, so this mostly matters for volatile characters).
+        private void ApplyInMatchMoraleDrift(int minute)
+        {
+            if (minute % MinutesBetweenMoraleDrift != 0)
+                return;
+
+            foreach (var player in OnPitch(isHome: true).Concat(OnPitch(isHome: false)))
+            {
+                if (!_moraleBaseline.TryGetValue(player.Id, out int baseline))
+                    continue;
+
+                double volatility = InMatchCharacterEffects.Get(player.InMatchCharacter).MoraleVolatility;
+                int drift = (int)Math.Round((baseline - player.InMatchMoral) * MoraleDriftFraction * volatility);
+                player.InMatchMoral = Math.Clamp(player.InMatchMoral + drift, 0, 100);
+            }
+        }
+
+        // At half-time, players react to the scoreline from their side's perspective - behind
+        // dampened by BehindResilience, comfortably ahead (2+ goals) amplified by
+        // LeadComplacency (see InMatchCharacterEffects; Complacent/LazyWhenLeading feel this
+        // most). Runs once, at the FirstHalf -> HalfTime transition, before the team-talk
+        // dialog/AI choice.
+        private const int HalfTimeScorelineDelta = 8;
+        private const int BigLeadGoalDiff = 2;
+
+        private void ApplyHalfTimeCharacterEffects()
+        {
+            int goalDiff = _result.HomeGoals - _result.AwayGoals;
+            ApplyHalfTimeSideEffect(isHome: true, goalDiff);
+            ApplyHalfTimeSideEffect(isHome: false, goalDiff: -goalDiff);
+        }
+
+        private void ApplyHalfTimeSideEffect(bool isHome, int goalDiff)
+        {
+            foreach (var player in OnPitch(isHome))
+            {
+                var mod = InMatchCharacterEffects.Get(player.InMatchCharacter);
+                int delta = 0;
+                if (goalDiff < 0)
+                    delta = -(int)Math.Round(HalfTimeScorelineDelta / mod.BehindResilience);
+                else if (goalDiff >= BigLeadGoalDiff)
+                    delta = -(int)Math.Round(HalfTimeScorelineDelta * 0.5 * mod.LeadComplacency);
+
+                if (delta != 0)
+                    player.InMatchMoral = Math.Clamp(player.InMatchMoral + delta, 0, 100);
+            }
+        }
+
+        // Extra foul-risk weighting once a player is rattled (InMatchMoral < 40) - scaled by
+        // his character's LowMoraleFoulRisk (Hothead/RiskTaker feel this most, others are
+        // unaffected via the neutral 1.0 default).
+        private static double LowMoraleFoulRiskMultiplier(Player p) =>
+            p.InMatchMoral < LowMoraleThreshold ? InMatchCharacterEffects.Get(p.InMatchCharacter).LowMoraleFoulRisk : 1.0;
+
+        // A goal shifts morale on both sides: up for the scoring side (more for
+        // MomentumHunter/MomentumSensitive), down for the conceding side (more for
+        // NervousUnderPressure/FragileConfidence/MomentumSensitive, less for Fighter).
+        private const int GoalMoraleDelta = 6;
+
+        private void ApplyGoalMoraleReactions(bool isHomeScoring)
+        {
+            foreach (var player in OnPitch(isHomeScoring))
+            {
+                double factor = InMatchCharacterEffects.Get(player.InMatchCharacter).GoalReactionFactor;
+                player.InMatchMoral = Math.Clamp(player.InMatchMoral + (int)Math.Round(GoalMoraleDelta * factor), 0, 100);
+            }
+
+            foreach (var player in OnPitch(!isHomeScoring))
+            {
+                double factor = InMatchCharacterEffects.Get(player.InMatchCharacter).ConcededReactionFactor;
+                player.InMatchMoral = Math.Clamp(player.InMatchMoral - (int)Math.Round(GoalMoraleDelta * factor), 0, 100);
+            }
+        }
+
         // Higher BaseFitness (Grundfitness) means less fatigue per tick: 1.3x decay at the
         // lowest possible value (1), 0.7x at the highest (99), linear in between.
         private static double StaminaFactor(Player player)
@@ -818,25 +1158,97 @@ namespace RetroFootballManager.Common
             return coach.FitnessTraining >= 75 ? 0.75 : coach.FitnessTraining >= 60 ? 0.9 : 1.0;
         }
 
-        private void RecordPossessionSample(TeamStrengthProfile home, TeamStrengthProfile away)
+        // Possession/pass stats are recomputed every minute (not just once at full-time) so
+        // a Statistik dialog opened mid-match already shows meaningful, current numbers.
+        private void RecordPossessionSample(MatchResult result, TeamStrengthProfile home, TeamStrengthProfile away)
         {
-            double homeShare = home.Midfield / Math.Max(0.001, home.Midfield + away.Midfield);
+            double homeQuality = PossessionQuality(_homeTeam, home, away, _awayTeam);
+            double awayQuality = PossessionQuality(_awayTeam, away, home, _homeTeam);
+            double homeShare = homeQuality / Math.Max(0.001, homeQuality + awayQuality);
+
             _homePossessionSum += homeShare;
             _awayPossessionSum += 1 - homeShare;
-            _homePassAccuracySum += Math.Clamp(50 + (home.Midfield * 0.4), 0, 100);
-            _awayPassAccuracySum += Math.Clamp(50 + (away.Midfield * 0.4), 0, 100);
             _sampledMinutes++;
-        }
-
-        private void FinalizePossessionAndPassing(MatchResult result)
-        {
-            if (_sampledMinutes == 0)
-                return;
 
             result.MatchStatsHome.Possession = (int)Math.Round(_homePossessionSum / _sampledMinutes * 100);
             result.MatchStatsAway.Possession = 100 - result.MatchStatsHome.Possession;
-            result.MatchStatsHome.PassAccuracy = (int)Math.Round(_homePassAccuracySum / _sampledMinutes);
-            result.MatchStatsAway.PassAccuracy = (int)Math.Round(_awayPassAccuracySum / _sampledMinutes);
+
+            UpdateLivePassStats(result);
+        }
+
+        // How well a team retains the ball this minute: own Midfield (already tactic-/style-
+        // aware - TikiTaka boosts PassingAccuracy/GameIntelligence weighting, see Tactic.cs)
+        // blended with the lineup's average Positioning (reading the game under pressure),
+        // dampened by how hard the opponent disrupts play - both their Pressing tactic
+        // (profile value) and their lineup's average DuelHardness (Zweikampfhärte, physical
+        // tackling regardless of tactic) make it harder to keep the ball; a defensive,
+        // physically softer opponent makes it easier.
+        private static double PossessionQuality(
+            Team team, TeamStrengthProfile own, TeamStrengthProfile opponentProfile, Team opponentTeam)
+        {
+            var lineup = TeamStrengthCalculator.GetLineup(team);
+            double positioningAvg = lineup.Count == 0 ? 50 : lineup.Average(p => p.Positioning);
+            double buildUpQuality = (own.Midfield * 0.7) + (positioningAvg * 0.3);
+
+            var opponentLineup = TeamStrengthCalculator.GetLineup(opponentTeam);
+            double opponentDuelHardnessAvg = opponentLineup.Count == 0 ? 50 : opponentLineup.Average(p => p.DuelHardness);
+            double disruption = (opponentProfile.Pressing / 100.0) + (opponentDuelHardnessAvg / 200.0);
+
+            return buildUpQuality / (1.0 + disruption);
+        }
+
+        // Aggregates each team's Passes/SuccessfulPasses/PassAccuracy from the real per-player
+        // pass events recorded so far (ProcessPassingAndCrossing) - called every minute so it
+        // stays current for a live Statistik dialog, not just at full-time.
+        private void UpdateLivePassStats(MatchResult result)
+        {
+            var homeIds = _homeTeam.Players.Select(p => p.Id).ToHashSet();
+            int homePasses = 0, homeSuccessful = 0, awayPasses = 0, awaySuccessful = 0;
+
+            foreach (var stats in result.PlayerMatchStats.Values)
+            {
+                if (homeIds.Contains(stats.PlayerId))
+                {
+                    homePasses += stats.Passes;
+                    homeSuccessful += stats.SuccessfulPasses;
+                }
+                else
+                {
+                    awayPasses += stats.Passes;
+                    awaySuccessful += stats.SuccessfulPasses;
+                }
+            }
+
+            result.MatchStatsHome.Passes = homePasses;
+            result.MatchStatsHome.SuccessfulPasses = homeSuccessful;
+            result.MatchStatsHome.PassAccuracy = homePasses > 0 ? (int)Math.Round((double)homeSuccessful / homePasses * 100) : 0;
+
+            result.MatchStatsAway.Passes = awayPasses;
+            result.MatchStatsAway.SuccessfulPasses = awaySuccessful;
+            result.MatchStatsAway.PassAccuracy = awayPasses > 0 ? (int)Math.Round((double)awaySuccessful / awayPasses * 100) : 0;
+        }
+
+        // Computes the final match rating for every player with recorded stats, using their
+        // final MinutesPlayed - called exactly once per match, at full-time.
+        private void FinalizeRatings(MatchResult result)
+        {
+            foreach (var (playerId, stats) in result.PlayerMatchStats)
+            {
+                var player = _homeTeam.Players.FirstOrDefault(p => p.Id == playerId)
+                    ?? _awayTeam.Players.FirstOrDefault(p => p.Id == playerId);
+                if (player is null)
+                    continue;
+
+                int minutesPlayed = result.MinutesPlayed.GetValueOrDefault(playerId);
+                stats.Rating = MatchRatingCalculator.Calculate(stats, player.EffectivePosition, minutesPlayed);
+
+                if (player.EffectivePosition == Position.Goalkeeper
+                    && stats.GoalsConceded == 0
+                    && minutesPlayed >= CleanSheetMinMinutes)
+                {
+                    stats.CleanSheets = 1;
+                }
+            }
         }
 
         private bool Roll(double probability) => _random.NextDouble() < Math.Clamp(probability, 0, 1);

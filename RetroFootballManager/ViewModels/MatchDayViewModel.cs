@@ -129,6 +129,16 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private bool _isPlayerProfileOpen;
         [ObservableProperty] private PlayerProfile? _selectedProfile;
 
+        // Half-time team-talk dialog (shown before the team-management panel).
+        [ObservableProperty] private bool _isTeamTalkDialogOpen;
+        [ObservableProperty] private bool _isEmotionalTeamTalkAvailable = true;
+        public IReadOnlyList<TeamTalkOptionItem> TeamTalkOptions => TeamTalkOptionItem.All;
+
+        // Live/full-time match stats dialog ("Statistik" button + auto-open at full time).
+        [ObservableProperty] private bool _isMatchStatsDialogOpen;
+        [ObservableProperty] private MatchStatsDisplay? _homeMatchStats;
+        [ObservableProperty] private MatchStatsDisplay? _awayMatchStats;
+
         public ObservableCollection<TickerEntry> Ticker { get; } = [];
         // Persistent (non-scrolling) summaries shown next to the scoreboard, unlike the
         // ticker which scrolls entries out of view.
@@ -334,9 +344,9 @@ namespace RetroFootballManager.ViewModels
                         _halfTimeShown = true;
                         _isPaused = true;
                         SetPhase(MatchdayUiPhase.HalfTime);
-                        // Give the player the same tactics/lineup/subs panel at halftime,
-                        // confirming or cancelling both continue into the second half.
-                        OpenTeamManagement(isHalfTime: true, isRedCard: false);
+                        // Team talk first, then the same tactics/lineup/subs panel as before -
+                        // confirming or cancelling either both continue into the second half.
+                        OpenTeamTalkDialog();
                         continue;
                     }
 
@@ -470,6 +480,28 @@ namespace RetroFootballManager.ViewModels
             SubsRemainingText = $"Wechsel: {_match.SubsUsed(_isHumanHome)}/{Match.MaxSubstitutions} genutzt";
         }
 
+        // --- Half-time team talk (shown before the team-management panel) ---
+
+        private void OpenTeamTalkDialog()
+        {
+            if (_match is null)
+                return;
+
+            IsEmotionalTeamTalkAvailable = !_match.HasUsedEmotionalTeamTalk(_isHumanHome);
+            IsTeamTalkDialogOpen = true;
+        }
+
+        [RelayCommand]
+        private void SelectTeamTalk(TeamTalkOption option)
+        {
+            if (_match is null)
+                return;
+
+            TeamTalkService.TryApply(_match, _isHumanHome, option);
+            IsTeamTalkDialogOpen = false;
+            OpenTeamManagement(isHalfTime: true, isRedCard: false);
+        }
+
         // --- Team management: pause, stage changes, confirm (apply) or cancel (discard) ---
 
         [RelayCommand]
@@ -565,6 +597,21 @@ namespace RetroFootballManager.ViewModels
 
         [RelayCommand]
         private void CloseProfile() => IsPlayerProfileOpen = false;
+
+        [RelayCommand]
+        private void OpenMatchStatsDialog()
+        {
+            var stats = _match?.Result ?? _humanResult;
+            if (stats is null || _homeTeam is null || _awayTeam is null)
+                return;
+
+            HomeMatchStats = MatchStatsDisplay.From(_homeTeam.Name, stats.MatchStatsHome);
+            AwayMatchStats = MatchStatsDisplay.From(_awayTeam.Name, stats.MatchStatsAway);
+            IsMatchStatsDialogOpen = true;
+        }
+
+        [RelayCommand]
+        private void CloseMatchStatsDialog() => IsMatchStatsDialogOpen = false;
 
         [RelayCommand]
         private void ManagementSelectPlayer(int playerId)
@@ -922,6 +969,9 @@ namespace RetroFootballManager.ViewModels
             _humanResult = _match.Result;
             SetPhase(MatchdayUiPhase.FullTime);
             StatusText = "Spiel beendet.";
+
+            await Task.Delay(500);
+            OpenMatchStatsDialog();
         }
 
         [RelayCommand]

@@ -61,6 +61,25 @@ namespace RetroFootballManager.Tests
         }
 
         [Fact]
+        public void CanBuy_NegativeBalance_BlocksBuying()
+        {
+            var team = TestHelpers.CreateTeam("Miese FC", baseRating: 55);
+            team.Finances = new Finances { CurrentBalance = -1 };
+
+            Assert.False(TransferMarketService.CanBuy(team, out string? error));
+            Assert.NotNull(error);
+        }
+
+        [Fact]
+        public void CanBuy_ZeroOrPositiveBalance_AllowsBuying()
+        {
+            var team = TestHelpers.CreateTeam("Solvente FC", baseRating: 55);
+            team.Finances = new Finances { CurrentBalance = 0 };
+
+            Assert.True(TransferMarketService.CanBuy(team, out _));
+        }
+
+        [Fact]
         public async Task ListPlayerAsync_PersistsListing()
         {
             var (seller, _, player) = await SetupTeamsAsync();

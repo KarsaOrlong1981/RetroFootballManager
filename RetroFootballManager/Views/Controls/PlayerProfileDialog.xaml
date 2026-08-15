@@ -165,6 +165,16 @@
                                     </Label.FormattedText>
                                 </Label>
 
+                                <!-- Charakter (transientes Matchverhalten, siehe InMatchCharacterType) -->
+                                <Label Grid.Row="5" Grid.Column="1" FontSize="16">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Charakter: " TextColor="{StaticResource RfmText}" />
+                                            <Span Text="{Binding CharacterLabel}" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
                             </Grid>
 
                         </Border>

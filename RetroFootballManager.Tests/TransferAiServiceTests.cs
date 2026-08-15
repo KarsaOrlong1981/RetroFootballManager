@@ -116,6 +116,26 @@ namespace RetroFootballManager.Tests
         }
 
         [Fact]
+        public async Task RunWeeklyTickAsync_NeverMakesOffer_WhenBalanceIsNegative()
+        {
+            var brokeTeam = TestHelpers.CreateTeam("Pleite", baseRating: 60);
+            brokeTeam.Finances = new Finances { CurrentBalance = -1 };
+            await _teamRepo.SaveTeamAsync(brokeTeam);
+
+            // Deliberately cheap - would easily be "affordable" by price alone.
+            var sellerListing = new TransferListing
+            {
+                PlayerId = 9999, TeamId = 555, AskingPrice = 1, Season = 1, ListedDate = Today,
+            };
+
+            await TransferAiService.RunWeeklyTickAsync(
+                brokeTeam, [sellerListing], _service, Difficulty.Hard, season: 1, Today, ForceActive());
+
+            var offers = await _service.GetOffersForListingAsync(sellerListing);
+            Assert.Empty(offers);
+        }
+
+        [Fact]
         public async Task EvaluateIncomingOffersAsync_AcceptsGoodEnoughTransferOffer()
         {
             var seller = await CreateTeamWithSurplusAsync("Verkäufer", 1_000_000);

@@ -30,6 +30,32 @@ namespace RetroFootballManager.Common
             _random = random ?? Random.Shared;
         }
 
+        // Per-league hiring caps: DirectorOfFootball is always unique (max 1) regardless of
+        // league; every other type scales with league tier (Tier4=3, Tier3=4, Tier2=5, Tier1=6).
+        public static int MaxEmployeesPerType(int leagueTier, EmployeeType type) =>
+            type == EmployeeType.DirectorOfFootball ? 1 : Math.Clamp(7 - leagueTier, 3, 6);
+
+        public static bool CanHire(Team team, EmployeeType type, out string? error)
+        {
+            if (!FinanceService.HasSpendableBalance(team))
+            {
+                error = "Der Verein ist im Minus - keine Neuverpflichtungen möglich, bis die Bilanz wieder positiv ist.";
+                return false;
+            }
+
+            int max = MaxEmployeesPerType(team.LeagueTier, type);
+            int current = team.Employees.Count(e => e.EmployeeType == type);
+            if (current >= max)
+            {
+                error = type == EmployeeType.DirectorOfFootball
+                    ? "Es kann immer nur ein Sportdirektor gleichzeitig angestellt sein."
+                    : $"Es können maximal {max} Mitarbeiter vom Typ {type} gleichzeitig angestellt sein (Liga {team.LeagueTier}).";
+                return false;
+            }
+            error = null;
+            return true;
+        }
+
         public List<Employee> GenerateCandidates(int teamTier, int count = 8)
         {
             double quality = TierTargetRating[Math.Clamp(teamTier, 1, TierTargetRating.Length) - 1] - 10;

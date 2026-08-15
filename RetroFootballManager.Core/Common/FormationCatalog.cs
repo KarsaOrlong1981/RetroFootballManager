@@ -114,13 +114,13 @@ namespace RetroFootballManager.Common
         [
             new(Position.Goalkeeper, 0.50, 0.93),
 
-            new(Position.CentralDefender, 0.28, 0.75),
-            new(Position.CentralDefender, 0.50, 0.78),
-            new(Position.CentralDefender, 0.72, 0.75),
+            new(Position.CentralDefender, 0.28, 0.70),
+            new(Position.CentralDefender, 0.50, 0.73),
+            new(Position.CentralDefender, 0.72, 0.70),
 
             new(Position.LeftMidfielder, 0.15, 0.40),
             new(Position.CentralMidfielder, 0.32, 0.46),
-            new(Position.DefensiveMidfielder, 0.50, 0.60),
+            new(Position.DefensiveMidfielder, 0.50, 0.51),
             new(Position.CentralMidfielder, 0.68, 0.46),
             new(Position.RightMidfielder, 0.85, 0.40),
 

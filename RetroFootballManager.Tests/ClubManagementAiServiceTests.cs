@@ -105,5 +105,17 @@ namespace RetroFootballManager.Tests
 
             Assert.Null(hired);
         }
+
+        [Fact]
+        public async Task TryHireMissingStaffAsync_ReturnsNull_WhenBalanceNegative()
+        {
+            var team = TestHelpers.CreateTeam("Miese KI FC", baseRating: 60);
+            team.Finances = new Finances { CurrentBalance = -1 };
+            team.LeagueTier = 2;
+
+            var hired = await ClubManagementAiService.TryHireMissingStaffAsync(team, _staffMarket, Today, new Random(1));
+
+            Assert.Null(hired);
+        }
     }
 }

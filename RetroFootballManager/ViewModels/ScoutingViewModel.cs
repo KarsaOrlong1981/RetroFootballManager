@@ -13,6 +13,7 @@ namespace RetroFootballManager.ViewModels
     public record ActiveScoutingRow(int PlayerId, string PlayerName, string TeamName, int DaysRemaining);
     public record ScoutRecommendationRow(int PlayerId, string PlayerName, string TeamName, string PositionShort, string Reason);
     public record ScoutedPlayerRow(int PlayerId, string PlayerName, string TeamName, string ScoutedDateText, string PositionShort);
+    public record ScoutRow(int EmployeeId, string Name, int ScoutingAbility, int ActiveAssignments, string FocusSummary);
 
     public partial class ScoutingViewModel : BaseViewModel
     {
@@ -41,9 +42,32 @@ namespace RetroFootballManager.ViewModels
         public ObservableCollection<ActiveScoutingRow> ActiveScouting { get; } = [];
         public ObservableCollection<ScoutRecommendationRow> Recommendations { get; } = [];
         public ObservableCollection<ScoutedPlayerRow> ScoutedPlayers { get; } = [];
+        public ObservableCollection<ScoutRow> Scouts { get; } = [];
 
         [ObservableProperty] private bool _hasScout;
         [ObservableProperty] private string _statusText = string.Empty;
+
+        // Scouting-Fokus dialog
+        [ObservableProperty] private bool _isScoutingFocusDialogOpen;
+        [ObservableProperty] private int _focusScoutEmployeeId;
+        [ObservableProperty] private string _focusScoutName = string.Empty;
+        [ObservableProperty] private PositionFilterOption _focusPosition = PositionFilterOption.All[0];
+        [ObservableProperty] private string _focusMinAgeText = string.Empty;
+        [ObservableProperty] private string _focusMaxAgeText = string.Empty;
+        [ObservableProperty] private string _focusMinTalentText = string.Empty;
+        [ObservableProperty] private string _focusMinRatingText = string.Empty;
+        [ObservableProperty] private CharacterFilterOption _focusCharacter = CharacterFilterOption.All[0];
+        [ObservableProperty] private PersonalityFilterOption _focusPersonality = PersonalityFilterOption.All[0];
+        [ObservableProperty] private NationalityFilterOption _focusNationality = NationalityFilterOption.All[0];
+        [ObservableProperty] private AttributeFilterOption _focusAttribute = AttributeFilterOption.All[0];
+        [ObservableProperty] private string _focusAttributeMinValueText = string.Empty;
+        [ObservableProperty] private string _focusStatusText = string.Empty;
+
+        public IReadOnlyList<PositionFilterOption> PositionFilterOptions => PositionFilterOption.All;
+        public IReadOnlyList<CharacterFilterOption> CharacterFilterOptions => CharacterFilterOption.All;
+        public IReadOnlyList<PersonalityFilterOption> PersonalityFilterOptions => PersonalityFilterOption.All;
+        public IReadOnlyList<NationalityFilterOption> NationalityFilterOptions => NationalityFilterOption.All;
+        public IReadOnlyList<AttributeFilterOption> AttributeFilterOptions => AttributeFilterOption.All;
 
         [ObservableProperty] private bool _isPlayerProfileOpen;
         [ObservableProperty] private PlayerProfile? _selectedProfile;
@@ -64,6 +88,7 @@ namespace RetroFootballManager.ViewModels
             ActiveScouting.Clear();
             Recommendations.Clear();
             ScoutedPlayers.Clear();
+            Scouts.Clear();
 
             var team = _session.ManagerTeam;
             var state = _session.State;
@@ -78,6 +103,18 @@ namespace RetroFootballManager.ViewModels
             {
                 var names = _session.Teams.ToDictionary(t => t.Id, t => t.Name);
                 var assignments = await _saveGame.GetActiveScoutingAsync(team.Id);
+                var foci = await _saveGame.GetScoutingFocusesAsync(team.Id);
+
+                foreach (var scout in team.Employees.Where(e => e.EmployeeType == EmployeeType.Scout))
+                {
+                    int active = assignments.Count(a => a.ScoutEmployeeId == scout.Id);
+                    var focus = foci.FirstOrDefault(f => f.ScoutEmployeeId == scout.Id);
+                    string summary = focus is null
+                        ? "Kein Fokus (Team-Schwächen)"
+                        : DescribeFocus(focus);
+                    Scouts.Add(new ScoutRow(scout.Id, scout.Name, scout.ScoutingAbility, active, summary));
+                }
+
                 foreach (var assignment in assignments)
                 {
                     var player = _session.Teams.SelectMany(t => t.Players).FirstOrDefault(p => p.Id == assignment.PlayerId);
@@ -200,6 +237,12 @@ namespace RetroFootballManager.ViewModels
             if (team is null || state is null || player is null || sellingTeam is null)
                 return;
 
+            if (!TransferMarketService.CanBuy(team, out string? balanceError))
+            {
+                OfferStatusText = balanceError!;
+                return;
+            }
+
             IsBusy = true;
             OfferStatusText = "Angebot wird abgegeben …";
             try
@@ -243,6 +286,89 @@ namespace RetroFootballManager.ViewModels
             {
                 Log.Error("Failed to remove scouted player.", ex);
             }
+        }
+
+        [RelayCommand]
+        private void OpenScoutingFocus(int employeeId)
+        {
+            var scout = _session.ManagerTeam?.Employees.FirstOrDefault(e => e.Id == employeeId);
+            if (scout is null)
+                return;
+
+            FocusScoutEmployeeId = employeeId;
+            FocusScoutName = scout.Name;
+            FocusPosition = PositionFilterOption.All[0];
+            FocusMinAgeText = string.Empty;
+            FocusMaxAgeText = string.Empty;
+            FocusMinTalentText = string.Empty;
+            FocusMinRatingText = string.Empty;
+            FocusCharacter = CharacterFilterOption.All[0];
+            FocusPersonality = PersonalityFilterOption.All[0];
+            FocusNationality = NationalityFilterOption.All[0];
+            FocusAttribute = AttributeFilterOption.All[0];
+            FocusAttributeMinValueText = string.Empty;
+            FocusStatusText = string.Empty;
+            IsScoutingFocusDialogOpen = true;
+        }
+
+        [RelayCommand]
+        private void CloseScoutingFocus() => IsScoutingFocusDialogOpen = false;
+
+        [RelayCommand]
+        private async Task SaveScoutingFocus()
+        {
+            var team = _session.ManagerTeam;
+            var state = _session.State;
+            var scout = team?.Employees.FirstOrDefault(e => e.Id == FocusScoutEmployeeId);
+            if (team is null || state is null || scout is null)
+                return;
+
+            var focus = new ScoutingFocus
+            {
+                Position = FocusPosition.Value,
+                MinAge = ParseIntOrNull(FocusMinAgeText),
+                MaxAge = ParseIntOrNull(FocusMaxAgeText),
+                MinTalent = ParseIntOrNull(FocusMinTalentText),
+                MinRating = ParseIntOrNull(FocusMinRatingText),
+                CharacterType = FocusCharacter.Value,
+                PersonalityType = FocusPersonality.Value,
+                Nationality = FocusNationality.Value,
+            };
+            if (FocusAttribute.Value is { } attribute && ParseIntOrNull(FocusAttributeMinValueText) is { } minValue)
+                focus.AttributeFilters = [new AttributeFilter(attribute, minValue)];
+
+            var (success, error) = await _saveGame.TryAssignScoutingFocusAsync(team, scout, focus, state.CurrentDate);
+            if (success)
+            {
+                IsScoutingFocusDialogOpen = false;
+                await InitializeAsync();
+            }
+            else
+            {
+                FocusStatusText = error ?? "Fokus konnte nicht zugewiesen werden.";
+            }
+        }
+
+        private static int? ParseIntOrNull(string text) => int.TryParse(text, out int value) ? value : null;
+
+        private static string DescribeFocus(ScoutingFocus focus)
+        {
+            if (!focus.HasAnyFilter)
+                return "Kein Fokus (Team-Schwächen)";
+
+            var parts = new List<string>();
+            if (focus.Position is { } position) parts.Add(PositionDisplay.Short(position));
+            if (focus.MinAge is { } minAge) parts.Add($"Alter ≥{minAge}");
+            if (focus.MaxAge is { } maxAge) parts.Add($"Alter ≤{maxAge}");
+            if (focus.MinTalent is { } minTalent) parts.Add($"Talent ≥{minTalent}");
+            if (focus.MinRating is { } minRating) parts.Add($"Rating ≥{minRating}");
+            if (focus.CharacterType is { } characterType) parts.Add(InMatchCharacterDisplay.Name(characterType));
+            if (focus.PersonalityType is { } personalityType) parts.Add(PersonalityDisplay.Name(personalityType));
+            if (focus.Nationality is { } nationality) parts.Add(nationality.ToString());
+            foreach (var attributeFilter in focus.AttributeFilters)
+                parts.Add($"{attributeFilter.Attribute} ≥{attributeFilter.MinValue}");
+
+            return string.Join(", ", parts);
         }
 
         [RelayCommand]

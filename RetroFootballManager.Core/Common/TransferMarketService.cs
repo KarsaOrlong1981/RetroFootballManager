@@ -26,6 +26,22 @@ namespace RetroFootballManager.Common
             _messages = messages;
         }
 
+        // A team in the red can't take on a new transfer fee - selling players, signing
+        // sponsors or a club loan are the ways back into the black (none of those are
+        // gated by this). Checked before MakeOfferAsync/AcceptCounterOfferAsync/
+        // MakeUnsolicitedOfferAsync on the BUYING side - accepting an incoming offer (the
+        // team is the seller there) is never blocked.
+        public static bool CanBuy(Team team, out string? error)
+        {
+            if (!FinanceService.HasSpendableBalance(team))
+            {
+                error = "Der Verein ist im Minus - keine neuen Spielerkäufe möglich, bis die Bilanz wieder positiv ist.";
+                return false;
+            }
+            error = null;
+            return true;
+        }
+
         public async Task<TransferListing> ListPlayerAsync(
             Player player, Team team, double askingPrice, int season, DateTime date, bool isLoanListing = false)
         {

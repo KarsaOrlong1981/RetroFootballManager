@@ -107,6 +107,8 @@ namespace RetroFootballManager.Common
                     foreach (var player in team.Players.Where(p => p.Position != Position.Goalkeeper))
                         Train(player, attribute, team, rng, scale * TeamTrainingScale);
             }
+
+            ManagerGrowthService.ApplyWeeklyTrainingFocusGrowth(team.ManagerProfile, team);
         }
 
         // Konditionstraining's effect: raises BaseFitness (Grundfitness) over the season, same
@@ -124,8 +126,9 @@ namespace RetroFootballManager.Common
             double ceilingFactor = Math.Clamp((BaseFitnessCap - player.BaseFitness) / 20.0, 0.15, 1.0);
             double moraleFactor = PlayerMoraleFactor(player.Moral);
             double talkMotivationFactor = 1.0 + player.TalkMotivationBoost;
+            double managerFactor = ManagerEffects.TrainingDesignFactor(team.ManagerProfile);
 
-            double potential = WeeklyBaseRate * ageFactor * coachFactor * ceilingFactor * moraleFactor * talkMotivationFactor * externalScale;
+            double potential = WeeklyBaseRate * ageFactor * coachFactor * ceilingFactor * moraleFactor * talkMotivationFactor * managerFactor * externalScale;
             int gain = (int)Math.Floor(potential);
             if (rng.NextDouble() < potential - gain)
                 gain++;
@@ -181,8 +184,9 @@ namespace RetroFootballManager.Common
             double ceilingFactor = Math.Clamp((cap - current) / 20.0, 0.15, 1.0);
             double moraleFactor = PlayerMoraleFactor(player.Moral);
             double talkMotivationFactor = 1.0 + player.TalkMotivationBoost;
+            double managerFactor = ManagerEffects.TrainingDesignFactor(team.ManagerProfile);
 
-            double potential = WeeklyBaseRate * talentFactor * ageFactor * coachFactor * ceilingFactor * moraleFactor * talkMotivationFactor * externalScale;
+            double potential = WeeklyBaseRate * talentFactor * ageFactor * coachFactor * ceilingFactor * moraleFactor * talkMotivationFactor * managerFactor * externalScale;
             int gain = (int)Math.Floor(potential);
             if (rng.NextDouble() < potential - gain)
                 gain++;

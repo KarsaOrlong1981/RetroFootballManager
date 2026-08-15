@@ -20,6 +20,7 @@ namespace RetroFootballManager.Data
         private readonly TransferListingRepository _transferListingRepository;
         private readonly TrophyRepository _trophyRepository;
         private readonly ScoutingAssignmentRepository _scoutingRepository;
+        private readonly ScoutingFocusRepository _scoutingFocusRepository;
         private readonly ScoutedPlayerRepository _scoutedPlayerRepository;
         private readonly PlayerRepository _playerRepository;
         private readonly MessageService _messageService;
@@ -38,6 +39,7 @@ namespace RetroFootballManager.Data
             _transferListingRepository = new TransferListingRepository(db);
             _trophyRepository = new TrophyRepository(db);
             _scoutingRepository = new ScoutingAssignmentRepository(db);
+            _scoutingFocusRepository = new ScoutingFocusRepository(db);
             _scoutedPlayerRepository = new ScoutedPlayerRepository(db);
             _playerRepository = new PlayerRepository(db);
             _messageService = new MessageService(new MessageRepository(db));
@@ -61,12 +63,75 @@ namespace RetroFootballManager.Data
             if (existing is not null)
                 return (false, "Dieser Spieler wird bereits gescoutet.");
 
-            await _scoutingRepository.SaveAsync(ScoutingService.CreateAssignment(team.Id, player.Id, currentDate));
+            var activeAssignments = await _scoutingRepository.GetByTeamAsync(team.Id);
+            var scout = ScoutingService.FindScoutWithCapacity(team, activeAssignments);
+            if (scout is null)
+                return (false, $"Alle Scouts sind derzeit ausgebucht ({ScoutingService.MaxConcurrentAssignmentsPerScout}/{ScoutingService.MaxConcurrentAssignmentsPerScout}) - sie müssen erst ihre aktuellen Aufgaben abschließen.");
+
+            await _scoutingRepository.SaveAsync(ScoutingService.CreateAssignment(team.Id, player.Id, currentDate, scout.Id));
             return (true, null);
         }
 
         public Task<List<ScoutingAssignment>> GetActiveScoutingAsync(int teamId) =>
             _scoutingRepository.GetByTeamAsync(teamId);
+
+        public Task<List<ScoutingFocus>> GetScoutingFocusesAsync(int teamId) =>
+            _scoutingFocusRepository.GetByTeamAsync(teamId);
+
+        // Assigns (or replaces, if the scout already has one) a ScoutingFocus - rejected while
+        // the scout is already at capacity (see ScoutingService.TryAssignFocus).
+        public async Task<(bool Success, string? Error)> TryAssignScoutingFocusAsync(
+            Team team, Employee scout, ScoutingFocus newFocus, DateTime currentDate)
+        {
+            var activeAssignments = await _scoutingRepository.GetByTeamAsync(team.Id);
+            if (!ScoutingService.TryAssignFocus(scout, activeAssignments, out string? error))
+                return (false, error);
+
+            var existing = await _scoutingFocusRepository.GetForScoutAsync(scout.Id);
+            newFocus.Id = existing?.Id ?? 0;
+            newFocus.TeamId = team.Id;
+            newFocus.ScoutEmployeeId = scout.Id;
+            newFocus.CreatedDate = currentDate;
+
+            await _scoutingFocusRepository.SaveAsync(newFocus);
+            return (true, null);
+        }
+
+        // Daily tick: for every ScoutingFocus with a still-employed scout, tops that scout up
+        // to MaxConcurrentAssignmentsPerScout with the best-matching candidates, until capacity
+        // is full or no more candidates remain. Called alongside ApplyDueScoutingAsync.
+        public async Task ApplyScoutingFocusesAsync(Team team, IReadOnlyList<Team> allTeams, DateTime currentDate)
+        {
+            var foci = await _scoutingFocusRepository.GetByTeamAsync(team.Id);
+            if (foci.Count == 0)
+                return;
+
+            var activeAssignments = await _scoutingRepository.GetByTeamAsync(team.Id);
+            var rng = new Random(HashCode.Combine(team.Id, currentDate.Year, currentDate.Month, currentDate.Day));
+
+            foreach (var focus in foci)
+            {
+                var scout = team.Employees.FirstOrDefault(e => e.Id == focus.ScoutEmployeeId && e.EmployeeType == EmployeeType.Scout);
+                if (scout is null)
+                    continue;
+
+                int load = activeAssignments.Count(a => a.ScoutEmployeeId == scout.Id);
+                int capacity = ScoutingService.MaxConcurrentAssignmentsPerScout - load;
+                if (capacity <= 0)
+                    continue;
+
+                var candidates = ScoutingService.FindCandidatesForFocus(team, focus, allTeams, rng, take: capacity);
+                foreach (var candidate in candidates)
+                {
+                    if (await _scoutingRepository.GetForPlayerAsync(team.Id, candidate.Id) is not null)
+                        continue;
+
+                    var assignment = ScoutingService.CreateAssignment(team.Id, candidate.Id, currentDate, scout.Id);
+                    await _scoutingRepository.SaveAsync(assignment);
+                    activeAssignments.Add(assignment);
+                }
+            }
+        }
 
         public Task<ScoutingAssignment?> GetActiveScoutingForPlayerAsync(int teamId, int playerId) =>
             _scoutingRepository.GetForPlayerAsync(teamId, playerId);
@@ -677,12 +742,14 @@ namespace RetroFootballManager.Data
                     PlayerGenerator.BackfillGoalkeeperAttributesIfMissing(p);
                     PlayerGenerator.BackfillFinishingAndPositioningIfMissing(p);
                     PlayerGenerator.BackfillBaseFitnessIfMissing(p);
+                    PlayerGenerator.BackfillInMatchCharacterIfMissing(p);
                 }
                 foreach (var p in team.YouthPlayers)
                 {
                     PlayerGenerator.BackfillGoalkeeperAttributesIfMissing(p);
                     PlayerGenerator.BackfillFinishingAndPositioningIfMissing(p);
                     PlayerGenerator.BackfillBaseFitnessIfMissing(p);
+                    PlayerGenerator.BackfillInMatchCharacterIfMissing(p);
                 }
 
                 // Legacy safety net for saves created before club mood existed: both fields

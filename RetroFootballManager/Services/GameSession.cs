@@ -14,6 +14,11 @@ namespace RetroFootballManager.Services
 
         public (List<League> Leagues, List<Team> Teams)? PendingUniverse { get; set; }
 
+        // Built by the "create your manager" flow before team selection, then attached to
+        // the chosen team's ManagerProfile in TeamSelectionViewModel.Start() - overwrites the
+        // AI-rolled profile UniverseGenerator already gave that team.
+        public ManagerProfile? PendingManagerProfile { get; set; }
+
         public bool HasActiveGame => State is not null;
 
         public void Clear()
@@ -21,6 +26,7 @@ namespace RetroFootballManager.Services
             State = null;
             Teams = [];
             PendingUniverse = null;
+            PendingManagerProfile = null;
         }
     }
 }

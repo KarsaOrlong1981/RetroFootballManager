@@ -17,6 +17,8 @@ namespace RetroFootballManager.Models
 
         // Pass accuracy (%)
         public int PassAccuracy { get; set; }
+        public int Passes { get; set; }
+        public int SuccessfulPasses { get; set; }
 
         // Tackles
         public int Tackles { get; set; }
@@ -33,5 +35,6 @@ namespace RetroFootballManager.Models
         public int Corners { get; set; }
         public int FreeKicks { get; set; }
         public int Penaltys { get; set; }
+        public int Offsides { get; set; }
     }
 }

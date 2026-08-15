@@ -23,6 +23,7 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private string _assessmentText = string.Empty;
         [ObservableProperty] private string _reactionText = string.Empty;
         [ObservableProperty] private bool _wantsToLeaveClub;
+        [ObservableProperty] private bool _isGoalKeeper;
 
         public TalkToPlayerViewModel(IDispatcher dispatcher, GameSession session, SaveGameService saveGame)
             : base(dispatcher)
@@ -48,7 +49,7 @@ namespace RetroFootballManager.ViewModels
             Player = player;
             ReactionText = string.Empty;
             WantsToLeaveClub = player.WantsToLeaveClub;
-
+            IsGoalKeeper = player.Position == Position.Goalkeeper;
             var contract = await _saveGame.GetActivePlayerContractAsync(player.Id, _session.State.CurrentDate);
             var listing = await _saveGame.GetTransferListingForPlayerAsync(player.Id);
             var seasonStats = await _saveGame.GetPlayerSeasonStatsAsync(player.Id, _session.State.Season);
@@ -87,7 +88,7 @@ namespace RetroFootballManager.ViewModels
                 return;
             var type = ConversationService.GetTalkType(option);
             int matchFactor = GetMatchFactor(option);
-            var result = ConversationService.Talk(Player, type, _session.State, matchFactor);
+            var result = ConversationService.Talk(Player, type, _session.State, matchFactor, _team.ManagerProfile);
             ReactionText = result.ReactionText;
             WantsToLeaveClub = result.WantsToLeaveClub;
             OnPropertyChanged(nameof(Player));

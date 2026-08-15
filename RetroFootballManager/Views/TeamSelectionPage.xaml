@@ -29,15 +29,15 @@
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="vm:LeagueOption">
-                    <Border StrokeThickness="0" Padding="14,8" MinimumWidthRequest="130"
+                    <Border StrokeThickness="0" Padding="14,8" MinimumWidthRequest="280"
                             BackgroundColor="{StaticResource RfmSurface}">
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="10" />
                         </Border.StrokeShape>
                         <VerticalStackLayout Opacity="{Binding IsUnlocked, Converter={StaticResource LockedOpacity}}">
-                            <Label Text="{Binding Name}" FontAttributes="Bold"
+                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="22"
                                    TextColor="{StaticResource RfmText}" />
-                            <Label Text="{Binding StatusLabel}" FontSize="11"
+                            <Label Text="{Binding StatusLabel}" FontSize="18"
                                    TextColor="{StaticResource RfmTextMuted}" />
                         </VerticalStackLayout>
                     </Border>
@@ -54,14 +54,16 @@
                 <DataTemplate x:DataType="vm:TeamOption">
                     <Grid Padding="4">
                         <Border StrokeThickness="0" Padding="12,10"
+                                WidthRequest="880"
+                                HorizontalOptions="Start"
                                 BackgroundColor="{StaticResource RfmSurface}"
                                 Opacity="{Binding IsSelectable, Converter={StaticResource LockedOpacity}}">
                             <Border.StrokeShape>
                                 <RoundRectangle CornerRadius="10" />
                             </Border.StrokeShape>
-                            <Grid ColumnDefinitions="44,*,Auto" ColumnSpacing="12">
+                            <Grid ColumnDefinitions="150,*,Auto" ColumnSpacing="12">
                                 <!-- Wappen: Bild wenn vorhanden, sonst Kürzel-Platzhalter -->
-                                <Border Grid.Column="0" WidthRequest="40" HeightRequest="40"
+                                <Border Grid.Column="0" WidthRequest="100" HeightRequest="100"
                                         BackgroundColor="White"
                                         Stroke="{StaticResource RfmAccentTeal}" StrokeThickness="1.5" Padding="0">
                                     <Border.StrokeShape>
@@ -71,15 +73,15 @@
                                         <Image Source="{Binding Team.LogoPath, Converter={StaticResource LogoSource}}"
                                                IsVisible="{Binding Team.LogoPath, Converter={StaticResource HasLogo}}"
                                                Aspect="AspectFit" />
-                                        <Label Text="{Binding ShortName}" FontSize="12" FontAttributes="Bold"
+                                        <Label Text="{Binding ShortName}" FontSize="28" FontAttributes="Bold"
                                                TextColor="{StaticResource RfmAccentTeal}"
                                                IsVisible="{Binding Team.LogoPath, Converter={StaticResource NoLogo}}"
                                                HorizontalOptions="Center" VerticalOptions="Center" />
                                     </Grid>
                                 </Border>
-                                <Label Grid.Column="1" Text="{Binding Name}" VerticalOptions="Center"
+                                <Label Grid.Column="1" FontSize="28" Text="{Binding Name}" VerticalOptions="Center"
                                        TextColor="{StaticResource RfmText}" />
-                                <Label Grid.Column="2" Text="{Binding AverageRating}" VerticalOptions="Center"
+                                <Label Grid.Column="2" FontSize="28" Text="{Binding AverageRating}" VerticalOptions="Center"
                                        FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" />
                             </Grid>
                         </Border>
@@ -89,19 +91,23 @@
         </CollectionView>
 
         <VerticalStackLayout Grid.Row="3" Spacing="6">
-            <Label Text="{Binding SelectionHint}" FontSize="12"
+            <Label Text="{Binding SelectionHint}" FontSize="22"
                    TextColor="{StaticResource RfmTextMuted}" />
 
-            <Label Text="Schwierigkeitsgrad" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
-            <Picker ItemsSource="{Binding DifficultyOptions}" ItemDisplayBinding="{Binding Label}"
+            <Label Text="Schwierigkeitsgrad" FontSize="24" TextColor="{StaticResource RfmTextMuted}" />
+            <Picker
+                WidthRequest="360"
+                FontSize="24"
+                ItemsSource="{Binding DifficultyOptions}" ItemDisplayBinding="{Binding Label}"
                     SelectedItem="{Binding SelectedDifficulty, Mode=TwoWay}"
                     TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
-            <Label Text="{Binding SelectedDifficulty.Description}" FontSize="11"
+            <Label Text="{Binding SelectedDifficulty.Description}" FontSize="18"
                    TextColor="{StaticResource RfmTextMuted}" />
 
             <Button Text="Neues Spiel starten"
+                    FontSize="28"
                     Command="{Binding StartCommand}"
-                    BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+                    BackgroundColor="{StaticResource RfmFormationGreen}" TextColor="White" />
         </VerticalStackLayout>
 
         <!-- Busy overlay -->

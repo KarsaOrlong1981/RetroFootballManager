@@ -11,7 +11,29 @@ using RetroFootballManager.Services;
 
 namespace RetroFootballManager.ViewModels
 {
-    public record TeamOverviewRow(string Name, double AvgRating, double AvgMoral, string Status = "");
+    public record TeamOverviewRow(int TeamId, string Name, double AvgRating, double AvgMoral, string Status = "");
+
+    // Detail view for a tapped team row in the club overview (own or foreign): squad
+    // strength, season stat averages (from the Phase 2 TeamStats fields), form/morale, and
+    // an estimated (or, for the own team, exact) finance snapshot.
+    public record TeamDetail(
+        string Name,
+        double SquadStrength,
+        int MatchesPlayed,
+        int AveragePossession,
+        int AveragePassAccuracy,
+        double AverageCorners,
+        double AverageFreeKicks,
+        double AveragePenaltys,
+        double AverageOffsides,
+        string Form,
+        int Morale,
+        FinanceEstimate Finance,
+        ManagerProfile? ManagerProfile)
+    {
+        public string BalanceText => Finance.EstimatedBalance is { } balance ? $"{balance:N0} €" : "Unbekannt";
+        public string TransferBudgetText => Finance.EstimatedTransferBudget is { } budget ? $"{budget:N0} €" : "Unbekannt";
+    }
 
     public partial class ClubViewModel : BaseViewModel
     {
@@ -44,6 +66,15 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private string _moraleComparisonText = string.Empty;
         [ObservableProperty] private CompetitionKind _selectedKind;
         [ObservableProperty] private GroupConditionType _selectedGroupConditionType;
+
+        // Team detail dialog (tapping a row in the overview).
+        [ObservableProperty] private bool _isTeamDetailDialogOpen;
+        [ObservableProperty] private TeamDetail? _selectedTeamDetail;
+
+        // Manager profile dialog - opened via TeamDetailDialog's "Trainer ansehen" button,
+        // always read-only here (own-profile editing lives in StaffViewModel/StaffPage).
+        [ObservableProperty] private bool _isManagerProfileDialogOpen;
+        [ObservableProperty] private ManagerProfile? _viewedManagerProfile;
 
 
         public string DisplayCompetitionKind => GetCompetitionKindOutput();
@@ -81,7 +112,7 @@ namespace RetroFootballManager.ViewModels
             foreach (var other in _session.Teams.Where(t => t.Id != team.Id).OrderByDescending(t => t.AverageRating))
             {
                 double avgMoral = other.Players.Count > 0 ? other.Players.Average(p => p.Moral) : 0;
-                OtherTeams.Add(new TeamOverviewRow(other.Name, other.AverageRating, avgMoral));
+                OtherTeams.Add(new TeamOverviewRow(other.Id, other.Name, other.AverageRating, avgMoral));
             }
 
             var leagueTeams = _session.Teams.Where(t => t.LeagueTier == team.LeagueTier).ToList();
@@ -105,6 +136,68 @@ namespace RetroFootballManager.ViewModels
 
         [RelayCommand]
         private Task Back() => _navigation.GoBackAsync();
+
+        [RelayCommand]
+        private void ShowTeamDetail(int teamId)
+        {
+            var team = _session.Teams.FirstOrDefault(t => t.Id == teamId);
+            var manager = _session.ManagerTeam;
+            var state = _session.State;
+            if (team is null || manager is null || state is null)
+                return;
+
+            var strength = TeamStrengthCalculator.Calculate(team, isHome: false);
+            var stats = team.Statistics;
+
+            FinanceEstimate finance;
+            if (team.Id == manager.Id || team.Finances is null)
+            {
+                finance = new FinanceEstimate(
+                    team.Finances?.CurrentBalance, team.Finances?.TransferBudget,
+                    team.Finances?.FinancialHealth ?? 0, IsExact: true, AccuracyLabel: "Exakt");
+            }
+            else
+            {
+                int? ability = manager.Employees
+                    .Where(e => e.EmployeeType == EmployeeType.Analyst)
+                    .Select(e => (int?)e.AnalysisAbility)
+                    .Max();
+                var rng = new Random(HashCode.Combine(team.Id, state.Season, state.CurrentDate.Month));
+                finance = FinanceEstimator.Estimate(team.Finances, ability, rng);
+            }
+
+            SelectedTeamDetail = new TeamDetail(
+                team.Name,
+                strength.Overall,
+                stats?.MatchesPlayed ?? 0,
+                stats?.AveragePossessions ?? 0,
+                stats?.AveragePassAccuracy ?? 0,
+                stats?.AverageCorners ?? 0,
+                stats?.AverageFreeKicks ?? 0,
+                stats?.AveragePenaltys ?? 0,
+                stats?.AverageOffsides ?? 0,
+                stats is null ? string.Empty : new string(stats.Form.ToArray()),
+                stats?.Morale ?? 50,
+                finance,
+                team.ManagerProfile);
+            IsTeamDetailDialogOpen = true;
+        }
+
+        [RelayCommand]
+        private void CloseTeamDetail() => IsTeamDetailDialogOpen = false;
+
+        [RelayCommand]
+        private void ShowManagerProfile()
+        {
+            if (SelectedTeamDetail?.ManagerProfile is null)
+                return;
+
+            ViewedManagerProfile = SelectedTeamDetail.ManagerProfile;
+            IsManagerProfileDialogOpen = true;
+        }
+
+        [RelayCommand]
+        private void CloseManagerProfile() => IsManagerProfileDialogOpen = false;
 
         private async Task<ObservableCollection<TeamOverviewRow>> GroupBySettings()
         {
@@ -134,7 +227,7 @@ namespace RetroFootballManager.ViewModels
                 foreach(var team in ordered)
                 {
                     double avgMoral = team.Players.Count > 0 ? team.Players.Average(p => p.Moral) : 0;
-                    resultList.Add(new TeamOverviewRow(team.Name, team.AverageRating, avgMoral));
+                    resultList.Add(new TeamOverviewRow(team.Id, team.Name, team.AverageRating, avgMoral));
                 }
             }
             else
@@ -162,7 +255,7 @@ namespace RetroFootballManager.ViewModels
                 {
                     double avgMoral = team.Players.Count > 0 ? team.Players.Average(p => p.Moral) : 0;
                     var status = CupParticipationService.GetStatus(team.Id, ties);
-                    resultList.Add(new TeamOverviewRow(team.Name, team.AverageRating, avgMoral, GetStatusText(status)));
+                    resultList.Add(new TeamOverviewRow(team.Id, team.Name, team.AverageRating, avgMoral, GetStatusText(status)));
                 }
             }
 

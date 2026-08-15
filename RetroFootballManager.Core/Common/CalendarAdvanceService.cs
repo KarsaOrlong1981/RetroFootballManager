@@ -93,9 +93,14 @@ namespace RetroFootballManager.Common
             if (humanTeam is not null)
             {
                 await ClubMoodService.CheckThresholds(humanTeam, state, _messages, state.CurrentDate);
+                await ClubMoodService.CheckBoardMoodPraise(humanTeam, _messages, state.CurrentDate);
                 await _expiryWarnings.CheckAsync(humanTeam, state.CurrentDate);
                 await _finance.CheckFinanceWarningAsync(humanTeam, state.CurrentDate);
-                await _finance.ApplyMonthlySettlementAsync(humanTeam, state.CurrentDate);
+                if (runWeeklyTick)
+                    await _finance.CheckSeasonEndProjectionAsync(humanTeam, state, state.CurrentDate);
+                bool settledHuman = await _finance.ApplyMonthlySettlementAsync(humanTeam, state.CurrentDate);
+                if (settledHuman)
+                    FinanceService.ApplyFinancialHealthMoodCoupling(humanTeam);
                 await _trainingCamps.ApplyDueCampsAsync(humanTeam, state.CurrentDate);
                 if (_saveGame is not null)
                 {
@@ -107,6 +112,8 @@ namespace RetroFootballManager.Common
                             if (scoutedIdSet.Contains(p.Id))
                                 p.IsScouted = true;
                     }
+
+                    await _saveGame.ApplyScoutingFocusesAsync(humanTeam, teams, state.CurrentDate);
                 }
 
                 // Own players are always fully scouted - covers all acquisition paths (transfer,

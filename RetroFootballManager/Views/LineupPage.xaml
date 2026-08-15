@@ -74,7 +74,7 @@
                         <AbsoluteLayout BindableLayout.ItemsSource="{Binding Pitch}" Padding="8">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="vm:PitchToken">
-                                <Border AbsoluteLayout.LayoutFlags="PositionProportional"
+                                    <Border HeightRequest="132" AbsoluteLayout.LayoutFlags="PositionProportional"
                                         AbsoluteLayout.LayoutBounds="{Binding ., Converter={StaticResource PitchBounds}}"
                                         StrokeThickness="3"
                                         Stroke="{Binding Fit, Converter={StaticResource FitColor}}"
@@ -96,23 +96,25 @@
                                                     DropCommand="{Binding Source={x:Reference Page}, Path=BindingContext.DropOnCommand}"
                                                     DropCommandParameter="{Binding PlayerId}" />
                                             </Grid.GestureRecognizers>
-                                            <VerticalStackLayout Spacing="1" HorizontalOptions="Center" VerticalOptions="Center">
-                                                <Label Text="{Binding PosLabel}" FontSize="16" TextColor="White" FontAttributes="Bold"
+                                            <Grid HorizontalOptions="Center" VerticalOptions="Center" RowDefinitions="Auto,Auto,Auto,Auto"  ColumnDefinitions="80,*">
+                                                <Label Grid.ColumnSpan="2" Text="{Binding PosLabel}" FontSize="14" TextColor="White" FontAttributes="Bold"
                                                        HorizontalOptions="Center" Opacity="0.8" />
-                                                <Label Text="{Binding Name}" FontSize="14" FontAttributes="Bold" TextColor="White"
+                                                    <Label Grid.ColumnSpan="2" Grid.Row="1" Text="{Binding Name}" FontSize="14" FontAttributes="Bold" TextColor="White"
                                                        HorizontalOptions="Center" LineBreakMode="TailTruncation" MaxLines="1"  HorizontalTextAlignment="Center" />
-                                                <Label Text="{Binding Rating}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}"
-                                                       HorizontalOptions="Center" />
-                                                <Label Text="{Binding MalusLabel}" IsVisible="{Binding HasMalus}"
-                                                       FontSize="12" FontAttributes="Bold"
-                                                       TextColor="{Binding Fit, Converter={StaticResource FitColor}}"
-                                                       HorizontalOptions="Center" />
-                                                <HorizontalStackLayout Spacing="3" HorizontalOptions="Center">
-                                                    <Label Text="{Binding Fitness, StringFormat='{0}%'}" FontSize="14" FontAttributes="Bold"
-                                                           TextColor="{Binding FitnessColor}" />
-                                                    <Image Source="yellowcard.png" WidthRequest="16" HeightRequest="21" Aspect="AspectFit" IsVisible="{Binding HasYellowCard}" />
-                                                </HorizontalStackLayout>
-                                            </VerticalStackLayout>
+                                                    <Image Grid.Row="3" Grid.ColumnSpan="2" Source="avatar.png" Aspect="AspectFit"/>
+                                                    <Grid Grid.Row="3" RowDefinitions="Auto,Auto,Auto,Auto" Margin="2">
+                                                        <Label Text="{Binding Rating}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}"/>
+                                                        <Label Grid.Row="1" Text="{Binding MalusLabel}" IsVisible="{Binding HasMalus}"
+                                                                FontSize="12" FontAttributes="Bold"
+                                                                TextColor="{Binding Fit, Converter={StaticResource FitColor}}"/>
+                                                     
+                                                            <Label Grid.Row="2" Text="{Binding Fitness, StringFormat='{0}%'}" FontSize="14" FontAttributes="Bold"
+                                                                 TextColor="{Binding FitnessColor}" />
+                                                            <Image Grid.Row="3" Source="yellowcard.png" WidthRequest="16" HeightRequest="21" HorizontalOptions="Start" Aspect="AspectFit" IsVisible="{Binding HasYellowCard}" />
+                                                        
+                                                    </Grid>
+                                               
+                                            </Grid>
                                         </Grid>
                                         <Border BackgroundColor="#40000000" WidthRequest="20" HeightRequest="20"
                                                 HorizontalOptions="End" VerticalOptions="Start" Margin="2" Padding="0" StrokeThickness="0">

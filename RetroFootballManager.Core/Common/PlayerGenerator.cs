@@ -173,6 +173,7 @@ namespace RetroFootballManager.Common
                 Finishing = finishing,
                 Positioning = positioning,
                 Personality = RandomPersonality(rng),
+                InMatchCharacter = RandomInMatchCharacter(rng),
                 Status = PlayerStatus.Available,
                 SecondaryPositions = secondaryPositions,
             };
@@ -360,6 +361,27 @@ namespace RetroFootballManager.Common
             var values = Enum.GetValues<Personality>();
             // Not every player should have a special personality.
             return rng.NextDouble() < 0.4 ? Personality.None : values[rng.Next(values.Length)];
+        }
+
+        // Every player gets one of the 15 fixed in-match character types (no "None" option,
+        // unlike Personality above) - this is a transient-match-behavior axis, not an
+        // optional trait.
+        private static InMatchCharacterType RandomInMatchCharacter(Random rng)
+        {
+            var values = Enum.GetValues<InMatchCharacterType>();
+            return values[rng.Next(values.Length)];
+        }
+
+        // Legacy safety net for saves created before InMatchCharacter existed - a no-op once
+        // the field is set, safe to call on every load (same pattern as the other Backfill*
+        // methods above).
+        public static void BackfillInMatchCharacterIfMissing(Player player, Random? random = null)
+        {
+            if (player.InMatchCharacter is not null)
+                return;
+
+            var rng = random ?? new Random(player.Id);
+            player.InMatchCharacter = RandomInMatchCharacter(rng);
         }
 
         private static Nationality RandomOtherNationality(Nationality exclude, Random rng)

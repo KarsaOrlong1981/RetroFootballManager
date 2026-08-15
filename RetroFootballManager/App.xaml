@@ -14,7 +14,7 @@
             <conv:BoolToOpacityConverter x:Key="LockedOpacity" TrueOpacity="1" FalseOpacity="0.4" />
             <conv:BoolToOpacityConverter x:Key="DisabledOpacity" TrueOpacity="0.4" FalseOpacity="1" />
             <conv:BoolToOpacityConverter x:Key="ReadOpacity" TrueOpacity="0.55" FalseOpacity="1" />
-            <conv:PitchBoundsConverter x:Key="PitchBounds" TokenWidth="150" TokenHeight="104" />
+            <conv:PitchBoundsConverter x:Key="PitchBounds" TokenWidth="150" TokenHeight="132" />
             <conv:PitchBoundsConverter x:Key="PitchBoundsSmall" TokenWidth="98" TokenHeight="80" />
             <conv:PositionFitColorConverter x:Key="FitColor" />
             <conv:BoolToColorConverter x:Key="RoleToggleColor" TrueColor="{StaticResource RfmAccentTeal}" FalseColor="#40000000" />
@@ -28,6 +28,7 @@
             <conv:InvertedBoolConverter x:Key="InvertedBool" />
             <conv:CompetitionKindDisplayConverter x:Key="CompetitionKindDisplay" />
             <conv:GroupConditionTypeDisplayConverter x:Key="GroupConditionTypeDisplay" />
+            <conv:CoachingLicenseDisplayConverter x:Key="CoachingLicenseDisplay" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

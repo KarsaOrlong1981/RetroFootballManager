@@ -66,6 +66,12 @@ namespace RetroFootballManager.Data.Repositories
                 await UpsertAsync(team.Statistics, team.Statistics.Id);
             }
 
+            if (team.ManagerProfile is not null)
+            {
+                team.ManagerProfile.TeamId = team.Id;
+                await UpsertAsync(team.ManagerProfile, team.ManagerProfile.Id);
+            }
+
             return team.Id;
         }
 
@@ -116,6 +122,8 @@ namespace RetroFootballManager.Data.Repositories
                 .Where(l => l.TeamId == team.Id && l.Status == ClubLoanStatus.Active).FirstOrDefaultAsync();
             team.Statistics = await _db.Connection.Table<TeamStats>()
                 .Where(t => t.TeamId == team.Id).FirstOrDefaultAsync();
+            team.ManagerProfile = await _db.Connection.Table<ManagerProfile>()
+                .Where(m => m.TeamId == team.Id).FirstOrDefaultAsync();
         }
 
         public async Task DeleteTeamAsync(int teamId)
@@ -126,6 +134,7 @@ namespace RetroFootballManager.Data.Repositories
             await _db.Connection.Table<Finances>().Where(f => f.TeamId == teamId).DeleteAsync();
             await _db.Connection.Table<ClubLoan>().Where(l => l.TeamId == teamId).DeleteAsync();
             await _db.Connection.Table<TeamStats>().Where(t => t.TeamId == teamId).DeleteAsync();
+            await _db.Connection.Table<ManagerProfile>().Where(m => m.TeamId == teamId).DeleteAsync();
             await _db.Connection.Table<Contract>().Where(c => c.TeamId == teamId).DeleteAsync();
             await _db.Connection.Table<Sponsorship>().Where(s => s.TeamId == teamId).DeleteAsync();
             await _db.Connection.DeleteAsync<Team>(teamId);

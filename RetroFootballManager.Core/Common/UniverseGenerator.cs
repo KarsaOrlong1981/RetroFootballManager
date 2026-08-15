@@ -99,6 +99,7 @@ namespace RetroFootballManager.Common
                     tier, YouthPerTeam, Nationality.Germany, refDate, rng),
                 Employees = [StaffGenerator.GenerateStaff(
                     EmployeeType.AssistantCoach, targetRating - 5, Nationality.Germany, rng)],
+                ManagerProfile = ManagerProfileGenerator.Generate(tier, Nationality.Germany, rng, refDate),
                 Statistics = new TeamStats { Season = season },
                 Stadium = BuildStadium(tier, shortName, rng),
                 Finances = new Finances

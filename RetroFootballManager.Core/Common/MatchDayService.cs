@@ -67,6 +67,8 @@ namespace RetroFootballManager.Common
             Team team, DateTime? currentDate = null, CompetitionType? matchCompetition = null,
             bool isFriendly = false, bool isMatchDay = true)
         {
+            double physioSpeedupFactor = ComputePhysioSpeedupFactor(team);
+
             foreach (var p in team.Players)
             {
                 // Fitness is only regenerated on the daily calendar tick (isMatchDay: false) -
@@ -77,7 +79,7 @@ namespace RetroFootballManager.Common
                 if (!isMatchDay)
                 {
                     if (currentDate.HasValue)
-                        RegenerateFitness(p, currentDate.Value);
+                        RegenerateFitness(p, currentDate.Value, physioSpeedupFactor);
                     else
                         p.Fitness = 100;
                 }
@@ -127,7 +129,7 @@ namespace RetroFootballManager.Common
         // twice. Recovery to 100 always takes at least MinFitnessRecoveryDays, even at the
         // highest possible BaseFitness; the lowest possible BaseFitness takes
         // MaxFitnessRecoveryDays.
-        private static void RegenerateFitness(Player p, DateTime currentDate)
+        private static void RegenerateFitness(Player p, DateTime currentDate, double physioSpeedupFactor = 1.0)
         {
             if (p.Fitness >= 100)
                 return;
@@ -145,7 +147,7 @@ namespace RetroFootballManager.Common
 
             double staminaFactor = Math.Clamp(p.BaseFitness, 1, 99) / 99.0;
             int recoveryDays = Math.Max(MinFitnessRecoveryDays,
-                (int)Math.Round(MaxFitnessRecoveryDays - ((MaxFitnessRecoveryDays - MinFitnessRecoveryDays) * staminaFactor)));
+                (int)Math.Round((MaxFitnessRecoveryDays - ((MaxFitnessRecoveryDays - MinFitnessRecoveryDays) * staminaFactor)) * physioSpeedupFactor));
 
             if (daysSince >= recoveryDays)
             {
@@ -156,6 +158,63 @@ namespace RetroFootballManager.Common
             int regenPerDay = (int)Math.Ceiling((100.0 - PostMatchFitnessFloor) / recoveryDays);
             int cap = daysSince < MinFitnessRecoveryDays ? 99 : 100;
             p.Fitness = Math.Min(cap, p.Fitness + regenPerDay);
+        }
+
+        // Physiotherapist+MedicalStaff quality shortens the daily fitness-regen curve - the
+        // whole pool stacks (sum of headcount), unlike the best-of-type pattern elsewhere.
+        private static double ComputePhysioSpeedupFactor(Team team)
+        {
+            var staff = team.Employees
+                .Where(e => e.EmployeeType is EmployeeType.Physiotherapist or EmployeeType.MedicalStaff)
+                .ToList();
+            if (staff.Count == 0)
+                return 1.0;
+
+            double avg = staff.Average(e => e.FitnessTraining);
+            double baseFactor = avg >= 75 ? 0.8 : avg >= 60 ? 0.9 : 1.0;
+            double stackBonus = Math.Min(0.15, (staff.Count - 1) * 0.05);
+            return Math.Clamp(baseFactor - stackBonus, 0.6, 1.0);
+        }
+
+        // Small, weekly-recomputed morale bonus from having Physiotherapist/MedicalStaff on
+        // staff - see TeamStats.PhysioMoraleBoost's doc comment for why it overwrites instead
+        // of accumulating.
+        public static void ApplyPhysioMoraleBoost(Team team)
+        {
+            if (team.Statistics is null)
+                return;
+
+            var staff = team.Employees
+                .Where(e => e.EmployeeType is EmployeeType.Physiotherapist or EmployeeType.MedicalStaff)
+                .ToList();
+            if (staff.Count == 0)
+            {
+                team.Statistics.PhysioMoraleBoost = 0;
+                return;
+            }
+
+            double avg = staff.Average(e => e.FitnessTraining);
+            int perStaffBoost = avg >= 75 ? 2 : avg >= 60 ? 1 : 0;
+            team.Statistics.PhysioMoraleBoost = Math.Min(6, perStaffBoost * staff.Count);
+        }
+
+        // Same pattern as ApplyPhysioMoraleBoost, for Psychologist/Motivation - stacks across
+        // multiple hires.
+        public static void ApplyPsychologistMoraleBoost(Team team)
+        {
+            if (team.Statistics is null)
+                return;
+
+            var staff = team.Employees.Where(e => e.EmployeeType == EmployeeType.Psychologist).ToList();
+            if (staff.Count == 0)
+            {
+                team.Statistics.PsychologistMoraleBoost = 0;
+                return;
+            }
+
+            double avg = staff.Average(e => e.Motivation);
+            int perStaffBoost = avg >= 75 ? 2 : avg >= 60 ? 1 : 0;
+            team.Statistics.PsychologistMoraleBoost = Math.Min(6, perStaffBoost * staff.Count);
         }
 
         // Recovers the team and then auto-picks a position-correct XI (used for COM teams).
@@ -286,6 +345,8 @@ namespace RetroFootballManager.Common
                 bool isHuman = id == state.ManagerTeamId;
                 TrainingService.ApplyWeeklyTraining(team, isHuman, state.Difficulty, _random);
                 ConversationService.ApplyWeeklyDecay(team);
+                ApplyPhysioMoraleBoost(team);
+                ApplyPsychologistMoraleBoost(team);
 
                 if (!isHuman && _aiManager is not null)
                     await _aiManager.RunWeeklyTickAsync(team, state.Season, state.CurrentDate, state.Difficulty, _random, teamById, state.ManagerTeamId);
@@ -409,6 +470,9 @@ namespace RetroFootballManager.Common
         public static void ApplyCareerMinutes(
             MatchResult result, Team home, Team away, DateTime matchDate, bool countsTowardCareerStats = true)
         {
+            ManagerGrowthService.ApplyMatchGrowth(home.ManagerProfile, result, isHome: true);
+            ManagerGrowthService.ApplyMatchGrowth(away.ManagerProfile, result, isHome: false);
+
             foreach (var (playerId, minutes) in result.MinutesPlayed)
             {
                 var player = home.Players.FirstOrDefault(p => p.Id == playerId)

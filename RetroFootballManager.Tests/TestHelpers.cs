@@ -49,6 +49,7 @@ namespace RetroFootballManager.Tests
                     Age = 25,
                     Position = LineupPositions[i],
                     Rating = baseRating,
+                    Moral = 50,
                     Fitness = fitness,
                     BaseFitness = baseRating,
                     OffensivePower = baseRating,

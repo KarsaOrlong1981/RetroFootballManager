@@ -12,10 +12,11 @@ namespace RetroFootballManager.Tests
     {
         private static Team BuildFullSquad()
         {
-            // Seed 2: with the current squad composition/position weights, this seed reliably
-            // starts a natural LeftDefender at the LeftDefender/LeftWingBack slot (needed as the
-            // baseline several of these tests toggle/compare against).
-            var players = PlayerGenerator.GenerateSquad(Nationality.Germany, 60, squadSize: 25, random: new Random(2));
+            // Seed 4 (was 2 - PlayerGenerator now also rolls InMatchCharacter per player,
+            // shifting the RNG stream): with the current squad composition/position weights,
+            // this seed reliably starts a natural LeftDefender at the LeftDefender/LeftWingBack
+            // slot (needed as the baseline several of these tests toggle/compare against).
+            var players = PlayerGenerator.GenerateSquad(Nationality.Germany, 60, squadSize: 25, random: new Random(4));
             int id = 1;
             foreach (var p in players)
                 p.Id = id++;

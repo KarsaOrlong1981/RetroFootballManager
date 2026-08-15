@@ -53,6 +53,9 @@ namespace RetroFootballManager.Helper
         public static string InjuryText(Player player, Random random) =>
             string.Format(Pick(random, InjuryTemplates), player.Name);
 
+        public static string OffsideText(Player player, Random random) =>
+            string.Format(Pick(random, OffsideTemplates), player.Name);
+
         // Picks a teammate as the assist provider for a goal - weighted by crossing and
         // passing accuracy so wingers/midfielders show up as assist givers more often
         // than center-backs or the goalkeeper.
@@ -210,6 +213,13 @@ namespace RetroFootballManager.Helper
             "{0} verletzt sich und muss behandelt werden.",
             "{0} bleibt liegen - Behandlung auf dem Platz nötig.",
             "Sorge um {0}: Der Physiotherapeut muss auf den Platz.",
+        ];
+
+        private static readonly string[] OffsideTemplates =
+        [
+            "Abseits! {0} stand zu früh in der Schusslinie.",
+            "Die Fahne geht hoch - Abseits gegen {0}.",
+            "{0} läuft sich im Abseits fest.",
         ];
     }
 }

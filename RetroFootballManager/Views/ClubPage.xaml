@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <local:BaseContentPage
     x:Class="RetroFootballManager.Views.ClubPage"
+    x:Name="Page"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:RetroFootballManager.Views"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    xmlns:controls="clr-namespace:RetroFootballManager.Views.Controls"
     x:DataType="vm:ClubViewModel"
     Title="Verein"
     BackgroundColor="{StaticResource RfmBackground}">
@@ -58,6 +60,11 @@
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowTeamDetailCommand}"
+                                        CommandParameter="{Binding TeamId}" />
+                                </Border.GestureRecognizers>
                                 <Grid ColumnDefinitions="*,80,120,*">
                                     <Label Grid.Column="0" Text="{Binding Name}" Style="{StaticResource RfmLabel}" HorizontalOptions="Start" />
                                     <Label Grid.Column="1" FontSize="22" Text="{Binding AvgRating, StringFormat='Ø {0:0.0}'}"
@@ -73,6 +80,18 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </Grid>
+
+        <controls:TeamDetailDialog
+            IsOpen="{Binding IsTeamDetailDialogOpen}"
+            Detail="{Binding SelectedTeamDetail}"
+            CloseCommand="{Binding CloseTeamDetailCommand}"
+            ShowManagerCommand="{Binding ShowManagerProfileCommand}" />
+
+        <controls:ManagerProfileDialog
+            IsOpen="{Binding IsManagerProfileDialogOpen}"
+            Profile="{Binding ViewedManagerProfile}"
+            IsEditable="False"
+            CloseCommand="{Binding CloseManagerProfileCommand}" />
     </Grid>
     </Grid>
 </local:BaseContentPage>

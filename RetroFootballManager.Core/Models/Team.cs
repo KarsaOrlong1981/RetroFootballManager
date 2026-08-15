@@ -56,6 +56,11 @@ namespace RetroFootballManager.Models
         // dip below 45% - reset once both moods recover, so it can fire again on a later dip.
         public bool ClubMoodWarningActive { get; set; }
 
+        // Whether the "board is delighted" praise message has already been sent for the
+        // current high (BoardMood > 95) - reset once it drops back below 90, so it can fire
+        // again on a later high.
+        public bool BoardMoodPraiseActive { get; set; }
+
         [Ignore]
         public Tactic Tactic => new Tactic(PlayingStyle, TacticalOrientation);
 
@@ -81,6 +86,9 @@ namespace RetroFootballManager.Models
 
         [Ignore]
         public ClubLoan? ActiveLoan { get; set; }
+
+        [Ignore]
+        public ManagerProfile? ManagerProfile { get; set; }
 
         [Ignore]
         public double AverageRating => Players.Count != 0

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="RetroFootballManager.Views.Controls.ManagerProfileDialog"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Name="Root">
+
+    <Grid IsVisible="{Binding IsOpen, Source={x:Reference Root}}" BackgroundColor="#B0000000">
+        <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                BackgroundColor="{StaticResource RfmBackground}"
+                Margin="20" Padding="18"
+                MaximumWidthRequest="480" MaximumHeightRequest="620"
+                HorizontalOptions="Center" VerticalOptions="Center">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="16" />
+            </Border.StrokeShape>
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                    <Label Grid.Column="0"
+                           Text="{Binding Profile.FirstName, Source={x:Reference Root}, StringFormat='{0} '}"
+                           FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                    <Button Grid.Column="1" ImageSource="close.png" Command="{Binding CloseCommand, Source={x:Reference Root}}"
+                            BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}"
+                            WidthRequest="36" HeightRequest="36" Padding="8" />
+                </Grid>
+
+                <ScrollView Grid.Row="1">
+                    <VerticalStackLayout Spacing="10">
+
+                        <Border WidthRequest="90" HeightRequest="90" HorizontalOptions="Center" BackgroundColor="White"
+                                StrokeThickness="1.5" Stroke="{StaticResource RfmAccentTeal}" Padding="0">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="8" />
+                            </Border.StrokeShape>
+                            <Grid >
+                                <Image Source="avatar.png" Aspect="AspectFill"
+                                       IsVisible="{Binding Profile.AvatarPath, Source={x:Reference Root}, Converter={StaticResource NoLogo}}" />
+                                <Image Source="{Binding Profile.AvatarPath, Source={x:Reference Root}}" Aspect="AspectFill"
+                                       IsVisible="{Binding Profile.AvatarPath, Source={x:Reference Root}, Converter={StaticResource HasLogo}}" />
+                            </Grid>
+                        </Border>
+
+                        <Label Text="{Binding Profile.LastName, Source={x:Reference Root}}" FontSize="24" FontAttributes="Bold"
+                               HorizontalOptions="Center" TextColor="{StaticResource RfmText}" />
+                        <Label Text="{Binding Profile.License, Source={x:Reference Root}, Converter={StaticResource CoachingLicenseDisplay}}"
+                               FontSize="20" HorizontalOptions="Center" TextColor="{StaticResource RfmAccentTeal}" />
+
+                        <Label Text="Fähigkeiten" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                        <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+                            <Grid ColumnDefinitions="*,Auto,32,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="6">
+
+                                <Label Grid.Row="0" Grid.Column="0" Text="Trainingsgestaltung" VerticalOptions="Center" TextColor="{StaticResource RfmText}" />
+                                <Button Grid.Row="0" Grid.Column="1" Text="-" WidthRequest="32"
+                                        IsVisible="{Binding IsEditable, Source={x:Reference Root}}"
+                                        Command="{Binding DecreaseSkillCommand, Source={x:Reference Root}}" CommandParameter="TrainingDesign"
+                                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="0" Grid.Column="2" Text="{Binding Profile.TrainingDesign, Source={x:Reference Root}}"
+                                       HorizontalTextAlignment="Center" VerticalOptions="Center" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                                <Button Grid.Row="0" Grid.Column="3" Text="+" WidthRequest="32"
+                                        IsVisible="{Binding IsEditable, Source={x:Reference Root}}"
+                                        Command="{Binding IncreaseSkillCommand, Source={x:Reference Root}}" CommandParameter="TrainingDesign"
+                                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+
+                                <Label Grid.Row="1" Grid.Column="0" Text="Motivationsfähigkeit" VerticalOptions="Center" TextColor="{StaticResource RfmText}" />
+                                <Button Grid.Row="1" Grid.Column="1" Text="-" WidthRequest="32"
+                                        IsVisible="{Binding IsEditable, Source={x:Reference Root}}"
+                                        Command="{Binding DecreaseSkillCommand, Source={x:Reference Root}}" CommandParameter="Motivation"
+                                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="1" Grid.Column="2" Text="{Binding Profile.Motivation, Source={x:Reference Root}}"
+                                       HorizontalTextAlignment="Center" VerticalOptions="Center" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                                <Button Grid.Row="1" Grid.Column="3" Text="+" WidthRequest="32"
+                                        IsVisible="{Binding IsEditable, Source={x:Reference Root}}"
+                                        Command="{Binding IncreaseSkillCommand, Source={x:Reference Root}}" CommandParameter="Motivation"
+                                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+
+                                <Label Grid.Row="2" Grid.Column="0" Text="Offensivkreation" VerticalOptions="Center" TextColor="{StaticResource RfmText}" />
+                                <Button Grid.Row="2" Grid.Column="1" Text="-" WidthRequest="32"
+                                        IsVisible="{Binding IsEditable, Source={x:Reference Root}}"
+                                        Command="{Binding DecreaseSkillCommand, Source={x:Reference Root}}" CommandParameter="OffensiveCreation"
+                                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="2" Grid.Column="2" Text="{Binding Profile.OffensiveCreation, Source={x:Reference Root}}"
+                                       HorizontalTextAlignment="Center" VerticalOptions="Center" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                                <Button Grid.Row="2" Grid.Column="3" Text="+" WidthRequest="32"
+                                        IsVisible="{Binding IsEditable, Source={x:Reference Root}}"
+                                        Command="{Binding IncreaseSkillCommand, Source={x:Reference Root}}" CommandParameter="OffensiveCreation"
+                                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+
+                                <Label Grid.Row="3" Grid.Column="0" Text="Defensivorganisation" VerticalOptions="Center" TextColor="{StaticResource RfmText}" />
+                                <Button Grid.Row="3" Grid.Column="1" Text="-" WidthRequest="32"
+                                        IsVisible="{Binding IsEditable, Source={x:Reference Root}}"
+                                        Command="{Binding DecreaseSkillCommand, Source={x:Reference Root}}" CommandParameter="DefensiveOrganization"
+                                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="3" Grid.Column="2" Text="{Binding Profile.DefensiveOrganization, Source={x:Reference Root}}"
+                                       HorizontalTextAlignment="Center" VerticalOptions="Center" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                                <Button Grid.Row="3" Grid.Column="3" Text="+" WidthRequest="32"
+                                        IsVisible="{Binding IsEditable, Source={x:Reference Root}}"
+                                        Command="{Binding IncreaseSkillCommand, Source={x:Reference Root}}" CommandParameter="DefensiveOrganization"
+                                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+
+                                <Label Grid.Row="4" Grid.Column="0" Text="In-Game-Coaching" VerticalOptions="Center" TextColor="{StaticResource RfmText}" />
+                                <Button Grid.Row="4" Grid.Column="1" Text="-" WidthRequest="32"
+                                        IsVisible="{Binding IsEditable, Source={x:Reference Root}}"
+                                        Command="{Binding DecreaseSkillCommand, Source={x:Reference Root}}" CommandParameter="InGameCoaching"
+                                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="4" Grid.Column="2" Text="{Binding Profile.InGameCoaching, Source={x:Reference Root}}"
+                                       HorizontalTextAlignment="Center" VerticalOptions="Center" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                                <Button Grid.Row="4" Grid.Column="3" Text="+" WidthRequest="32"
+                                        IsVisible="{Binding IsEditable, Source={x:Reference Root}}"
+                                        Command="{Binding IncreaseSkillCommand, Source={x:Reference Root}}" CommandParameter="InGameCoaching"
+                                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+                            </Grid>
+                        </Border>
+
+                        <Label Text="{Binding RemainingPoints, Source={x:Reference Root}, StringFormat='Verbleibende Punkte: {0}'}"
+                               FontSize="14" TextColor="{StaticResource RfmTextMuted}"
+                               IsVisible="{Binding IsEditable, Source={x:Reference Root}}" />
+                    </VerticalStackLayout>
+                </ScrollView>
+
+                <Button Grid.Row="2" Text="Schließen" Command="{Binding CloseCommand, Source={x:Reference Root}}"
+                        BackgroundColor="{StaticResource RfmAccent}" FontSize="18" TextColor="White" />
+            </Grid>
+        </Border>
+    </Grid>
+</ContentView>

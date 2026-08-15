@@ -161,8 +161,12 @@
                                     BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
                         </Grid>
 
-                        <Button Text="Mannschaft" Command="{Binding OpenTeamManagementFromButtonCommand}"
-                                BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Text="Mannschaft" Command="{Binding OpenTeamManagementFromButtonCommand}"
+                                    BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+                            <Button Grid.Column="1" Text="Statistik" Command="{Binding OpenMatchStatsDialogCommand}"
+                                    BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+                        </Grid>
                     </VerticalStackLayout>
                 </Border>
 
@@ -224,6 +228,34 @@
         </ScrollView>
 
         <!-- Team management overlay: pause -> edit formation/lineup/tactic/subs -> confirm/cancel -->
+        <!-- Half-time team talk: shown before the team-management panel -->
+        <Grid IsVisible="{Binding IsTeamTalkDialogOpen}" BackgroundColor="#B0000000">
+            <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                    BackgroundColor="{StaticResource RfmBackground}"
+                    Margin="16" Padding="16"
+                    MaximumWidthRequest="480" MaximumHeightRequest="620"
+                    HorizontalOptions="Center" VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+                <Grid RowDefinitions="Auto,*" RowSpacing="10">
+                    <Label Grid.Row="0" Text="Halbzeit-Ansprache" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                    <ScrollView Grid.Row="1">
+                        <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding TeamTalkOptions}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:TeamTalkOptionItem">
+                                    <Button Text="{Binding Label}"
+                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.SelectTeamTalkCommand}"
+                                            CommandParameter="{Binding Option}"
+                                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="18" />
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </Grid>
+            </Border>
+        </Grid>
+
         <Grid IsVisible="{Binding IsTeamManagementOpen}" BackgroundColor="#B0000000">
             <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
                     BackgroundColor="{StaticResource RfmBackground}"
@@ -443,6 +475,13 @@
             Title="{Binding SelectedProfile.Name}"
             Profile="{Binding SelectedProfile}"
             CloseCommand="{Binding CloseProfileCommand}" />
+
+        <!-- Match stats dialog -->
+        <controls:MatchStatsDialog
+            IsOpen="{Binding IsMatchStatsDialogOpen}"
+            HomeStats="{Binding HomeMatchStats}"
+            AwayStats="{Binding AwayMatchStats}"
+            CloseCommand="{Binding CloseMatchStatsDialogCommand}" />
 
         <!-- Busy overlay -->
         <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000">

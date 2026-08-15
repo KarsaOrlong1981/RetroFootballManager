@@ -16,5 +16,7 @@ namespace RetroFootballManager.Models
         ScoutingCompleted,
         OpponentAnalysis,
         ClubMoodWarning,
+        BoardUltimatum,
+        BoardPraise,
     }
 }

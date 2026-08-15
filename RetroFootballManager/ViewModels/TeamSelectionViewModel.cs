@@ -139,6 +139,9 @@ namespace RetroFootballManager.ViewModels
             try
             {
                 var managerTeam = SelectedTeam.Team;
+                if (_session.PendingManagerProfile is not null)
+                    managerTeam.ManagerProfile = _session.PendingManagerProfile;
+
                 var state = await _saveGame.StartNewCareerAsync(
                     saveName: managerTeam.Name,
                     season: 1,
@@ -151,6 +154,7 @@ namespace RetroFootballManager.ViewModels
                 _session.State = state;
                 _session.Teams = await _saveGame.GetAllTeamsAsync();
                 _session.PendingUniverse = null;
+                _session.PendingManagerProfile = null;
 
                 await _navigation.GoToRootAsync("mainmenu");
             }

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<local:BaseContentPage
+    x:Class="RetroFootballManager.Views.ManagerCreationPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:RetroFootballManager.Views"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    x:DataType="vm:ManagerCreationViewModel"
+    Title="Trainer erstellen"
+    BackgroundColor="{StaticResource RfmBackground}">
+
+    <ScrollView>
+        <Grid Padding="20" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" RowSpacing="16">
+
+            <Label Grid.Row="0" Text="Erstelle deinen Trainer" FontSize="24" FontAttributes="Bold"
+                   TextColor="{StaticResource RfmText}" />
+
+            <!-- Avatar + Name/Geburtsdatum -->
+            <Grid Grid.Row="1" ColumnDefinitions="150,*" ColumnSpacing="16">
+                <Border Grid.Column="0" WidthRequest="150" HeightRequest="150" BackgroundColor="White"
+                        StrokeThickness="1.5" Stroke="{StaticResource RfmAccentTeal}" Padding="0">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8" />
+                    </Border.StrokeShape>
+                    <Grid>
+                        <Image Source="avatar.png" Aspect="AspectFill"
+                               IsVisible="{Binding AvatarPath, Converter={StaticResource NoLogo}}" />
+                        <Image Source="{Binding AvatarPath}" Aspect="AspectFill"
+                               IsVisible="{Binding AvatarPath, Converter={StaticResource HasLogo}}" />
+                    </Grid>
+                </Border>
+
+                <VerticalStackLayout Grid.Column="1" Spacing="8">
+                    <Entry Placeholder="Vorname" Text="{Binding FirstName}" FontSize="18" TextColor="{StaticResource RfmText}" />
+                    <Entry Placeholder="Nachname" Text="{Binding LastName}" FontSize="18" TextColor="{StaticResource RfmText}" />
+                    <DatePicker Date="{Binding BirthDate}" FontSize="18" TextColor="{StaticResource RfmText}" />
+                    <Button Text="Foto wählen" Command="{Binding PickAvatarCommand}" HorizontalOptions="Start"
+                            BackgroundColor="{StaticResource RfmSurface}" FontSize="22" TextColor="{StaticResource RfmText}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <!-- Lizenz -->
+            <Label Grid.Row="2" Text="{Binding LicenseLabel}" FontSize="28" FontAttributes="Bold"
+                   TextColor="{StaticResource RfmAccentTeal}" />
+
+            <!-- Skill-Punkte -->
+            <Label Grid.Row="3" Text="{Binding RemainingPoints, StringFormat='Verbleibende Punkte: {0}'}"
+                   FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
+
+            <CollectionView Grid.Row="4" ItemsSource="{Binding Skills}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ManagerSkillSlot">
+                        <Grid Padding="0,6" ColumnDefinitions="*,Auto,40,Auto" ColumnSpacing="10">
+                            <Label Grid.Column="0" Text="{Binding Name}" VerticalOptions="Center"
+                                   TextColor="{StaticResource RfmText}" />
+                            <Button Grid.Column="1" Text="-" WidthRequest="40" Command="{Binding DecreaseCommand}"
+                                    BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+                            <Label Grid.Column="2" Text="{Binding Value}" HorizontalTextAlignment="Center"
+                                   VerticalOptions="Center" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                            <Button Grid.Column="3" Text="+" WidthRequest="40" Command="{Binding IncreaseCommand}"
+                                    BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Button Grid.Row="5" Text="Weiter zur Vereinswahl" Command="{Binding ContinueCommand}"
+                    BackgroundColor="{StaticResource RfmFormationGreen}" TextColor="White" />
+        </Grid>
+    </ScrollView>
+</local:BaseContentPage>

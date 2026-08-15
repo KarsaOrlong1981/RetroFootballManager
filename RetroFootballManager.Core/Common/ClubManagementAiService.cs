@@ -41,7 +41,7 @@ namespace RetroFootballManager.Common
         public static async Task<Employee?> TryHireMissingStaffAsync(
             Team team, StaffMarketService staffMarket, DateTime hireDate, Random rng)
         {
-            if (team.Finances is null)
+            if (team.Finances is null || !FinanceService.HasSpendableBalance(team))
                 return null;
 
             // FirstOrDefault returns default(EmployeeType) = Scout if no core role is missing -

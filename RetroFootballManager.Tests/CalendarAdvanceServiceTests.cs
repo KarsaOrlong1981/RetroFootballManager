@@ -131,6 +131,8 @@ namespace RetroFootballManager.Tests
             // instance, leaving the object held in the caller's `teams` list (== GameSession.Teams
             // in production) stale - the "?" info-button bug.
             var humanTeam = await SetupHumanTeamAsync();
+            humanTeam.Employees.Add(new Employee { EmployeeType = EmployeeType.Scout, ScoutingAbility = 60 });
+            await _teamRepo.SaveTeamAsync(humanTeam);
             var targetTeam = TestHelpers.CreateTeam("Ziel FC", baseRating: 60);
             await _teamRepo.SaveTeamAsync(targetTeam);
             var targetPlayer = targetTeam.Players[0];

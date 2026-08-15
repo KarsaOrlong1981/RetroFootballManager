@@ -14,6 +14,11 @@ namespace RetroFootballManager.Common
         private TacticalOrientation? _baseOrientation;
         private readonly HashSet<int> _handledInjuries = [];
         private int _lastSubMinute = -100;
+        private bool _hasGivenTeamTalk;
+
+        // Goal difference at/above this counts as a comfortable lead for the team-talk
+        // heuristic below (same threshold as ApplyHalfTimeCharacterEffects's "big lead").
+        private const int ComfortableLeadGoalDiff = 2;
 
         public void OnMinute(Match match, bool isHome, int minute)
         {
@@ -23,6 +28,27 @@ namespace RetroFootballManager.Common
             AdjustOrientation(match, isHome, minute);
             HandleInjuries(match, isHome, minute);
             HandleTiredSubs(match, isHome, minute);
+            GiveAutomaticTeamTalk(match, isHome);
+        }
+
+        // Gives a half-time team talk automatically for COM-controlled teams (no UI needed) -
+        // triggered once, on the first OnMinute call after the second half kicks off, so it
+        // also works in pure AI-vs-AI matches (e.g. a season simulation harness). Simple
+        // scoreline heuristic: behind -> cheer the team on, comfortably ahead -> warn against
+        // complacency, otherwise a neutral tactical word.
+        private void GiveAutomaticTeamTalk(Match match, bool isHome)
+        {
+            if (_hasGivenTeamTalk || match.Phase != MatchPhase.SecondHalf)
+                return;
+
+            _hasGivenTeamTalk = true;
+
+            int goalDiff = isHome ? match.HomeGoals - match.AwayGoals : match.AwayGoals - match.HomeGoals;
+            var option = goalDiff < 0 ? TeamTalkOption.CheerOn
+                : goalDiff >= ComfortableLeadGoalDiff ? TeamTalkOption.WarnAgainstComplacency
+                : TeamTalkOption.TacticalTalk;
+
+            TeamTalkService.TryApply(match, isHome, option);
         }
 
         // Reacts to the scoreline by dialing the orientation more offensive/defensive - the

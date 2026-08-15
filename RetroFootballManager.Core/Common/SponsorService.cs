@@ -25,17 +25,19 @@ namespace RetroFootballManager.Common
                 return [];
 
             var catalog = await _sponsors.GetAllAsync();
+            // MinTier is the weakest (highest-numbered) tier still eligible - a team qualifies
+            // for a sponsor whenever its own tier is at least as strong (<=) as MinTier.
             var sponsorWithoutBonus = catalog
                     .Where(s =>
                         s.SponsorType == slot &&
-                        s.MinTier == team.LeagueTier &&
+                        team.LeagueTier <= s.MinTier &&
                         s.HasNoBonus)
                     .OrderByDescending(s => s.SeasonPayment)
                     .FirstOrDefault();
             var bonusSponsors = catalog
                      .Where(s =>
                          s.SponsorType == slot &&
-                         s.MinTier == team.LeagueTier &&
+                         team.LeagueTier <= s.MinTier &&
                          !s.HasNoBonus)
                      .OrderByDescending(s => s.SeasonPayment)
                      .Take(2)

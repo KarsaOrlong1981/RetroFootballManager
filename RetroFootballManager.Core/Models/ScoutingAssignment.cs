@@ -14,6 +14,12 @@ namespace RetroFootballManager.Models
         public int TeamId { get; set; }
 
         public int PlayerId { get; set; }
+
+        // Which Scout Employee is working this assignment - each scout can carry at most
+        // MaxConcurrentAssignmentsPerScout (see ScoutingService) at once. 0 for assignments
+        // persisted before this field existed (legacy rows - excluded from capacity counting).
+        public int ScoutEmployeeId { get; set; }
+
         public DateTime StartDate { get; set; }
         public DateTime CompletionDate { get; set; }
     }

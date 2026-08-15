@@ -44,6 +44,10 @@ namespace RetroFootballManager.Common
                 double duelEffectivenessMultiplier = TacklingIntensityEffects.GetDuelEffectivenessMultiplier(player, team);
                 double foulCardRiskMultiplier = TacklingIntensityEffects.GetFoulCardRiskMultiplier(player, team);
 
+                // Transient in-match morale/character - exactly 1.0 (no-op) outside a live
+                // match, since InMatchMoral defaults to the neutral 50 (see Player.cs).
+                double characterFactor = InMatchCharacterEffects.AttributeFactor(player.InMatchCharacter, player.InMatchMoral);
+
                 // Penalty if the player isn't used in his natural position
                 // (AssignedPosition). Full strength in the natural position, graded
                 // penalty in listed secondary positions, high penalty outside the list.
@@ -62,7 +66,7 @@ namespace RetroFootballManager.Common
                          + player.CrossingAccuracy * tactic.CrossingAccuracyFactor
                          + player.Dribbling * 0.9
                          + player.OffensivePower * pm.AerialThreat * 0.2) / 4.1
-                         * fitnessFactor * positionFitMultiplier * role.Attack;
+                         * fitnessFactor * positionFitMultiplier * role.Attack * characterFactor;
 
                 if (player.EffectivePosition == Position.Goalkeeper)
                 {
@@ -71,10 +75,10 @@ namespace RetroFootballManager.Common
                     // feed defense, distribution (build-up passing) feeds midfield.
                     defense += (player.GkReflexes * 0.3 + player.GkHandling * 0.25
                               + player.GkOneOnOne * 0.25 + player.GkAerialControl * 0.2)
-                              * tactic.DefensivePowerFactor * fitnessFactor * positionFitMultiplier;
+                              * tactic.DefensivePowerFactor * fitnessFactor * positionFitMultiplier * characterFactor;
 
                     midfield += player.GkDistribution * tactic.PassingAccuracyFactor
-                              * fitnessFactor * positionFitMultiplier;
+                              * fitnessFactor * positionFitMultiplier * characterFactor;
                 }
                 else
                 {
@@ -83,16 +87,16 @@ namespace RetroFootballManager.Common
                     // just makes him clumsier (penalty instead of bonus).
                     defense += (player.DefensivePower * pm.DefensivePower * tactic.DefensivePowerFactor
                               + player.DuelHardness * pm.DuelHardness * tactic.DuelHardnessFactor * duelEffectivenessMultiplier) / 2.0
-                              * fitnessFactor * positionFitMultiplier * role.Defense;
+                              * fitnessFactor * positionFitMultiplier * role.Defense * characterFactor;
 
                     midfield += (player.GameIntelligence * pm.GameIntelligence * tactic.GameIntelligenceFactor
                                + player.PassingAccuracy * pm.PassingAccuracy * tactic.PassingAccuracyFactor) / 2.0
-                               * fitnessFactor * positionFitMultiplier * role.Midfield;
+                               * fitnessFactor * positionFitMultiplier * role.Midfield * characterFactor;
                 }
 
                 pressing += (player.PressingIntensity * pm.PressingIntensity * tactic.PressingIntensityFactor
                            + player.DuelEfficiency * pm.DuelEfficiency * tactic.DuelEfficiencyFactor) / 2.0
-                           * fitnessFactor * positionFitMultiplier;
+                           * fitnessFactor * positionFitMultiplier * characterFactor;
 
                 // TacklingIntensity factors in here so a team with many players set to "Hard"
                 // commits more fouls overall (and thus concedes more free kicks) regardless of
@@ -100,7 +104,7 @@ namespace RetroFootballManager.Common
                 // so it doesn't change default behavior.
                 disciplineRisk += player.DuelHardness * pm.FoulChance * foulCardRiskMultiplier / 100.0;
 
-                overall += tactic.CalculatePlayerTacticalStrength(player) * fitnessFactor * positionFitMultiplier;
+                overall += tactic.CalculatePlayerTacticalStrength(player) * fitnessFactor * positionFitMultiplier * characterFactor;
             }
 
             int count = lineup.Count;
@@ -115,10 +119,17 @@ namespace RetroFootballManager.Common
             double stadiumFactor = isHome ? StadiumFactor(team.Stadium) : 1.0;
             double totalFactor = moraleFactor * stadiumFactor;
 
+            // Manager skills that only make sense on their own strength bucket - Offensive
+            // Creation sharpens Attack, Defensive Organization tightens Defense. Overall/
+            // Midfield/Pressing are deliberately untouched (mirrors the characterFactor
+            // pattern: purely additive, no existing formula restructured).
+            double offensiveCreationFactor = ManagerEffects.OffensiveCreationFactor(team.ManagerProfile);
+            double defensiveOrganizationFactor = ManagerEffects.DefensiveOrganizationFactor(team.ManagerProfile);
+
             return new TeamStrengthProfile(
                 Overall: overall * totalFactor,
-                Attack: attack * totalFactor,
-                Defense: defense * totalFactor,
+                Attack: attack * totalFactor * offensiveCreationFactor,
+                Defense: defense * totalFactor * defensiveOrganizationFactor,
                 Midfield: midfield * totalFactor,
                 Pressing: pressing * totalFactor,
                 DisciplineRisk: disciplineRisk);

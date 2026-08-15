@@ -9,6 +9,8 @@ namespace RetroFootballManager.Common
     {
         public const int WarningThreshold = 45;
         public const int GameOverThreshold = 30;
+        public const int PraiseThreshold = 95;
+        public const int PraiseResetThreshold = 90;
 
         private const int WinStreakMilestone = 5;
 
@@ -103,6 +105,27 @@ namespace RetroFootballManager.Common
             else
             {
                 team.ClubMoodWarningActive = false;
+            }
+        }
+
+        // A board delighted with the manager (BoardMood > 95) gets its own one-time praise
+        // mail - mirrors CheckThresholds' one-shot flag pattern, reset once mood drops back
+        // below PraiseResetThreshold so it can fire again on a later high.
+        public static async Task CheckBoardMoodPraise(Team team, MessageService messages, DateTime currentDate)
+        {
+            if (team.BoardMood > PraiseThreshold)
+            {
+                if (!team.BoardMoodPraiseActive)
+                {
+                    team.BoardMoodPraiseActive = true;
+                    await messages.SendAsync(MessageType.BoardPraise, "Der Vorstand ist begeistert",
+                        "Der Vorstand ist überaus zufrieden mit deiner Arbeit als Trainer und Manager.",
+                        currentDate, team.Id);
+                }
+            }
+            else if (team.BoardMood < PraiseResetThreshold)
+            {
+                team.BoardMoodPraiseActive = false;
             }
         }
 

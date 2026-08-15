@@ -12,6 +12,7 @@ namespace RetroFootballManager
             Instance = this;
 
             // Global gepushte Routen (Detail-/Zwischenseiten).
+            Routing.RegisterRoute("managercreation", typeof(ManagerCreationPage));
             Routing.RegisterRoute("teamselection", typeof(TeamSelectionPage));
             Routing.RegisterRoute("fixtures", typeof(FixturesTablesPage));
             Routing.RegisterRoute("cupoverview", typeof(CupOverviewPage));

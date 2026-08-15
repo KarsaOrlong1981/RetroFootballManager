@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="RetroFootballManager.Views.Controls.MatchStatsDialog"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    x:Name="Root">
+
+    <Grid IsVisible="{Binding IsOpen, Source={x:Reference Root}}" BackgroundColor="#B0000000">
+        <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                BackgroundColor="{StaticResource RfmBackground}"
+                Margin="20" Padding="18"
+                MaximumWidthRequest="520" MaximumHeightRequest="620"
+                HorizontalOptions="Center" VerticalOptions="Center">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="16" />
+            </Border.StrokeShape>
+            <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="10">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                    <Label Grid.Column="0" Text="Statistik" FontSize="22" FontAttributes="Bold"
+                           TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                    <Button Grid.Column="1" ImageSource="close.png" Command="{Binding CloseCommand, Source={x:Reference Root}}"
+                            BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}"
+                            WidthRequest="36" HeightRequest="36" Padding="8" />
+                </Grid>
+
+                <Grid Grid.Row="1" ColumnDefinitions="*,Auto,*">
+                    <Label Grid.Column="0" Text="{Binding HomeStats.TeamName, Source={x:Reference Root}}"
+                           FontSize="16" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}"
+                           HorizontalOptions="Start" />
+                    <Label Grid.Column="2" Text="{Binding AwayStats.TeamName, Source={x:Reference Root}}"
+                           FontSize="16" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}"
+                           HorizontalOptions="End" />
+                </Grid>
+
+                <ScrollView Grid.Row="2">
+                    <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                          RowSpacing="10" ColumnSpacing="8">
+
+                        <Label Grid.Row="0" Grid.Column="0" Text="{Binding HomeStats.Possession, Source={x:Reference Root}, StringFormat='{0}%'}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="Start" />
+                        <Label Grid.Row="0" Grid.Column="1" Text="Ballbesitz" FontSize="14" TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                        <Label Grid.Row="0" Grid.Column="2" Text="{Binding AwayStats.Possession, Source={x:Reference Root}, StringFormat='{0}%'}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="End" />
+
+                        <Label Grid.Row="1" Grid.Column="0" Text="{Binding HomeStats.PassAccuracy, Source={x:Reference Root}, StringFormat='{0}%'}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="Start" />
+                        <Label Grid.Row="1" Grid.Column="1" Text="Passquote" FontSize="14" TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                        <Label Grid.Row="1" Grid.Column="2" Text="{Binding AwayStats.PassAccuracy, Source={x:Reference Root}, StringFormat='{0}%'}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="End" />
+
+                        <Label Grid.Row="2" Grid.Column="0" Text="{Binding HomeStats.Shots, Source={x:Reference Root}}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="Start" />
+                        <Label Grid.Row="2" Grid.Column="1" Text="Schüsse" FontSize="14" TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                        <Label Grid.Row="2" Grid.Column="2" Text="{Binding AwayStats.Shots, Source={x:Reference Root}}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="End" />
+
+                        <Label Grid.Row="3" Grid.Column="0" Text="{Binding HomeStats.ShotsOnTarget, Source={x:Reference Root}}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="Start" />
+                        <Label Grid.Row="3" Grid.Column="1" Text="Aufs Tor" FontSize="14" TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                        <Label Grid.Row="3" Grid.Column="2" Text="{Binding AwayStats.ShotsOnTarget, Source={x:Reference Root}}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="End" />
+
+                        <Label Grid.Row="4" Grid.Column="0" Text="{Binding HomeStats.Corners, Source={x:Reference Root}}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="Start" />
+                        <Label Grid.Row="4" Grid.Column="1" Text="Ecken" FontSize="14" TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                        <Label Grid.Row="4" Grid.Column="2" Text="{Binding AwayStats.Corners, Source={x:Reference Root}}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="End" />
+
+                        <Label Grid.Row="5" Grid.Column="0" Text="{Binding HomeStats.FreeKicks, Source={x:Reference Root}}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="Start" />
+                        <Label Grid.Row="5" Grid.Column="1" Text="Freistöße" FontSize="14" TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                        <Label Grid.Row="5" Grid.Column="2" Text="{Binding AwayStats.FreeKicks, Source={x:Reference Root}}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="End" />
+
+                        <Label Grid.Row="6" Grid.Column="0" Text="{Binding HomeStats.Penaltys, Source={x:Reference Root}}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="Start" />
+                        <Label Grid.Row="6" Grid.Column="1" Text="Elfmeter" FontSize="14" TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                        <Label Grid.Row="6" Grid.Column="2" Text="{Binding AwayStats.Penaltys, Source={x:Reference Root}}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="End" />
+
+                        <Label Grid.Row="7" Grid.Column="0" Text="{Binding HomeStats.Offsides, Source={x:Reference Root}}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="Start" />
+                        <Label Grid.Row="7" Grid.Column="1" Text="Abseits" FontSize="14" TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                        <Label Grid.Row="7" Grid.Column="2" Text="{Binding AwayStats.Offsides, Source={x:Reference Root}}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="End" />
+
+                        <Label Grid.Row="8" Grid.Column="0" Text="{Binding HomeStats.Fouls, Source={x:Reference Root}}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="Start" />
+                        <Label Grid.Row="8" Grid.Column="1" Text="Fouls" FontSize="14" TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                        <Label Grid.Row="8" Grid.Column="2" Text="{Binding AwayStats.Fouls, Source={x:Reference Root}}"
+                               FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="End" />
+
+                        <Label Grid.Row="9" Grid.Column="0" FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="Start">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding HomeStats.YellowCards, Source={x:Reference Root}}" TextColor="#FACC15" />
+                                    <Span Text="  /  " TextColor="{StaticResource RfmTextMuted}" />
+                                    <Span Text="{Binding HomeStats.RedCards, Source={x:Reference Root}}" TextColor="#E5484D" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Grid.Row="9" Grid.Column="1" Text="Gelb / Rot" FontSize="14" TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                        <Label Grid.Row="9" Grid.Column="2" FontSize="18" TextColor="{StaticResource RfmText}" HorizontalOptions="End">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding AwayStats.YellowCards, Source={x:Reference Root}}" TextColor="#FACC15" />
+                                    <Span Text="  /  " TextColor="{StaticResource RfmTextMuted}" />
+                                    <Span Text="{Binding AwayStats.RedCards, Source={x:Reference Root}}" TextColor="#E5484D" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </Grid>
+                </ScrollView>
+
+                <Button Grid.Row="3" Text="Schließen" Command="{Binding CloseCommand, Source={x:Reference Root}}"
+                        BackgroundColor="{StaticResource RfmAccent}" FontSize="18" TextColor="White" />
+            </Grid>
+        </Border>
+    </Grid>
+</ContentView>

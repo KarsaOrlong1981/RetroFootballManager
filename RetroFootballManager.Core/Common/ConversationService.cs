@@ -40,7 +40,8 @@ namespace RetroFootballManager.Common
         private const int UnhappyWeeklyMoraleDecay = 2;
         private const int CooldownDays = 7;
 
-        public static TalkResult Talk(Player player, TalkType type, GameState state, int matchFactor = 2)
+        public static TalkResult Talk(
+            Player player, TalkType type, GameState state, int matchFactor = 2, ManagerProfile? manager = null)
         {
             if (player.LastTalkDate is DateTime last && (state.CurrentDate - last).TotalDays < CooldownDays)
                 return new TalkResult(false, 0, player.Moral,
@@ -117,6 +118,11 @@ namespace RetroFootballManager.Common
                 _ => ""
             };
 
+            // A skilled/well-licensed manager gets more out of every talk (praise lands
+            // harder, criticism cuts deeper) - purely a magnitude scaler, doesn't change which
+            // branch above was taken.
+            delta = (int)Math.Round(delta * ManagerEffects.MotivationFactor(manager));
+
             reactionText = $"{matchReaction}\n{reactionText}";
 
             if (matchFactor == 1)
@@ -135,6 +141,7 @@ namespace RetroFootballManager.Common
                 player.WantsToLeaveClub = false;
 
             player.LastTalkDate = state.CurrentDate;
+            ManagerGrowthService.ApplyTalkGrowth(manager);
 
             return new TalkResult(true, delta, player.Moral, reactionText, player.WantsToLeaveClub);
         }

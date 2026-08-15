@@ -36,7 +36,7 @@ namespace RetroFootballManager.Tests
             Assert.Equal(UniverseGenerator.LeagueCount * UniverseGenerator.TeamsPerLeague, teams.Count);
 
             var sample = teams[0];
-            Assert.Equal(25, sample.Players.Count);
+            Assert.Equal(PlayerGenerator.DefaultPositionPlanSize, sample.Players.Count);
             Assert.Equal(UniverseGenerator.YouthPerTeam, sample.YouthPlayers.Count);
             Assert.NotEmpty(sample.Employees);
             Assert.All(sample.YouthPlayers, y => Assert.True(y.IsYouthProspect));
@@ -71,7 +71,7 @@ namespace RetroFootballManager.Tests
             var loaded = await repo.GetTeamAsync(team.Id);
 
             Assert.NotNull(loaded);
-            Assert.Equal(25, loaded!.Players.Count);
+            Assert.Equal(PlayerGenerator.DefaultPositionPlanSize, loaded!.Players.Count);
             Assert.All(loaded.Players, p => Assert.False(p.IsYouthProspect));
             Assert.Equal(UniverseGenerator.YouthPerTeam, loaded.YouthPlayers.Count);
             Assert.All(loaded.YouthPlayers, p => Assert.True(p.IsYouthProspect));

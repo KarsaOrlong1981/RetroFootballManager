@@ -7,6 +7,7 @@
     xmlns:local="clr-namespace:RetroFootballManager.Views"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
     xmlns:models="clr-namespace:RetroFootballManager.Models;assembly=RetroFootballManager.Core"
+    xmlns:controls="clr-namespace:RetroFootballManager.Views.Controls"
     x:DataType="vm:StaffViewModel"
     Title="Mitarbeiter"
     BackgroundColor="{StaticResource RfmBackground}">
@@ -40,8 +41,12 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <Button Grid.Row="2"  WidthRequest="800" HorizontalOptions="Start" Text="Kandidaten suchen" Command="{Binding GenerateCandidatesCommand}"
-                BackgroundColor="{StaticResource RfmAccent}" TextColor="{StaticResource RfmText}" />
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto" ColumnSpacing="10" HorizontalOptions="Start">
+            <Button Grid.Column="0" WidthRequest="390" Text="Kandidaten suchen" Command="{Binding GenerateCandidatesCommand}"
+                    BackgroundColor="{StaticResource RfmAccent}" TextColor="{StaticResource RfmText}" />
+            <Button Grid.Column="1" WidthRequest="390" Text="Mein Profil" Command="{Binding ShowManagerProfileCommand}"
+                    BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}" />
+        </Grid>
 
         <Label Grid.Row="3" Text="Kandidaten" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
 
@@ -73,5 +78,14 @@
 
         <Label Grid.Row="5" Text="{Binding StatusText}" FontSize="14" TextColor="{StaticResource RfmAccentTeal}" />
     </Grid>
+
+        <controls:ManagerProfileDialog
+            IsOpen="{Binding IsManagerProfileDialogOpen}"
+            Profile="{Binding OwnManagerProfile}"
+            IsEditable="True"
+            RemainingPoints="{Binding ManagerRemainingPoints}"
+            IncreaseSkillCommand="{Binding IncreaseManagerSkillCommand}"
+            DecreaseSkillCommand="{Binding DecreaseManagerSkillCommand}"
+            CloseCommand="{Binding CloseManagerProfileCommand}" />
     </Grid>
 </local:BaseContentPage>

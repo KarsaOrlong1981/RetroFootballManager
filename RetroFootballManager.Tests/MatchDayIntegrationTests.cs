@@ -263,6 +263,37 @@ namespace RetroFootballManager.Tests
             Assert.Equal(matchStats.Goals, seasonStats.Goals);
             Assert.Equal(matchStats.Assists, seasonStats.Assists);
             Assert.Equal(matchStats.Passes, seasonStats.Passes);
+            Assert.Equal(matchStats.Tackles, seasonStats.Tackles);
+            Assert.Equal(matchStats.HeaderDuels, seasonStats.HeaderDuels);
+            Assert.InRange(seasonStats.Rating, 1.0, 6.0);
+        }
+
+        [Fact]
+        public async Task PlayingAMatchday_AccumulatesSetPieceAndPassingTeamStats()
+        {
+            var (leagues, teams) = BuildUniverse();
+            var manager = teams.First(t => t.LeagueTier == 4);
+            var state = await _saveGame.StartNewCareerAsync(
+                "Test", 1, leagues, teams, manager, new DateTime(2026, 8, 1));
+
+            var fixtures = await _saveGame.GetFixturesAsync(1);
+            var humanFixture = fixtures.First(f => f.Matchday == 1 &&
+                (f.HomeTeamId == manager.Id || f.AwayTeamId == manager.Id));
+            var home = teams.First(t => t.Id == humanFixture.HomeTeamId);
+            var away = teams.First(t => t.Id == humanFixture.AwayTeamId);
+
+            var humanResult = SimulateHumanFixture(teams, humanFixture);
+            await _matchDay.PlayMatchdayAsync(state, teams, 1, humanFixture, humanResult);
+
+            Assert.Equal(humanResult.MatchStatsHome.Corners, home.Statistics!.Corners);
+            Assert.Equal(humanResult.MatchStatsHome.FreeKicks, home.Statistics!.FreeKicks);
+            Assert.Equal(humanResult.MatchStatsHome.Penaltys, home.Statistics!.Penaltys);
+            Assert.Equal(humanResult.MatchStatsHome.Offsides, home.Statistics!.Offsides);
+            Assert.Equal(humanResult.MatchStatsHome.Passes, home.Statistics!.Passes);
+            Assert.Equal(humanResult.MatchStatsHome.SuccessfulPasses, home.Statistics!.SuccessfulPasses);
+
+            Assert.Equal(humanResult.MatchStatsAway.Corners, away.Statistics!.Corners);
+            Assert.Equal(humanResult.MatchStatsAway.Passes, away.Statistics!.Passes);
         }
 
         [Fact]

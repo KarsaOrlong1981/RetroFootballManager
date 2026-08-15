@@ -78,7 +78,7 @@ namespace RetroFootballManager.Tests
         public void CreateAssignment_CompletionDateIsFourteenDaysLater()
         {
             var start = new DateTime(2026, 8, 1);
-            var assignment = ScoutingService.CreateAssignment(teamId: 1, playerId: 2, start);
+            var assignment = ScoutingService.CreateAssignment(teamId: 1, playerId: 2, start, scoutEmployeeId: 5);
 
             Assert.Equal(start, assignment.StartDate);
             Assert.Equal(start.AddDays(14), assignment.CompletionDate);

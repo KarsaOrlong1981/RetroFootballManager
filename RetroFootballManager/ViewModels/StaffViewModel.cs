@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RetroFootballManager.Common;
+using RetroFootballManager.Data.Repositories;
 using RetroFootballManager.Logging;
 using RetroFootballManager.Models;
 using RetroFootballManager.Services;
@@ -14,14 +15,17 @@ namespace RetroFootballManager.ViewModels
 
         private readonly GameSession _session;
         private readonly StaffMarketService _staffMarket;
+        private readonly TeamRepository _teamRepository;
 
         private Team? _team;
 
-        public StaffViewModel(IDispatcher dispatcher, GameSession session, StaffMarketService staffMarket)
+        public StaffViewModel(
+            IDispatcher dispatcher, GameSession session, StaffMarketService staffMarket, TeamRepository teamRepository)
             : base(dispatcher)
         {
             _session = session;
             _staffMarket = staffMarket;
+            _teamRepository = teamRepository;
             Title = "Mitarbeiter";
         }
 
@@ -29,6 +33,11 @@ namespace RetroFootballManager.ViewModels
         public ObservableCollection<Employee> Candidates { get; } = [];
 
         [ObservableProperty] private string _statusText = string.Empty;
+
+        // Own manager profile dialog ("Mein Profil").
+        [ObservableProperty] private bool _isManagerProfileDialogOpen;
+        [ObservableProperty] private ManagerProfile? _ownManagerProfile;
+        [ObservableProperty] private int _managerRemainingPoints;
 
         public void Initialize()
         {
@@ -63,6 +72,12 @@ namespace RetroFootballManager.ViewModels
             if (_team is null || _session.State is null)
                 return;
 
+            if (!StaffMarketService.CanHire(_team, candidate.EmployeeType, out string? capacityError))
+            {
+                StatusText = capacityError!;
+                return;
+            }
+
             try
             {
                 await _staffMarket.HireAsync(_team, candidate, _session.State.CurrentDate);
@@ -93,6 +108,80 @@ namespace RetroFootballManager.ViewModels
             {
                 Log.Error("Entlassung fehlgeschlagen.", ex);
                 StatusText = "Entlassung fehlgeschlagen.";
+            }
+        }
+
+        [RelayCommand]
+        private void ShowManagerProfile()
+        {
+            if (_team?.ManagerProfile is null)
+                return;
+
+            OwnManagerProfile = _team.ManagerProfile;
+            ManagerRemainingPoints = OwnManagerProfile.UnspentSkillPoints;
+            IsManagerProfileDialogOpen = true;
+        }
+
+        [RelayCommand]
+        private async Task CloseManagerProfile()
+        {
+            IsManagerProfileDialogOpen = false;
+            if (_team is null || OwnManagerProfile is null)
+                return;
+
+            OwnManagerProfile.UnspentSkillPoints = ManagerRemainingPoints;
+            await _teamRepository.SaveTeamAsync(_team, includeYouth: false);
+        }
+
+        [RelayCommand]
+        private void IncreaseManagerSkill(string skill)
+        {
+            if (OwnManagerProfile is null || ManagerRemainingPoints <= 0)
+                return;
+
+            var (ceiling, _) = ManagerProfileGenerator.GetBudgetForLicense(OwnManagerProfile.License);
+            if (GetManagerSkill(skill) >= ceiling)
+                return;
+
+            SetManagerSkill(skill, GetManagerSkill(skill) + 1);
+            ManagerRemainingPoints--;
+            OnPropertyChanged(nameof(OwnManagerProfile));
+        }
+
+        [RelayCommand]
+        private void DecreaseManagerSkill(string skill)
+        {
+            if (OwnManagerProfile is null)
+                return;
+
+            var (_, floor) = ManagerProfileGenerator.GetBudgetForLicense(OwnManagerProfile.License);
+            if (GetManagerSkill(skill) <= floor)
+                return;
+
+            SetManagerSkill(skill, GetManagerSkill(skill) - 1);
+            ManagerRemainingPoints++;
+            OnPropertyChanged(nameof(OwnManagerProfile));
+        }
+
+        private int GetManagerSkill(string skill) => skill switch
+        {
+            "TrainingDesign" => OwnManagerProfile!.TrainingDesign,
+            "Motivation" => OwnManagerProfile!.Motivation,
+            "OffensiveCreation" => OwnManagerProfile!.OffensiveCreation,
+            "DefensiveOrganization" => OwnManagerProfile!.DefensiveOrganization,
+            "InGameCoaching" => OwnManagerProfile!.InGameCoaching,
+            _ => 0,
+        };
+
+        private void SetManagerSkill(string skill, int value)
+        {
+            switch (skill)
+            {
+                case "TrainingDesign": OwnManagerProfile!.TrainingDesign = value; break;
+                case "Motivation": OwnManagerProfile!.Motivation = value; break;
+                case "OffensiveCreation": OwnManagerProfile!.OffensiveCreation = value; break;
+                case "DefensiveOrganization": OwnManagerProfile!.DefensiveOrganization = value; break;
+                case "InGameCoaching": OwnManagerProfile!.InGameCoaching = value; break;
             }
         }
     }

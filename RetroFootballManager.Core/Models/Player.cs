@@ -146,6 +146,22 @@ namespace RetroFootballManager.Models
         // Positioning (reading the game, holding shape - key for defensive midfielders).
         public int Positioning { get; set; }
         public Personality Personality { get; set; }
+
+        // Transient in-match temperament (see InMatchCharacterEffects) - one of 15 fixed
+        // types, rolled once at generation and backfilled for existing saves (nullable only
+        // for that backward-compatibility reason, not "no character"). Distinct from the
+        // permanent Personality above.
+        public InMatchCharacterType? InMatchCharacter { get; set; }
+
+        // In-match morale (0-100), seeded from Moral at kickoff and only changed in-memory
+        // during the match (goals, half-time reactions, team talks) - never written back to
+        // the persistent Moral field. Defaults to the neutral midpoint (not 0!) so
+        // TeamStrengthCalculator's InMatchCharacterEffects.AttributeFactor is exactly 1.0
+        // (no-op) for any player outside a live match - Calculate() is also used for
+        // scouting/transfers/formation-scoring, not just Match.cs.
+        [Ignore]
+        public int InMatchMoral { get; set; } = 50;
+
         public PlayerStatus Status { get; set; }
 
         // Remaining matches of an active red-card ban (0 = none). Scoped to
