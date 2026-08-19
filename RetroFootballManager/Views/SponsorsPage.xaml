@@ -14,30 +14,32 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
 
-            <Label Text="Hauptsponsor" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-            <Label Text="{Binding CurrentMainText}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}" IsVisible="{Binding IsMainSlotOpen}" />
+            <Label Text="Hauptsponsor" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <Label Text="{Binding CurrentMainText}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" IsVisible="{Binding IsMainSlotOpen}" />
 
             <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" IsVisible="{Binding IsMainSlotSigned}">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
-                <Grid ColumnDefinitions="Auto,*" x:DataType="vm:SponsorsViewModel">
+                <Grid ColumnDefinitions="*,*,*" x:DataType="vm:SponsorsViewModel">
                     <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding SignedMainSponsor.ImagePath}"/>
                     <VerticalStackLayout Grid.Column="1" Spacing="2" HorizontalOptions="Start" VerticalOptions="Center">
-                        <Label Text="{Binding SignedMainSponsor.Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                        <Label Text="{Binding SignedMainSponsor.Name}" FontSize="22" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
                         <Label Text="{Binding SignedMainSponsor.SeasonPayment, StringFormat='{0:N0} € / Saison'}"
-                               FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                               FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
                         <Label Text="{Binding SignedMainSponsor.PaymentPerMonth, StringFormat='{0:N0} € / Monat'}"
-                               FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
-                        <Label Text="{Binding MainSignedUntilText}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
-                        <Label Text="Mögliche Bonuszahlungen (am Saisonende):" FontSize="12" FontAttributes="Bold"
-                               TextColor="{StaticResource RfmText}" Margin="0,4,0,0" />
+                               FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                        <Label Text="{Binding MainSignedUntilText}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" Spacing="8">
+                        <Label Text="Mögliche Bonuszahlungen (am Saisonende):" FontSize="18" FontAttributes="Bold"
+                                    TextColor="{StaticResource RfmText}" Margin="0,4,0,0" />
                         <CollectionView ItemsSource="{Binding SignedMainSponsor.Offers}" ItemsLayout="VerticalList">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="models:BonusOffers">
                                     <HorizontalStackLayout Spacing="10">
-                                        <Label Text="{Binding Offer}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
-                                        <Label Text="{Binding Payment, StringFormat='{0:N0} €'}" TextColor="{StaticResource RfmAccentTeal}" FontAttributes="Bold" />
+                                        <Label Text="{Binding Offer}" TextColor="{StaticResource RfmText}" FontSize="18" FontAttributes="Bold" />
+                                        <Label Text="{Binding Payment, StringFormat='{0:N0} €'}" TextColor="{StaticResource RfmAccentTeal}" FontSize="18" FontAttributes="Bold" />
                                     </HorizontalStackLayout>
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
@@ -54,14 +56,14 @@
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
-                                <Grid ColumnDefinitions="Auto,*,*,*">
+                                <Grid ColumnDefinitions="*,*,*,*">
                                     <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding ImagePath}"/>
                                     <VerticalStackLayout Grid.Column="1" HorizontalOptions="Start" VerticalOptions="Center">
-                                        <Label Text="{Binding Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                        <Label Text="{Binding Name}" TextColor="{StaticResource RfmText}" FontSize="22" FontAttributes="Bold" />
                                         <Label Text="{Binding SeasonPayment, StringFormat='{0:N0} € / Saison'}"
-                                               FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                                               FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
                                         <Label Text="{Binding PaymentPerMonth, StringFormat='{0:N0} € / Monat'}"
-                                               FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                               FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
                                     </VerticalStackLayout>
                                     <CollectionView 
                                         Grid.Column="2"
@@ -71,8 +73,8 @@
                                         <CollectionView.ItemTemplate>
                                             <DataTemplate  x:DataType="models:BonusOffers">
                                                 <HorizontalStackLayout Spacing="20">
-                                                    <Label Text="{Binding Offer}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
-                                                    <Label Text="{Binding Payment, StringFormat='{0:N0} €'}" TextColor="{StaticResource RfmAccentTeal}" FontAttributes="Bold" />
+                                                    <Label Text="{Binding Offer}" TextColor="{StaticResource RfmText}" FontSize="18" FontAttributes="Bold" />
+                                                    <Label Text="{Binding Payment, StringFormat='{0:N0} €'}" TextColor="{StaticResource RfmAccentTeal}" FontSize="18" FontAttributes="Bold" />
                                                 </HorizontalStackLayout>
                                             </DataTemplate>
                                         </CollectionView.ItemTemplate>
@@ -81,7 +83,7 @@
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.SignCommand}"
                                             CommandParameter="{Binding .}"
                                             WidthRequest="200"
-                                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
+                                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="22" />
                                 </Grid>
                             </Border>
                         </Grid>
@@ -89,30 +91,32 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <Label Text="Bandenwerbung" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
-            <Label Text="{Binding CurrentPerimeterText}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}" IsVisible="{Binding IsPerimeterSlotOpen}" />
+            <Label Text="Bandenwerbung" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
+            <Label Text="{Binding CurrentPerimeterText}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" IsVisible="{Binding IsPerimeterSlotOpen}" />
 
             <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" IsVisible="{Binding IsPerimeterSlotSigned}">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
-                <Grid ColumnDefinitions="Auto,*" x:DataType="vm:SponsorsViewModel">
+                <Grid ColumnDefinitions="*,*,*" x:DataType="vm:SponsorsViewModel">
                     <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding SignedPerimeterSponsor.ImagePath}"/>
                     <VerticalStackLayout Grid.Column="1" Spacing="2" HorizontalOptions="Start" VerticalOptions="Center">
-                        <Label Text="{Binding SignedPerimeterSponsor.Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                        <Label Text="{Binding SignedPerimeterSponsor.Name}" TextColor="{StaticResource RfmText}" FontSize="22" FontAttributes="Bold" />
                         <Label Text="{Binding SignedPerimeterSponsor.SeasonPayment, StringFormat='{0:N0} € / Saison'}"
-                               FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                               FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
                         <Label Text="{Binding SignedPerimeterSponsor.PaymentPerMonth, StringFormat='{0:N0} € / Monat'}"
-                               FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
-                        <Label Text="{Binding PerimeterSignedUntilText}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
-                        <Label Text="Mögliche Bonuszahlungen (am Saisonende):" FontSize="12" FontAttributes="Bold"
-                               TextColor="{StaticResource RfmText}" Margin="0,4,0,0" />
+                               FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                        <Label Text="{Binding PerimeterSignedUntilText}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="3" VerticalOptions="Center" Spacing="8">
+                        <Label Text="Mögliche Bonuszahlungen (am Saisonende):" FontSize="18" FontAttributes="Bold"
+                                    TextColor="{StaticResource RfmText}" Margin="0,4,0,0" />
                         <CollectionView ItemsSource="{Binding SignedPerimeterSponsor.Offers}" ItemsLayout="VerticalList">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="models:BonusOffers">
                                     <HorizontalStackLayout Spacing="10">
-                                        <Label Text="{Binding Offer}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
-                                        <Label Text="{Binding Payment, StringFormat='{0:N0} €'}" TextColor="{StaticResource RfmAccentTeal}" FontAttributes="Bold" />
+                                        <Label Text="{Binding Offer}" TextColor="{StaticResource RfmText}" FontSize="18" FontAttributes="Bold" />
+                                        <Label Text="{Binding Payment, StringFormat='{0:N0} €'}" TextColor="{StaticResource RfmAccentTeal}" FontSize="18" FontAttributes="Bold" />
                                     </HorizontalStackLayout>
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
@@ -129,14 +133,14 @@
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
-                                <Grid ColumnDefinitions="Auto,*,*,*">
+                                <Grid ColumnDefinitions="*,*,*,*">
                                     <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding ImagePath}"/>
                                     <VerticalStackLayout Grid.Column="1" HorizontalOptions="Start" VerticalOptions="Center">
-                                        <Label Text="{Binding Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                        <Label Text="{Binding Name}" TextColor="{StaticResource RfmText}" FontSize="24" FontAttributes="Bold" />
                                         <Label Text="{Binding SeasonPayment, StringFormat='{0:N0} € / Saison'}"
-                                               FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                                               FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
                                         <Label Text="{Binding PaymentPerMonth, StringFormat='{0:N0} € / Monat'}"
-                                               FontSize="11" TextColor="{StaticResource RfmTextMuted}" />
+                                               FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
                                     </VerticalStackLayout>
                                     <CollectionView
                                         Grid.Column="2"
@@ -146,8 +150,8 @@
                                         <CollectionView.ItemTemplate>
                                             <DataTemplate  x:DataType="models:BonusOffers">
                                                 <HorizontalStackLayout Spacing="20">
-                                                    <Label Text="{Binding Offer}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
-                                                    <Label Text="{Binding Payment, StringFormat='{0:N0} €'}" TextColor="{StaticResource RfmAccentTeal}" FontAttributes="Bold" />
+                                                    <Label Text="{Binding Offer}" TextColor="{StaticResource RfmText}"  FontSize="18" FontAttributes="Bold" />
+                                                    <Label Text="{Binding Payment, StringFormat='{0:N0} €'}" TextColor="{StaticResource RfmAccentTeal}" FontSize="18" FontAttributes="Bold" />
                                                 </HorizontalStackLayout>
                                             </DataTemplate>
                                         </CollectionView.ItemTemplate>
@@ -156,7 +160,7 @@
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.SignCommand}"
                                             CommandParameter="{Binding .}"
                                             WidthRequest="200"
-                                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="12" />
+                                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="22" />
                                 </Grid>
                             </Border>
                         </Grid>
@@ -206,7 +210,7 @@
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
-                                <Grid ColumnDefinitions="Auto,*,*,*">
+                                <Grid ColumnDefinitions="*,*,*,*">
                                     <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding ImagePath}"/>
                                     <VerticalStackLayout Grid.Column="1" HorizontalOptions="Start" VerticalOptions="Center">
                                         <Label Text="{Binding Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
@@ -241,7 +245,7 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
+            <Label Text="{Binding StatusText}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
         </VerticalStackLayout>
     </ScrollView>
 </local:BaseContentPage>

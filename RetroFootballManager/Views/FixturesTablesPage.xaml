@@ -14,6 +14,8 @@
 
         <Picker Grid.Row="0"
                 Title="Liga"
+                FontSize="28"
+                WidthRequest="360"
                 BackgroundColor="Blue"
                 ItemsSource="{Binding LeagueChoices}"
                 ItemDisplayBinding="{Binding Name}"
@@ -24,45 +26,45 @@
         <ScrollView Grid.Row="1">
             <VerticalStackLayout Spacing="16">
 
-                <Label Text="Tabelle" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                <Border StrokeThickness="0" Padding="8" BackgroundColor="{StaticResource RfmSurface}">
+                <Label Text="Tabelle" FontSize="28" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <Border StrokeThickness="0" Padding="8" WidthRequest="980" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}">
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="12" />
                     </Border.StrokeShape>
                     <VerticalStackLayout>
-                        <Grid ColumnDefinitions="26,*,28,26,26,32,30,86" Padding="6,4" ColumnSpacing="4">
-                            <Label Grid.Column="0" Text="#" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
-                            <Label Grid.Column="1" Text="Team" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
-                            <Label Grid.Column="2" Text="Sp" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
-                            <Label Grid.Column="3" Text="TG" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
-                            <Label Grid.Column="4" Text="TK" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
-                            <Label Grid.Column="5" Text="TD" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
-                            <Label Grid.Column="6" Text="Pkt" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
-                            <Label Grid.Column="7" Text="Form" FontSize="10" TextColor="{StaticResource RfmTextMuted}" />
+                        <Grid ColumnDefinitions="26,500,36,50,50,50,38,Auto" Padding="6,4" ColumnSpacing="4">
+                            <Label Grid.Column="0" Text="#" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="1" Text="Team" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="2" Text="Sp" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="3" Text="TG" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="4" Text="TK" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="5" Text="TD" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="6" Text="Pkt" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Grid.Column="7" Text="Form" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
                         </Grid>
                         <CollectionView ItemsSource="{Binding Standings}">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="vm:StandingDisplayRow">
                                     <Grid BackgroundColor="{Binding RowColor}" Padding="0,1">
-                                        <Grid ColumnDefinitions="26,*,28,26,26,32,30,86" Padding="6,5" ColumnSpacing="4">
-                                            <Label Grid.Column="0" Text="{Binding Row.Position}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
-                                            <Label Grid.Column="1" Text="{Binding Row.TeamName}" FontSize="12" TextColor="{StaticResource RfmText}"
+                                        <Grid ColumnDefinitions="26,500,36,50,50,50,38,Auto" Padding="6,5" ColumnSpacing="4">
+                                            <Label Grid.Column="0" Text="{Binding Row.Position}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Grid.Column="1" Text="{Binding Row.TeamName}" FontSize="18" TextColor="{StaticResource RfmText}"
                                                    LineBreakMode="TailTruncation" />
-                                            <Label Grid.Column="2" Text="{Binding Row.Played}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
-                                            <Label Grid.Column="3" Text="{Binding Row.GoalsFor}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
-                                            <Label Grid.Column="4" Text="{Binding Row.GoalsAgainst}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
-                                            <Label Grid.Column="5" Text="{Binding Row.GoalDifference}" FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
-                                            <Label Grid.Column="6" Text="{Binding Row.Points}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" />
+                                            <Label Grid.Column="2" Text="{Binding Row.Played}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Grid.Column="3" Text="{Binding Row.GoalsFor}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Grid.Column="4" Text="{Binding Row.GoalsAgainst}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Grid.Column="5" Text="{Binding Row.GoalDifference}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Grid.Column="6" Text="{Binding Row.Points}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" />
                                             <HorizontalStackLayout Grid.Column="7" Spacing="2"
                                                                    BindableLayout.ItemsSource="{Binding FormBadges}">
                                                 <BindableLayout.ItemTemplate>
                                                     <DataTemplate x:DataType="vm:FormBadge">
                                                         <Border BackgroundColor="{Binding Color}" StrokeThickness="0"
-                                                                WidthRequest="16" HeightRequest="16" Padding="0">
+                                                                WidthRequest="18" HeightRequest="18" Padding="0">
                                                             <Border.StrokeShape>
                                                                 <RoundRectangle CornerRadius="3" />
                                                             </Border.StrokeShape>
-                                                            <Label Text="{Binding Letter}" FontSize="9" TextColor="White"
+                                                            <Label Text="{Binding Letter}" FontSize="14" TextColor="White"
                                                                    HorizontalOptions="Center" VerticalOptions="Center" />
                                                         </Border>
                                                     </DataTemplate>
@@ -80,19 +82,20 @@
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="vm:LegendItem">
                             <HorizontalStackLayout Spacing="6">
-                                <Border BackgroundColor="{Binding Color}" WidthRequest="14" HeightRequest="14" StrokeThickness="0">
+                                <Border BackgroundColor="{Binding Color}" WidthRequest="22" HeightRequest="22" StrokeThickness="0">
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="3" />
                                     </Border.StrokeShape>
                                 </Border>
-                                <Label Text="{Binding Label}" FontSize="11" TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
+                                <Label Text="{Binding Label}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
                             </HorizontalStackLayout>
                         </DataTemplate>
                     </BindableLayout.ItemTemplate>
                 </HorizontalStackLayout>
 
-                <Label Text="Spieltag" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <Label Text="Spieltag" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
                 <Picker Title="Spieltag"
+                        FontSize="18"
                         BackgroundColor="Blue"
                         ItemsSource="{Binding Matchdays}"
                         SelectedItem="{Binding SelectedMatchday, Mode=TwoWay}"
@@ -107,11 +110,11 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="vm:FixtureRow">
                                 <Grid ColumnDefinitions="*,Auto,*" Padding="8,6" ColumnSpacing="8">
-                                    <Label Grid.Column="0" Text="{Binding HomeName}" FontSize="13"
+                                    <Label Grid.Column="0" Text="{Binding HomeName}" FontSize="22"
                                            HorizontalOptions="End" TextColor="{StaticResource RfmText}" />
-                                    <Label Grid.Column="1" Text="{Binding Result}" FontSize="13" FontAttributes="Bold"
+                                    <Label Grid.Column="1" Text="{Binding Result}" FontSize="18" FontAttributes="Bold"
                                            TextColor="{StaticResource RfmAccentTeal}" HorizontalOptions="Center" />
-                                    <Label Grid.Column="2" Text="{Binding AwayName}" FontSize="13"
+                                    <Label Grid.Column="2" Text="{Binding AwayName}" FontSize="22"
                                            HorizontalOptions="Start" TextColor="{StaticResource RfmText}" />
                                 </Grid>
                             </DataTemplate>

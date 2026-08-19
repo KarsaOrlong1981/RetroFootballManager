@@ -39,6 +39,8 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private ManagerProfile? _ownManagerProfile;
         [ObservableProperty] private int _managerRemainingPoints;
 
+        partial void OnManagerRemainingPointsChanged(int value) => IncreaseManagerSkillCommand.NotifyCanExecuteChanged();
+
         public void Initialize()
         {
             _team = _session.ManagerTeam;
@@ -120,6 +122,7 @@ namespace RetroFootballManager.ViewModels
             OwnManagerProfile = _team.ManagerProfile;
             ManagerRemainingPoints = OwnManagerProfile.UnspentSkillPoints;
             IsManagerProfileDialogOpen = true;
+            IncreaseManagerSkillCommand.NotifyCanExecuteChanged();
         }
 
         [RelayCommand]
@@ -133,34 +136,25 @@ namespace RetroFootballManager.ViewModels
             await _teamRepository.SaveTeamAsync(_team, includeYouth: false);
         }
 
-        [RelayCommand]
+        // Only spends UnspentSkillPoints left over from creation - no decrease/respec, since
+        // that would let the already-fixed profile (or organically grown skills, see
+        // ManagerGrowthService) be freely reshuffled after the fact.
+        [RelayCommand(CanExecute = nameof(CanIncreaseManagerSkill))]
         private void IncreaseManagerSkill(string skill)
         {
-            if (OwnManagerProfile is null || ManagerRemainingPoints <= 0)
-                return;
-
-            var (ceiling, _) = ManagerProfileGenerator.GetBudgetForLicense(OwnManagerProfile.License);
-            if (GetManagerSkill(skill) >= ceiling)
-                return;
-
             SetManagerSkill(skill, GetManagerSkill(skill) + 1);
             ManagerRemainingPoints--;
             OnPropertyChanged(nameof(OwnManagerProfile));
+            IncreaseManagerSkillCommand.NotifyCanExecuteChanged();
         }
 
-        [RelayCommand]
-        private void DecreaseManagerSkill(string skill)
+        private bool CanIncreaseManagerSkill(string skill)
         {
-            if (OwnManagerProfile is null)
-                return;
+            if (OwnManagerProfile is null || ManagerRemainingPoints <= 0)
+                return false;
 
-            var (_, floor) = ManagerProfileGenerator.GetBudgetForLicense(OwnManagerProfile.License);
-            if (GetManagerSkill(skill) <= floor)
-                return;
-
-            SetManagerSkill(skill, GetManagerSkill(skill) - 1);
-            ManagerRemainingPoints++;
-            OnPropertyChanged(nameof(OwnManagerProfile));
+            var (ceiling, _) = ManagerProfileGenerator.GetBudgetForLicense(OwnManagerProfile.License);
+            return GetManagerSkill(skill) < ceiling;
         }
 
         private int GetManagerSkill(string skill) => skill switch

@@ -13,7 +13,7 @@
     BackgroundColor="{StaticResource RfmBackground}">
 
     <Grid>
-        <Image Source="youth_academie.png" Aspect="Fill"/>
+        <Image Source="youth_ac.png" Aspect="Fill"/>
         <Grid RowDefinitions="*,Auto" Padding="14" Opacity="0.85" RowSpacing="10">
 
             <CollectionView Grid.Row="0" ItemsSource="{Binding Youth}"

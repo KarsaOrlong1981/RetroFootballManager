@@ -78,6 +78,7 @@
 	  <None Remove="Resources\Images\Backgrounds\tactic.png" />
 	  <None Remove="Resources\Images\Backgrounds\teamtraining.png" />
 	  <None Remove="Resources\Images\Backgrounds\transfermarket.png" />
+	  <None Remove="Resources\Images\Backgrounds\youth_ac.png" />
 	  <None Remove="Resources\Images\Backgrounds\youth_academie.png" />
 	  <None Remove="Resources\Images\Sponors\autoservice_klein.png" />
 	  <None Remove="Resources\Images\Sponors\baeckerei_krause.png" />
@@ -127,6 +128,7 @@
 	  <MauiImage Include="Resources\Images\Backgrounds\tactic.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\teamtraining.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\transfermarket.png" />
+	  <MauiImage Include="Resources\Images\Backgrounds\youth_ac.png" />
 	  <MauiImage Include="Resources\Images\Backgrounds\youth_academie.png" />
 	  <MauiImage Include="Resources\Images\Sponors\autoservice_klein.png" />
 	  <MauiImage Include="Resources\Images\Sponors\baeckerei_krause.png" />

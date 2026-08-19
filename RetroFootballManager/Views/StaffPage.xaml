@@ -26,14 +26,14 @@
                             </Border.StrokeShape>
                             <Grid ColumnDefinitions="*,Auto">
                                 <VerticalStackLayout Grid.Column="0">
-                                    <Label Text="{Binding Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
-                                    <Label Text="{Binding EmployeeType, StringFormat='{0}'}" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
-                                    <Label Text="{Binding Salary, StringFormat='Gehalt: {0:N0} € / Jahr'}" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
+                                    <Label Text="{Binding Name}" FontSize="22" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                    <Label Text="{Binding EmployeeType, StringFormat='{0}'}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
+                                    <Label Text="{Binding Salary, StringFormat='Gehalt: {0:N0} € / Jahr'}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
                                 </VerticalStackLayout>
                                 <Button Grid.Column="1" Text="Entlassen"
                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.FireCommand}"
                                         CommandParameter="{Binding .}"
-                                        BackgroundColor="#EF4444" TextColor="White" FontSize="14" />
+                                        BackgroundColor="#EF4444" TextColor="White" FontSize="18" />
                             </Grid>
                         </Border>
                     </Grid>
@@ -43,12 +43,12 @@
 
         <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto" ColumnSpacing="10" HorizontalOptions="Start">
             <Button Grid.Column="0" WidthRequest="390" Text="Kandidaten suchen" Command="{Binding GenerateCandidatesCommand}"
-                    BackgroundColor="{StaticResource RfmAccent}" TextColor="{StaticResource RfmText}" />
+                    BackgroundColor="{StaticResource RfmAccent}" FontSize="24" TextColor="{StaticResource RfmText}" />
             <Button Grid.Column="1" WidthRequest="390" Text="Mein Profil" Command="{Binding ShowManagerProfileCommand}"
-                    BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}" />
+                    BackgroundColor="{StaticResource RfmSurface}" FontSize="24" TextColor="{StaticResource RfmText}" />
         </Grid>
 
-        <Label Grid.Row="3" Text="Kandidaten" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+        <Label Grid.Row="3" Text="Kandidaten" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
 
         <CollectionView Grid.Row="4"  ItemsSource="{Binding Candidates}" WidthRequest="800" HorizontalOptions="Start">
             <CollectionView.ItemTemplate>
@@ -60,15 +60,15 @@
                             </Border.StrokeShape>
                             <Grid ColumnDefinitions="*,Auto">
                                 <VerticalStackLayout Grid.Column="0">
-                                    <Label Text="{Binding Name}" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
-                                    <Label Text="{Binding EmployeeType, StringFormat='{0}'}" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
-                                    <Label Text="{Binding Rating, StringFormat='Rating: {0:0.0}'}" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
-                                    <Label Text="{Binding Salary, StringFormat='Gehalt: {0:N0} € / Jahr'}" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
+                                    <Label Text="{Binding Name}" FontSize="22" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                    <Label Text="{Binding EmployeeType, StringFormat='{0}'}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
+                                    <Label Text="{Binding Rating, StringFormat='Rating: {0:0.0}'}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                                    <Label Text="{Binding Salary, StringFormat='Gehalt: {0:N0} € / Jahr'}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
                                 </VerticalStackLayout>
                                 <Button Grid.Column="1" Text="Einstellen"
                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.HireCommand}"
                                         CommandParameter="{Binding .}"
-                                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="14" />
+                                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="18" />
                             </Grid>
                         </Border>
                     </Grid>
@@ -76,7 +76,7 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <Label Grid.Row="5" Text="{Binding StatusText}" FontSize="14" TextColor="{StaticResource RfmAccentTeal}" />
+        <Label Grid.Row="5" Text="{Binding StatusText}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
     </Grid>
 
         <controls:ManagerProfileDialog
@@ -85,7 +85,6 @@
             IsEditable="True"
             RemainingPoints="{Binding ManagerRemainingPoints}"
             IncreaseSkillCommand="{Binding IncreaseManagerSkillCommand}"
-            DecreaseSkillCommand="{Binding DecreaseManagerSkillCommand}"
             CloseCommand="{Binding CloseManagerProfileCommand}" />
     </Grid>
 </local:BaseContentPage>

@@ -64,7 +64,7 @@ namespace RetroFootballManager.Common
         {
             TeamTrainingFocus.Pressing => "Pressing",
             TeamTrainingFocus.CrossesToStriker => "Flanken auf Stürmer",
-            TeamTrainingFocus.TikiTaka => "Tiki-Taka",
+            TeamTrainingFocus.TikiTaka => "Ballbesitz",
             TeamTrainingFocus.CounterAttack => "Kontern",
             TeamTrainingFocus.Offensive => "Offensive",
             TeamTrainingFocus.Defensive => "Defensive",

@@ -26,9 +26,6 @@ namespace RetroFootballManager.Views.Controls
         public static readonly BindableProperty IncreaseSkillCommandProperty =
             BindableProperty.Create(nameof(IncreaseSkillCommand), typeof(ICommand), typeof(ManagerProfileDialog));
 
-        public static readonly BindableProperty DecreaseSkillCommandProperty =
-            BindableProperty.Create(nameof(DecreaseSkillCommand), typeof(ICommand), typeof(ManagerProfileDialog));
-
         public ManagerProfileDialog()
         {
             InitializeComponent();
@@ -70,12 +67,6 @@ namespace RetroFootballManager.Views.Controls
         {
             get => (ICommand?)GetValue(IncreaseSkillCommandProperty);
             set => SetValue(IncreaseSkillCommandProperty, value);
-        }
-
-        public ICommand? DecreaseSkillCommand
-        {
-            get => (ICommand?)GetValue(DecreaseSkillCommandProperty);
-            set => SetValue(DecreaseSkillCommandProperty, value);
         }
     }
 }
