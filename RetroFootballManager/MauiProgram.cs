@@ -90,6 +90,7 @@ namespace RetroFootballManager
             services.AddSingleton<GameSession>();
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddSingleton<AppSettingsService>();
+            services.AddSingleton<CustomImageService>();
 #if WINDOWS
             services.AddSingleton<IWindowService, RetroFootballManager.WinUI.WindowService>();
 #endif

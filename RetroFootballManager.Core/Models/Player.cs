@@ -100,16 +100,8 @@ namespace RetroFootballManager.Models
         public DateTime? LastTalkDate { get; set; }
         public double Size { get; set; }
         public int Fitness { get; set; }
-
-        // Base fitness / "Grundfitness" (1-99): higher means less fatigue accumulated during
-        // a match (see Match.DecayFitness) and faster recovery afterwards (see
-        // MatchDayService.RegenerateFitness), though recovery always takes at least
-        // MatchDayService.MinFitnessRecoveryDays regardless of this value.
+        public string? ImagePath { get; set; }
         public int BaseFitness { get; set; }
-
-        // Game date of this player's last appearance (minutes played > 0) in any competition.
-        // Drives day-by-day fitness regeneration in MatchDayService.RegenerateFitness. Null =
-        // never played (or not tracked yet on an older save).
         public DateTime? LastMatchDate { get; set; }
         public int OffensivePower { get; set; }
         public int DefensivePower { get; set; }
@@ -128,11 +120,6 @@ namespace RetroFootballManager.Models
         public int GkOneOnOne { get; set; }
         public int GkDistribution { get; set; }
         public int GkAerialControl { get; set; }
-
-        // Outfield-only attributes (0 for goalkeepers, mirroring the Gk* fields above).
-        // HeaderStrength/Jumping combine with Size for aerial duels (headed goals/clearances);
-        // Dribbling/LongShot for midfield ball-carrying and shots from distance;
-        // PenaltyKick/FreeKick for set pieces (see Match.cs).
         public int HeaderStrength { get; set; }
         public int Jumping { get; set; }
         public int Dribbling { get; set; }
