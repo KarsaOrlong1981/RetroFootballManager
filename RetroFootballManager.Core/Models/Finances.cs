@@ -50,6 +50,7 @@ namespace RetroFootballManager.Models
         public int TransferIncome { get; set; }          // Season-to-date sales
         public int TransferExpense { get; set; }         // Season-to-date buys
         public int StadiumCosts { get; set; }            // Season-to-date maintenance paid
+        public int PrizeMoney { get; set; }               // Season-to-date league/cup prize money
 
         // Other income/expenses (M7): friendly match ticket income, training camp costs.
         public int OtherIncome { get; set; }

@@ -83,10 +83,20 @@ namespace RetroFootballManager.Common
 
                 var offers = await market.GetOffersForListingAsync(listing);
                 var pendingOffers = offers.Where(o => o.Status == TransferOfferStatus.Pending).ToList();
-                if (pendingOffers.Count == 0)
+
+                // Offers locked in by the negotiation dialog's Bedenkzeit (see
+                // TransferOffer.LockedUntilDate) are left untouched here - neither picked as
+                // "best" nor rejected - until NegotiationResolutionService resolves them on
+                // their DecisionDate. A rival's un-locked offer on the same listing is still
+                // evaluated normally and can win the listing outright in the meantime.
+                // Strict "<" (not "<="): on the exact DecisionDate, NegotiationResolutionService
+                // always gets first crack at it later the same day - only still-unresolved
+                // offers fall back to this normal AI evaluation from the day after.
+                var evaluableOffers = pendingOffers.Where(o => o.LockedUntilDate is null || o.LockedUntilDate < currentDate).ToList();
+                if (evaluableOffers.Count == 0)
                     continue;
 
-                var bestOffer = pendingOffers.OrderByDescending(o => o.OfferedFee).First();
+                var bestOffer = evaluableOffers.OrderByDescending(o => o.OfferedFee).First();
                 if (!teamsById.TryGetValue(bestOffer.OfferingTeamId, out var buyingTeam))
                     continue;
 
@@ -96,7 +106,7 @@ namespace RetroFootballManager.Common
                     {
                         await market.LoanOutAsync(player, team, buyingTeam, currentDate, currentDate.AddMonths(6), bestOffer.WageOffer);
                         await market.RemoveListingAsync(listing);
-                        foreach (var pending in pendingOffers)
+                        foreach (var pending in evaluableOffers)
                             await market.RejectOfferAsync(pending, team, player, "ein anderer Verein hat den Zuschlag erhalten", humanTeamId);
                     }
                     else
@@ -114,7 +124,7 @@ namespace RetroFootballManager.Common
                     double counterFee = (listing.IsLoanListing ? listing.AskingPrice * 0.25 : listing.AskingPrice * 1.3)
                         * DirectorOfFootballPriceFactor(team, favorSeller: true);
                     await market.CounterOfferAsync(bestOffer, listing, counterFee, currentDate, humanTeamId);
-                    foreach (var other in pendingOffers.Where(o => o.Id != bestOffer.Id))
+                    foreach (var other in evaluableOffers.Where(o => o.Id != bestOffer.Id))
                         await market.RejectOfferAsync(other, team, player, "der Verein hat einem anderen Bieter ein Gegenangebot gemacht", humanTeamId);
                     continue;
                 }
@@ -122,7 +132,7 @@ namespace RetroFootballManager.Common
                 string reason = listing.IsUnsolicited
                     ? "der Spieler steht derzeit nicht zum Verkauf"
                     : "das Angebot war dem Verein zu niedrig";
-                foreach (var pending in pendingOffers)
+                foreach (var pending in evaluableOffers)
                     await market.RejectOfferAsync(pending, team, player, reason, humanTeamId);
             }
         }

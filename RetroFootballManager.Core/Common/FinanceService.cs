@@ -320,6 +320,7 @@ namespace RetroFootballManager.Common
             finances.TransferIncome = 0;
             finances.TransferExpense = 0;
             finances.StadiumCosts = 0;
+            finances.PrizeMoney = 0;
             finances.TicketIncome = 0;
             finances.SponsorIncome = 0;
             finances.MerchandiseIncome = 0;

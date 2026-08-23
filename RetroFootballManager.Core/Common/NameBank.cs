@@ -23,6 +23,35 @@ namespace RetroFootballManager.Common
             return (first, last);
         }
 
+        // Staff can be any gender (see StaffGenerator) - picks from FemaleFirstNames so a
+        // female employee never ends up with a male first name (and vice versa). Falls back
+        // to the (male) FirstNames pool for nationalities without a FemaleFirstNames list yet.
+        public static (string FirstName, string LastName) GetRandomName(Nationality nationality, Gender gender, Random random)
+        {
+            var pool = Pools.Value.TryGetValue(nationality, out var found)
+                ? found
+                : Pools.Value[Nationality.International];
+
+            var firstNames = gender == Gender.Female && pool.FemaleFirstNames.Count > 0
+                ? pool.FemaleFirstNames
+                : pool.FirstNames;
+
+            string first = firstNames[random.Next(firstNames.Count)];
+            string last = pool.LastNames[random.Next(pool.LastNames.Count)];
+            return (first, last);
+        }
+
+        // Used to self-heal existing employees generated while Gender was rolled independently
+        // of the name pool (see StaffGenerator.FixGenderNameMismatch). Only reliable for
+        // nationalities with a FemaleFirstNames list - always false otherwise.
+        public static bool IsFemaleFirstName(Nationality nationality, string firstName)
+        {
+            var pool = Pools.Value.TryGetValue(nationality, out var found)
+                ? found
+                : Pools.Value[Nationality.International];
+            return pool.FemaleFirstNames.Contains(firstName);
+        }
+
         private static Dictionary<Nationality, NamePool> Load()
         {
             var assembly = typeof(NameBank).Assembly;
@@ -48,6 +77,7 @@ namespace RetroFootballManager.Common
         private class NamePool
         {
             public List<string> FirstNames { get; set; } = [];
+            public List<string> FemaleFirstNames { get; set; } = [];
             public List<string> LastNames { get; set; } = [];
         }
     }

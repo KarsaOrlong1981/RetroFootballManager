@@ -11,6 +11,8 @@ namespace RetroFootballManager.Data.Repositories
             _db = db;
         }
 
+        public async Task<TransferOffer?> GetByIdAsync(int id) => await _db.Connection.FindAsync<TransferOffer>(id);
+
         public Task<List<TransferOffer>> GetByListingAsync(int listingId) =>
             _db.Connection.Table<TransferOffer>().Where(o => o.ListingId == listingId).ToListAsync();
 

@@ -42,6 +42,15 @@ namespace RetroFootballManager.Common
             return true;
         }
 
+        // Hard floor a transfer fee may never push the buyer's balance below - checked at the
+        // moment the fee is actually paid (NegotiationResolutionService), not when the
+        // negotiation starts, so several simultaneous negotiations can't each look affordable
+        // on their own and then collectively blow the budget once they all conclude.
+        public const double MaxNegativeBalanceAfterSigning = -200_000;
+
+        public static bool CanAffordFee(Team team, double fee) =>
+            (team.Finances?.CurrentBalance ?? 0) - fee >= MaxNegativeBalanceAfterSigning;
+
         public async Task<TransferListing> ListPlayerAsync(
             Player player, Team team, double askingPrice, int season, DateTime date, bool isLoanListing = false)
         {
@@ -97,18 +106,28 @@ namespace RetroFootballManager.Common
             Player player, Team sellingTeam, Team offeringTeam, double fee, double wageOffer, int season, DateTime date,
             bool isLoanOffer)
         {
+            var listing = await CreateUnsolicitedListingAsync(player, sellingTeam, season, date, isLoanOffer);
+            return await MakeOfferAsync(listing, offeringTeam, fee, wageOffer, date);
+        }
+
+        // Shadow listing (not shown on the public market) for a player found via scouting who
+        // was never put up for transfer by their club - lets the negotiation dialog run the
+        // same manager-phase flow as a real market listing (see NegotiationDialogViewModel).
+        public async Task<TransferListing> CreateUnsolicitedListingAsync(
+            Player player, Team sellingTeam, int season, DateTime date, bool isLoanListing)
+        {
             var listing = new TransferListing
             {
                 PlayerId = player.Id,
                 TeamId = sellingTeam.Id,
                 AskingPrice = TransferAiService.EstimateMarketValue(player),
-                IsLoanListing = isLoanOffer,
+                IsLoanListing = isLoanListing,
                 Season = season,
                 ListedDate = date,
                 IsUnsolicited = true,
             };
             await _listings.SaveAsync(listing);
-            return await MakeOfferAsync(listing, offeringTeam, fee, wageOffer, date);
+            return listing;
         }
 
         // Seller wants more than offered: park the offer as Countered (see TransferAiService) and

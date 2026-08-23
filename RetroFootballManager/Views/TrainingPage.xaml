@@ -89,12 +89,14 @@
                       IsVisible="{Binding CanRenewContract}">
                     <Label Grid.Column="0" Text="{Binding RenewStatusText}" FontSize="11"
                            TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
-                    <Button Grid.Column="1" Text="Verlängern (+2 J.)" Command="{Binding RenewContractCommand}"
+                    <Button Grid.Column="1" Text="Vertrag verlängern" Command="{Binding RenewContractCommand}"
                             BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}"
                             FontSize="12" />
                 </Grid>
             </controls:PlayerProfileDialog.ExtraContent>
         </controls:PlayerProfileDialog>
+
+        <controls:PlayerNegotiationsDialog BindingContext="{Binding Negotiation}" />
 
         <!-- Busy overlay -->
         <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000">

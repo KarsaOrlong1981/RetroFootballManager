@@ -17,12 +17,14 @@ namespace RetroFootballManager.Common
         private readonly TrainingCampService _trainingCamps;
         private readonly MessageService _messages;
         private readonly SaveGameService? _saveGame;
+        private readonly NegotiationResolutionService? _negotiations;
         private readonly Random _random;
 
         public CalendarAdvanceService(
             TeamRepository teams, FixtureRepository fixtures, AiManagerService aiManager,
             ExpiryWarningService expiryWarnings, FinanceService finance, TrainingCampService trainingCamps,
-            MessageService messages, Random? random = null, SaveGameService? saveGame = null)
+            MessageService messages, Random? random = null, SaveGameService? saveGame = null,
+            NegotiationResolutionService? negotiations = null)
         {
             _teams = teams;
             _fixtures = fixtures;
@@ -32,6 +34,7 @@ namespace RetroFootballManager.Common
             _trainingCamps = trainingCamps;
             _messages = messages;
             _saveGame = saveGame;
+            _negotiations = negotiations;
             _random = random ?? Random.Shared;
         }
 
@@ -116,6 +119,9 @@ namespace RetroFootballManager.Common
                     await _saveGame.ApplyScoutingFocusesAsync(humanTeam, teams, state.CurrentDate);
                 }
 
+                if (_negotiations is not null)
+                    await _negotiations.ApplyDueNegotiationsAsync(humanTeam.Id, state.CurrentDate, teamsById);
+
                 // Own players are always fully scouted - covers all acquisition paths (transfer,
                 // loan, youth promotion) without patching each one individually.
                 foreach (var p in humanTeam.Players.Concat(humanTeam.YouthPlayers))
@@ -126,6 +132,11 @@ namespace RetroFootballManager.Common
 
             foreach (var teamId in touchedTeamIds)
                 await _teams.SaveTeamAsync(teamsById[teamId], includeYouth: false);
+
+            // Persist the advanced CurrentDate immediately - see SaveGameService.SaveGameStateAsync
+            // for why this can't wait for the player's next explicit "Speichern".
+            if (_saveGame is not null)
+                await _saveGame.SaveGameStateAsync(state);
         }
     }
 }

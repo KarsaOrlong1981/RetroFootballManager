@@ -24,13 +24,19 @@
                             <Border.StrokeShape>
                                 <RoundRectangle CornerRadius="8" />
                             </Border.StrokeShape>
-                            <Grid ColumnDefinitions="*,Auto">
-                                <VerticalStackLayout Grid.Column="0">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <Grid Grid.Column="0" WidthRequest="56" HeightRequest="56" Margin="0,0,10,0">
+                                    <Image Source="avatar.png" Aspect="AspectFit"
+                                           IsVisible="{Binding ImagePath, Converter={StaticResource NoLogo}}" />
+                                    <Image Source="{Binding ImagePath}" Aspect="AspectFit"
+                                           IsVisible="{Binding ImagePath, Converter={StaticResource HasLogo}}" />
+                                </Grid>
+                                <VerticalStackLayout Grid.Column="1">
                                     <Label Text="{Binding Name}" FontSize="22" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
                                     <Label Text="{Binding EmployeeType, StringFormat='{0}'}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
                                     <Label Text="{Binding Salary, StringFormat='Gehalt: {0:N0} € / Jahr'}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
                                 </VerticalStackLayout>
-                                <Button Grid.Column="1" Text="Entlassen"
+                                <Button Grid.Column="2" Text="Entlassen"
                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.FireCommand}"
                                         CommandParameter="{Binding .}"
                                         BackgroundColor="#EF4444" TextColor="White" FontSize="18" />
@@ -58,14 +64,20 @@
                             <Border.StrokeShape>
                                 <RoundRectangle CornerRadius="8" />
                             </Border.StrokeShape>
-                            <Grid ColumnDefinitions="*,Auto">
-                                <VerticalStackLayout Grid.Column="0">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <Grid Grid.Column="0" WidthRequest="56" HeightRequest="56" Margin="0,0,10,0">
+                                    <Image Source="avatar.png" Aspect="AspectFit"
+                                           IsVisible="{Binding ImagePath, Converter={StaticResource NoLogo}}" />
+                                    <Image Source="{Binding ImagePath}" Aspect="AspectFit"
+                                           IsVisible="{Binding ImagePath, Converter={StaticResource HasLogo}}" />
+                                </Grid>
+                                <VerticalStackLayout Grid.Column="1">
                                     <Label Text="{Binding Name}" FontSize="22" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
                                     <Label Text="{Binding EmployeeType, StringFormat='{0}'}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
                                     <Label Text="{Binding Rating, StringFormat='Rating: {0:0.0}'}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
                                     <Label Text="{Binding Salary, StringFormat='Gehalt: {0:N0} € / Jahr'}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
                                 </VerticalStackLayout>
-                                <Button Grid.Column="1" Text="Einstellen"
+                                <Button Grid.Column="2" Text="Einstellen"
                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.HireCommand}"
                                         CommandParameter="{Binding .}"
                                         BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="18" />

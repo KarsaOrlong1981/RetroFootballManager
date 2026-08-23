@@ -40,6 +40,9 @@ namespace RetroFootballManager.Data
             await Connection.CreateTableAsync<ScoutedPlayer>();
             await Connection.CreateTableAsync<ScoutingFocus>();
             await Connection.CreateTableAsync<ManagerProfile>();
+            await Connection.CreateTableAsync<ContractBonus>();
+            await Connection.CreateTableAsync<PendingNegotiation>();
+            await Connection.CreateTableAsync<NegotiationCooldown>();
         }
 
         // Closes the underlying native SQLite connection (e.g. for tests that want to
@@ -74,6 +77,9 @@ namespace RetroFootballManager.Data
             await Connection.DeleteAllAsync<ScoutedPlayer>();
             await Connection.DeleteAllAsync<ScoutingFocus>();
             await Connection.DeleteAllAsync<ManagerProfile>();
+            await Connection.DeleteAllAsync<ContractBonus>();
+            await Connection.DeleteAllAsync<PendingNegotiation>();
+            await Connection.DeleteAllAsync<NegotiationCooldown>();
             await Connection.DeleteAllAsync<Team>();
             await Connection.DeleteAllAsync<GameState>();
         }

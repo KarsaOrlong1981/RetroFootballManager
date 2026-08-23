@@ -7,6 +7,7 @@
     xmlns:local="clr-namespace:RetroFootballManager.Views"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
     xmlns:controls="clr-namespace:RetroFootballManager.Views.Controls"
+    xmlns:behaviors="clr-namespace:RetroFootballManager.Behaviors"
     x:DataType="vm:ScoutingViewModel"
     Title="Scouting"
     BackgroundColor="{StaticResource RfmBackground}">
@@ -38,8 +39,9 @@
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="10" />
                                     </Border.StrokeShape>
-                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
-                                        <VerticalStackLayout Grid.Column="0">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+                                        <Image Source="{Binding ImagePath}" WidthRequest="150" HeightRequest="150"/>
+                                        <VerticalStackLayout Grid.Column="1">
                                             <Label FontSize="18" TextColor="{StaticResource RfmText}">
                                                 <Label.FormattedText>
                                                     <FormattedString>
@@ -49,11 +51,11 @@
                                                     </FormattedString>
                                                 </Label.FormattedText>
                                             </Label>
-                                            <Label Text="{Binding FocusSummary}" FontSize="14" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label Text="{Binding FocusSummary}" FontSize="18" LineBreakMode="WordWrap" TextColor="{StaticResource RfmTextMuted}" />
                                         </VerticalStackLayout>
-                                        <Label Grid.Column="1" Text="{Binding ActiveAssignments, StringFormat='{0}/6'}"
-                                               FontSize="18" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
-                                        <Button Grid.Column="2" Text="Fokus"
+                                        <Label Grid.Column="2" Text="{Binding ActiveAssignments, StringFormat='{0}/6'}"
+                                               FontSize="28" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
+                                        <Button Grid.Column="3" Text="Fokus"
                                                 Command="{Binding Source={x:Reference Page}, Path=BindingContext.OpenScoutingFocusCommand}"
                                                 CommandParameter="{Binding EmployeeId}"
                                                 BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" FontSize="18" />
@@ -80,8 +82,17 @@
                                     </Border.StrokeShape>
                                     <Grid ColumnDefinitions="50,*,Auto,36" ColumnSpacing="8">
                                         <VerticalStackLayout Grid.Column="1">
-                                            <Label Text="{Binding PlayerName}" FontSize="18" TextColor="{StaticResource RfmText}" />
-                                            <Label Text="{Binding TeamName}" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
+                                            <Label  FontSize="18" TextColor="{StaticResource RfmText}">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="{Binding PlayerName}" />
+                                                        <Span Text=" (" />
+                                                        <Span Text="{Binding PositionShort}" />
+                                                        <Span Text=") - " />
+                                                        <Span Text="{Binding TeamName}" />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
                                         </VerticalStackLayout>
                                         <Label Grid.Column="2" Text="{Binding DaysRemaining, StringFormat='noch {0} Tage'}"
                                                FontSize="18" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
@@ -226,19 +237,40 @@
                                     SelectedItem="{Binding FocusPosition, Mode=TwoWay}"
                                     TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
 
+                            <Label Text="Alter" FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                                <Entry Grid.Column="0" Placeholder="Alter min." Keyboard="Numeric"
-                                       Text="{Binding FocusMinAgeText, Mode=TwoWay}" TextColor="{StaticResource RfmText}" />
-                                <Entry Grid.Column="1" Placeholder="Alter max." Keyboard="Numeric"
-                                       Text="{Binding FocusMaxAgeText, Mode=TwoWay}" TextColor="{StaticResource RfmText}" />
+                                <HorizontalStackLayout Grid.Column="0" Spacing="6">
+                                    <Label Text="min." VerticalOptions="Center" TextColor="{StaticResource RfmTextMuted}" />
+                                    <controls:SteppedIntegerInput Minimum="10" Maximum="50" Increment="1"
+                                           Value="{Binding FocusMinAge, Mode=TwoWay}" />
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Grid.Column="1" Spacing="6">
+                                    <Label Text="max." VerticalOptions="Center" TextColor="{StaticResource RfmTextMuted}" />
+                                    <controls:SteppedIntegerInput Minimum="10" Maximum="50" Increment="1"
+                                           Value="{Binding FocusMaxAge, Mode=TwoWay}" />
+                                </HorizontalStackLayout>
                             </Grid>
 
+                            <Label Text="Talent (1 = schwach, 99 = Weltklasse)" FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                                <Entry Grid.Column="0" Placeholder="Talent min." Keyboard="Numeric"
-                                       Text="{Binding FocusMinTalentText, Mode=TwoWay}" TextColor="{StaticResource RfmText}" />
-                                <Entry Grid.Column="1" Placeholder="Rating min." Keyboard="Numeric"
-                                       Text="{Binding FocusMinRatingText, Mode=TwoWay}" TextColor="{StaticResource RfmText}" />
+                                <HorizontalStackLayout Grid.Column="0" Spacing="6">
+                                    <Label Text="min." VerticalOptions="Center" TextColor="{StaticResource RfmTextMuted}" />
+                                    <controls:SteppedIntegerInput Minimum="1" Maximum="99" Increment="1"
+                                           Value="{Binding FocusMinTalent, Mode=TwoWay}" />
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Grid.Column="1" Spacing="6">
+                                    <Label Text="max." VerticalOptions="Center" TextColor="{StaticResource RfmTextMuted}" />
+                                    <controls:SteppedIntegerInput Minimum="1" Maximum="99" Increment="1"
+                                           Value="{Binding FocusMaxTalent, Mode=TwoWay}" />
+                                </HorizontalStackLayout>
                             </Grid>
+
+                            <Label Text="Spielstärke (Rating, 1-99)" FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
+                            <HorizontalStackLayout Spacing="6">
+                                <Label Text="min." VerticalOptions="Center" TextColor="{StaticResource RfmTextMuted}" />
+                                <controls:SteppedIntegerInput Minimum="1" Maximum="99" Increment="1"
+                                       Value="{Binding FocusMinRating, Mode=TwoWay}" />
+                            </HorizontalStackLayout>
 
                             <Picker Title="Charakter" ItemsSource="{Binding CharacterFilterOptions}" ItemDisplayBinding="{Binding Label}"
                                     SelectedItem="{Binding FocusCharacter, Mode=TwoWay}"
@@ -252,12 +284,18 @@
                                     SelectedItem="{Binding FocusNationality, Mode=TwoWay}"
                                     TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
 
+                            <Label Text="Zusätzlicher Attributfilter (optional): der Scout sucht nur nach Spielern, deren gewähltes Attribut mindestens den Wert daneben erreicht (Skala 1-99)."
+                                   FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                                 <Picker Grid.Column="0" Title="Attribut" ItemsSource="{Binding AttributeFilterOptions}" ItemDisplayBinding="{Binding Label}"
                                         SelectedItem="{Binding FocusAttribute, Mode=TwoWay}"
                                         TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
-                                <Entry Grid.Column="1" Placeholder="Mindestwert" Keyboard="Numeric"
-                                       Text="{Binding FocusAttributeMinValueText, Mode=TwoWay}" TextColor="{StaticResource RfmText}" />
+                                <Entry Grid.Column="1" Placeholder="Mindestwert (1-99)" Keyboard="Numeric"
+                                       Text="{Binding FocusAttributeMinValueText, Mode=TwoWay}" TextColor="{StaticResource RfmText}">
+                                    <Entry.Behaviors>
+                                        <behaviors:NumericOnlyBehavior />
+                                    </Entry.Behaviors>
+                                </Entry>
                             </Grid>
 
                             <Label Text="{Binding FocusStatusText}" FontSize="14" TextColor="{StaticResource RfmAccentTeal}" />
@@ -300,5 +338,7 @@
                 </VerticalStackLayout>
             </controls:PlayerProfileDialog.ExtraContent>
         </controls:PlayerProfileDialog>
+
+        <controls:PlayerNegotiationsDialog BindingContext="{Binding Negotiation}" />
     </Grid>
 </local:BaseContentPage>

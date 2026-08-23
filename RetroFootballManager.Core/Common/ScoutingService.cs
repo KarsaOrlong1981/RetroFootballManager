@@ -156,6 +156,7 @@ namespace RetroFootballManager.Common
                 if (focus.MinAge is { } minAge) pool = pool.Where(p => p.Age >= minAge);
                 if (focus.MaxAge is { } maxAge) pool = pool.Where(p => p.Age <= maxAge);
                 if (focus.MinTalent is { } minTalent) pool = pool.Where(p => p.Talent >= minTalent);
+                if (focus.MaxTalent is { } maxTalent) pool = pool.Where(p => p.Talent <= maxTalent);
                 if (focus.MinRating is { } minRating) pool = pool.Where(p => p.Rating >= minRating);
                 if (focus.CharacterType is { } characterType) pool = pool.Where(p => p.InMatchCharacter == characterType);
                 if (focus.PersonalityType is { } personalityType) pool = pool.Where(p => p.Personality == personalityType);

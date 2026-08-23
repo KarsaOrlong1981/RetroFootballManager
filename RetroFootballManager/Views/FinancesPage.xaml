@@ -134,13 +134,15 @@
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="12" />
                 </Border.StrokeShape>
-                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" FontSize="18" Text="Mitarbeitergehälter" TextColor="{StaticResource RfmText}" />
                         <Label Grid.Row="0" Grid.Column="1" FontSize="18" Text="{Binding CurrentStaffWagesText}" TextColor="#EF4444" />
-                        <Label Grid.Row="1" Grid.Column="0" FontSize="18" Text="Sponsoreneinnahmen" TextColor="{StaticResource RfmText}" />
-                        <Label Grid.Row="1" Grid.Column="1" FontSize="18" Text="{Binding CurrentSponsorIncomeText}" TextColor="{StaticResource RfmAccentTeal}" />
-                        <Label Grid.Row="2" Grid.Column="0" FontSize="18" Text="Stadion-Unterhalt" TextColor="{StaticResource RfmText}" />
-                        <Label Grid.Row="2" Grid.Column="1" FontSize="18" Text="{Binding CurrentStadiumMaintenanceText}" TextColor="#EF4444" />
+                        <Label Grid.Row="1" Grid.Column="0" FontSize="18" Text="Spielergehälter" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="1" Grid.Column="1" FontSize="18" Text="{Binding CurrentPlayerWagesText}" TextColor="#EF4444" />
+                        <Label Grid.Row="2" Grid.Column="0" FontSize="18" Text="Sponsoreneinnahmen" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="2" Grid.Column="1" FontSize="18" Text="{Binding CurrentSponsorIncomeText}" TextColor="{StaticResource RfmAccentTeal}" />
+                        <Label Grid.Row="3" Grid.Column="0" FontSize="18" Text="Stadion-Unterhalt" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="3" Grid.Column="1" FontSize="18" Text="{Binding CurrentStadiumMaintenanceText}" TextColor="#EF4444" />
                 </Grid>
             </Border>
 
@@ -149,11 +151,13 @@
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="12" />
                 </Border.StrokeShape>
-                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="8">
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" FontSize="18" Text="Mitarbeitergehälter" TextColor="{StaticResource RfmText}" />
                         <Label Grid.Row="0" Grid.Column="1" FontSize="18" Text="{Binding StaffWagesText}" TextColor="#EF4444" />
                         <Label Grid.Row="1" Grid.Column="0" FontSize="18" Text="Stadionkosten" TextColor="{StaticResource RfmText}" />
                         <Label Grid.Row="1" Grid.Column="1" FontSize="18" Text="{Binding StadiumCostsText}" TextColor="#EF4444" />
+                        <Label Grid.Row="2" Grid.Column="0" FontSize="18" Text="Preisgelder" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="2" Grid.Column="1" FontSize="18" Text="{Binding PrizeMoneyText}" TextColor="{StaticResource RfmAccentTeal}" />
                 </Grid>
             </Border>
 

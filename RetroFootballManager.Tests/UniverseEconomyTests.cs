@@ -46,6 +46,26 @@ namespace RetroFootballManager.Tests
         }
 
         [Fact]
+        public void CreateUniverse_StartingCapitalCoversOwnSquadAndInfrastructureCosts()
+        {
+            // Regression: starting capital used to be a fixed per-league amount, independent of
+            // the team's actually generated (random) squad wage bill - some teams (esp. league 4
+            // and high-variance league 1 rosters) started already unable to cover their own
+            // wages. Now it's derived per team from its own costs, so every club can carry its
+            // own infrastructure from day one.
+            var (_, teams) = UniverseGenerator.CreateUniverse(season: 1, random: new Random(42));
+
+            foreach (var team in teams)
+            {
+                double annualPlayerWages = team.Players.Sum(PlayerValuationService.EstimateAnnualSalary);
+                double annualStaffWages = team.Employees.Sum(e => e.Salary) + ManagerEffects.AnnualSalary(team.ManagerProfile!);
+                int expectedBalance = (int)Math.Round(annualPlayerWages + annualStaffWages + team.Stadium!.MaintenanceCosts);
+
+                Assert.Equal(expectedBalance, team.Finances!.CurrentBalance);
+            }
+        }
+
+        [Fact]
         public async Task StartNewCareerAsync_SeedsAtLeastOneSponsorshipPerTeam_AndCoachContract()
         {
             var (leagues, teams) = UniverseGenerator.CreateUniverse(season: 1, random: new Random(3));

@@ -624,6 +624,13 @@ namespace RetroFootballManager.Data
 
             await PaySponsorSeasonBonusesAsync(teams, result);
 
+            PrizeMoneyService.AwardLeaguePrizes(teams, result);
+            foreach (var competition in new[] { CompetitionType.GermanCup, CompetitionType.ChampionsLeague, CompetitionType.EuropaCup })
+            {
+                var ties = await _cupTieRepository.GetBySeasonAsync(state.Season, competition);
+                PrizeMoneyService.AwardCupPrizes(teams, ties, competition);
+            }
+
             int newSeason = state.Season + 1;
             var seasonStart = NextSeasonStart(state.CurrentDate);
 
@@ -752,6 +759,17 @@ namespace RetroFootballManager.Data
                     PlayerGenerator.BackfillInMatchCharacterIfMissing(p);
                 }
 
+                // Legacy safety net for saves created before portrait images existed - a no-op
+                // once ImagePath is set or the player/employee is too old for the (young-faces-
+                // only) pack, safe to call on every load.
+                FaceImageAssigner.AssignPlayerFaces(team.Players.Concat(team.YouthPlayers), Random.Shared);
+                foreach (var e in team.Employees)
+                {
+                    StaffGenerator.BackfillAgeIfMissing(e);
+                    StaffGenerator.FixGenderNameMismatch(e);
+                }
+                FaceImageAssigner.AssignStaffFaces(team.Employees, Random.Shared);
+
                 // Legacy safety net for saves created before club mood existed: both fields
                 // read 0 after the column is added - 0/0 simultaneously is not a realistic
                 // organic state, so treat it as "never initialized" and reset to the neutral
@@ -785,6 +803,19 @@ namespace RetroFootballManager.Data
 
             state.LastSavedAt = DateTime.UtcNow;
             await _gameStateRepository.SaveAsync(state);
+        }
+
+        // Persists just GameState.CurrentDate (+ the rest of GameState) - called once per day
+        // from CalendarAdvanceService.AdvanceOneDayAsync so the calendar date can never end up
+        // behind entity-level side effects (contracts, scouting assignments, ...) that already
+        // write straight to the DB during the same tick. Without this, force-quitting mid
+        // "Zeit vorstellen" (no explicit "Speichern") leaves CurrentDate reverted on reload
+        // while those side effects stay - e.g. a scouting assignment whose StartDate is now in
+        // the "future" relative to the reloaded CurrentDate.
+        public Task SaveGameStateAsync(GameState state)
+        {
+            state.LastSavedAt = DateTime.UtcNow;
+            return _gameStateRepository.SaveAsync(state);
         }
     }
 }

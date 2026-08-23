@@ -23,12 +23,19 @@ namespace RetroFootballManager.ViewModels
 
         private Team? _team;
 
-        public TrainingViewModel(IDispatcher dispatcher, GameSession session, SaveGameService saveGame, INavigationService navigation)
+        // Shared negotiation dialog - see NegotiationDialogViewModel. Bound in
+        // TrainingPage.xaml via BindingContext="{Binding Negotiation}".
+        public NegotiationDialogViewModel Negotiation { get; }
+
+        public TrainingViewModel(
+            IDispatcher dispatcher, GameSession session, SaveGameService saveGame, INavigationService navigation,
+            NegotiationDialogViewModel negotiation)
             : base(dispatcher)
         {
             _session = session;
             _saveGame = saveGame;
             _navigation = navigation;
+            Negotiation = negotiation;
             Title = "Training";
         }
 
@@ -113,20 +120,18 @@ namespace RetroFootballManager.ViewModels
         [RelayCommand]
         private void CloseProfile() => IsPlayerProfileOpen = false;
 
+        // Opens the negotiation dialog (personal terms directly with the player - no manager
+        // involved for a renewal, see NegotiationDialogViewModel) instead of an instant flat
+        // salary bump.
         [RelayCommand]
         private async Task RenewContract()
         {
-            if (SelectedPlayer is null || _selectedProfileContract is null)
+            if (SelectedPlayer is null || _team is null || _session.State is null)
                 return;
 
-            double newSalary = Math.Round(_selectedProfileContract.AnnualSalary * 1.15);
-            PlayerContractService.RenewContract(_selectedProfileContract, newSalary, additionalYears: 2);
-            await _saveGame.SaveContractAsync(_selectedProfileContract);
-
-            var careerStats = await _saveGame.GetPlayerCareerStatsAsync(SelectedPlayer.Id);
-            var competitionStats = await _saveGame.GetPlayerCompetitionBreakdownAsync(SelectedPlayer.Id);
-            SelectedProfile = PlayerProfile.From(SelectedPlayer, _selectedProfileContract, _selectedProfileListing, careerStats: careerStats, competitionStats: competitionStats);
-            RenewStatusText = $"Verlängert bis {_selectedProfileContract.EndDate:MMMM yyyy}.";
+            string? error = await Negotiation.TryStartRenewalNegotiationAsync(
+                _team, SelectedPlayer, _session.State.Season, _session.State.CurrentDate, onCompleted: ShowProfile);
+            RenewStatusText = error ?? string.Empty;
         }
 
         [RelayCommand]

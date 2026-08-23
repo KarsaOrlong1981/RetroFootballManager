@@ -461,7 +461,8 @@ namespace RetroFootballManager.ViewModels
                     slot.AlternateRole is not null,
                     player?.UsedAsWingBack ?? false,
                     MalusPercent: (int)Math.Round((1 - multiplier) * 100),
-                    Fitness: player?.Fitness ?? 100));
+                    Fitness: player?.Fitness ?? 100,
+                    ImagePath: player?.ImagePath));
             }
 
             var bench = _team.Players.Where(p => p.Status == PlayerStatus.OnBench)
@@ -566,7 +567,8 @@ namespace RetroFootballManager.ViewModels
         bool IsAlternateActive = false,
         int MalusPercent = 0,
         int Fitness = 100,
-        int YellowCards = 0)
+        int YellowCards = 0,
+        string? ImagePath = null)
     {
         // Visible only when the position-fit penalty actually reduces the player's
         // contribution (0 on the home position, since PositionSkillEffects.GetMultiplier is 1.0).

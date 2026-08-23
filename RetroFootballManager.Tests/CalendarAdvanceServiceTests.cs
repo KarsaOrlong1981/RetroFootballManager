@@ -158,5 +158,37 @@ namespace RetroFootballManager.Tests
 
             Assert.True(targetPlayer.IsScouted);
         }
+
+        [Fact]
+        public async Task AdvanceOneDayAsync_PersistsCurrentDate_WithoutExplicitSave()
+        {
+            // Regression: GameState.CurrentDate used to only ever get written on the player's
+            // explicit "Speichern" - a force-quit mid "Zeit vorstellen" reverted the calendar
+            // date on reload while entity-level side effects (e.g. scouting assignments) that
+            // write straight to the DB during the same tick stayed, leaving them dated "in the
+            // future" relative to the reverted date.
+            var humanTeam = await SetupHumanTeamAsync();
+            var saveGame = new SaveGameService(_db);
+
+            var serviceWithSaveGame = new CalendarAdvanceService(
+                _teamRepo, _fixtureRepo, new AiManagerService(
+                    new TransferMarketService(new TransferListingRepository(_db), new TransferOfferRepository(_db),
+                        new LoanAgreementRepository(_db), _teamRepo, new ContractRepository(_db)),
+                    new StaffMarketService(_db, _teamRepo, new ContractRepository(_db), new Random(1)),
+                    new ContractRepository(_db), new TransferListingRepository(_db)),
+                new ExpiryWarningService(new ContractRepository(_db), new LoanAgreementRepository(_db), _messages),
+                new FinanceService(new SponsorRepository(_db), new SponsorshipRepository(_db), new ContractRepository(_db), _messages),
+                new TrainingCampService(new TrainingCampRepository(_db), _fixtureRepo, _messages, new Random(1)),
+                _messages, new Random(1), saveGame);
+
+            var state = new GameState { ManagerTeamId = humanTeam.Id, Season = 1, CurrentDate = Today, SeasonStart = Today };
+
+            // No saveGame.SaveProgressAsync call anywhere - simulates a force-quit right after.
+            await serviceWithSaveGame.AdvanceOneDayAsync(state, [humanTeam]);
+
+            var reloaded = await saveGame.LoadGameAsync();
+            Assert.NotNull(reloaded);
+            Assert.Equal(Today.AddDays(1), reloaded!.Value.State.CurrentDate);
+        }
     }
 }

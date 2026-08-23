@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:RetroFootballManager.Views.Controls"
+             xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+             x:Class="RetroFootballManager.Views.Controls.PlayerNegotiationsDialog"
+             x:DataType="vm:NegotiationDialogViewModel">
+    <Grid IsVisible="{Binding IsOpen}" BackgroundColor="#B0000000">
+        <Border
+            StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+            BackgroundColor="{StaticResource RfmBackground}"
+            Margin="20" Padding="18"
+            WidthRequest="760" HeightRequest="660"
+            HorizontalOptions="Center" VerticalOptions="Center">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="16" />
+            </Border.StrokeShape>
+            <Grid RowDefinitions="Auto,Auto,*,Auto">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                    <Label Grid.Column="0" Text="{Binding PlayerName}" FontSize="22" FontAttributes="Bold"
+                          TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                    <Button Grid.Column="1" ImageSource="close.png" Command="{Binding CloseCommand}"
+                            BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}"
+                            WidthRequest="36" HeightRequest="36" Padding="8" />
+                </Grid>
+
+                <Label Grid.Row="1" Text="{Binding Subtitle}" FontSize="16"
+                       TextColor="{StaticResource RfmTextMuted}" Margin="0,2,0,10" />
+
+                <!-- Manager phase: Ablöseverhandlung -->
+                <Grid Grid.Row="2" ColumnDefinitions="150,*" ColumnSpacing="16"
+                      IsVisible="{Binding IsManagerPhaseOpen}">
+                    <Border Grid.Column="0" WidthRequest="150" HeightRequest="150" StrokeThickness="3"
+                            Stroke="{StaticResource RfmAccentTeal}" VerticalOptions="Start" HorizontalOptions="Center">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="12" />
+                        </Border.StrokeShape>
+                        <Image Source="{Binding ManagerImageSource}" Aspect="AspectFill" />
+                    </Border>
+
+                    <ScrollView Grid.Column="1">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="{Binding ManagerMoodText}" FontSize="17" FontAttributes="Bold"
+                                   TextColor="{StaticResource RfmText}" />
+
+                            <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                                <Label Grid.Row="0" Grid.Column="0" Text="Schrittweite" TextColor="{StaticResource RfmText}" VerticalOptions="Center"
+                                       IsVisible="{Binding ShowFeeField}" />
+                                <controls:PresetStepInput Grid.Row="0" Grid.Column="1"
+                                       Value="{Binding NegotiationStepSize}"
+                                       IsVisible="{Binding ShowFeeField}" />
+
+                                <Label Grid.Row="1" Grid.Column="0" Text="Ablöse (€)" TextColor="{StaticResource RfmText}" VerticalOptions="Center"
+                                       IsVisible="{Binding ShowFeeField}" />
+                                <controls:SteppedAmountInput Grid.Row="1" Grid.Column="1"
+                                       Value="{Binding NegotiationFee}"
+                                       StepSize="{Binding NegotiationStepSize}"
+                                       IsVisible="{Binding ShowFeeField}" />
+
+                                <Label Grid.Row="2" Grid.Column="0" Text="Weiterverkauf (%)" TextColor="{StaticResource RfmText}"
+                                       VerticalOptions="Center" IsVisible="{Binding ShowSellOnField}" />
+                                <Entry Grid.Row="2" Grid.Column="1" Text="{Binding NegotiationSellOnPercentage}"
+                                       Keyboard="Numeric" TextColor="{StaticResource RfmText}"
+                                       IsVisible="{Binding ShowSellOnField}" />
+
+                                <Label Grid.Row="3" Grid.Column="0" Text="Gehaltsanteil (%)" TextColor="{StaticResource RfmText}"
+                                       VerticalOptions="Center" IsVisible="{Binding ShowLoanWageFields}" />
+                                <controls:SteppedIntegerInput Grid.Row="3" Grid.Column="1" Minimum="0" Maximum="100" Increment="5" Suffix=" %"
+                                       Value="{Binding NegotiationWageSharePercentage}"
+                                       IsVisible="{Binding ShowLoanWageFields}" />
+
+                                <Label Grid.Row="4" Grid.Column="0" Text="Leihdauer (Monate)" TextColor="{StaticResource RfmText}"
+                                       VerticalOptions="Center" IsVisible="{Binding ShowLoanWageFields}" />
+                                <controls:SteppedIntegerInput Grid.Row="4" Grid.Column="1" Minimum="1" Maximum="24" Increment="1"
+                                       Value="{Binding NegotiationLoanDurationMonths}"
+                                       IsVisible="{Binding ShowLoanWageFields}" />
+
+                                <Label Grid.Row="5" Grid.ColumnSpan="2" FontSize="15" TextColor="{StaticResource RfmAccentTeal}"
+                                       IsVisible="{Binding ShowLoanWageFields}">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Wir zahlen: " />
+                                            <Span Text="{Binding NegotiationLoanAnnualWage, StringFormat='{0:N0} €/Jahr'}" FontAttributes="Bold" />
+                                            <Span Text=" · " />
+                                            <Span Text="{Binding NegotiationLoanMonthlyWage, StringFormat='{0:N0} €/Monat'}" FontAttributes="Bold" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                            </Grid>
+
+                            <Button Text="Angebot senden" HorizontalOptions="Start" Padding="14,8"
+                                    Command="{Binding SubmitManagerOfferCommand}"
+                                    BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+
+                            <Label Text="{Binding NegotiationStatusText}" FontSize="16"
+                                   TextColor="{StaticResource RfmAccentTeal}" FontAttributes="Bold" />
+
+                            <BoxView HeightRequest="1" BackgroundColor="{StaticResource RfmTextMuted}" Opacity="0.4" />
+
+                            <Label Text="Verlauf" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                            <Label Text="{Binding NegotiationLogText}" FontSize="14"
+                                   TextColor="{StaticResource RfmTextMuted}" />
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </Grid>
+
+                <!-- Player phase: Vertragskonditionen -->
+                <Grid Grid.Row="2" ColumnDefinitions="150,*" ColumnSpacing="16"
+                      IsVisible="{Binding IsPlayerPhaseOpen}">
+                    <Border Grid.Column="0" WidthRequest="150" HeightRequest="150" StrokeThickness="4"
+                            Stroke="{Binding PlayerMoodBorderColor}"
+                            VerticalOptions="Start" HorizontalOptions="Center">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="12" />
+                        </Border.StrokeShape>
+                        <Grid>
+                            <Image Source="avatar.png" Aspect="AspectFill"
+                                   IsVisible="{Binding PlayerPortraitPath, Converter={StaticResource NoLogo}}" />
+                            <Image Source="{Binding PlayerPortraitPath}" Aspect="AspectFill"
+                                   IsVisible="{Binding PlayerPortraitPath, Converter={StaticResource HasLogo}}" />
+                        </Grid>
+                    </Border>
+
+                    <ScrollView Grid.Column="1">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="{Binding PlayerMoodText}" FontSize="17" FontAttributes="Bold"
+                                   TextColor="{StaticResource RfmText}" />
+
+                            <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                                <Label Grid.Row="0" Grid.Column="0" Text="Schrittweite" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                <controls:PresetStepInput Grid.Row="0" Grid.Column="1"
+                                       Value="{Binding NegotiationStepSize}" />
+
+                                <Label Grid.Row="1" Grid.Column="0" Text="Jahresgehalt (€)" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                <controls:SteppedAmountInput Grid.Row="1" Grid.Column="1"
+                                       Value="{Binding NegotiatedWage}"
+                                       StepSize="{Binding NegotiationStepSize}" />
+
+                                <Label Grid.Row="2" Grid.Column="0" Text="Vertragslaufzeit (Jahre)" TextColor="{StaticResource RfmText}"
+                                       VerticalOptions="Center" IsVisible="{Binding ShowContractYearsField}" />
+                                <controls:SteppedIntegerInput Grid.Row="2" Grid.Column="1" Minimum="1" Maximum="6" Increment="1"
+                                       Value="{Binding NegotiatedContractYears}"
+                                       IsVisible="{Binding ShowContractYearsField}" />
+
+                                <Label Grid.Row="3" Grid.Column="0" Text="Rolle im Team" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                <Picker Grid.Row="3" Grid.Column="1"
+                                        ItemsSource="{Binding AvailableRoleLabels}"
+                                        SelectedIndex="{Binding NegotiatedRoleIndex}"
+                                        TextColor="{StaticResource RfmText}" />
+
+                                <Label Grid.Row="4" Grid.Column="0" Text="Ausstiegsklausel" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                <HorizontalStackLayout Grid.Row="4" Grid.Column="1" Spacing="8">
+                                    <Switch IsToggled="{Binding HasExitClause}" />
+                                    <controls:SteppedAmountInput Value="{Binding ExitClauseAmount}"
+                                           StepSize="{Binding NegotiationStepSize}"
+                                           IsVisible="{Binding HasExitClause}" />
+                                </HorizontalStackLayout>
+                            </Grid>
+
+                            <Label Text="Bonuszahlungen" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,4,0,0" />
+                            <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding NegotiationBonusRows}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:NegotiationBonusRow">
+                                        <Grid ColumnDefinitions="*,110" ColumnSpacing="8">
+                                            <Label Grid.Column="0" Text="{Binding Label}" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                            <Entry Grid.Column="1" Text="{Binding Amount}" Keyboard="Numeric" TextColor="{StaticResource RfmText}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+
+                            <Button Text="Angebot senden" HorizontalOptions="Start" Padding="14,8" Margin="0,4,0,0"
+                                    Command="{Binding SubmitPlayerOfferCommand}"
+                                    BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+
+                            <Label Text="{Binding NegotiationStatusText}" FontSize="16"
+                                   TextColor="{StaticResource RfmAccentTeal}" FontAttributes="Bold" />
+
+                            <BoxView HeightRequest="1" BackgroundColor="{StaticResource RfmTextMuted}" Opacity="0.4" />
+
+                            <Label Text="Verlauf" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                            <Label Text="{Binding NegotiationLogText}" FontSize="14"
+                                   TextColor="{StaticResource RfmTextMuted}" />
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </Grid>
+
+                <Button Grid.Row="3" Text="Schließen" HorizontalOptions="End" Margin="0,10,0,0" Padding="14,8"
+                        Command="{Binding CloseCommand}"
+                        BackgroundColor="Transparent" BorderColor="{StaticResource RfmTextMuted}" BorderWidth="1"
+                        TextColor="{StaticResource RfmText}" />
+            </Grid>
+        </Border>
+    </Grid>
+</ContentView>

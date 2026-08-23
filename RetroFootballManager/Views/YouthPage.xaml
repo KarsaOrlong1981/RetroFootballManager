@@ -25,16 +25,22 @@
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
-                                <Grid ColumnDefinitions="50,*,Auto,Auto,26" ColumnSpacing="10">
-                                    <VerticalStackLayout Grid.Column="1">
+                                <Grid ColumnDefinitions="50,100,*,Auto,Auto,26" ColumnSpacing="10">
+                                    <Grid Grid.Column="1" WidthRequest="100" HeightRequest="100" >
+                                        <Image Source="avatar.png" Aspect="AspectFit"
+                                               IsVisible="{Binding ImagePath, Converter={StaticResource NoLogo}}" />
+                                        <Image Source="{Binding ImagePath}" Aspect="AspectFit"
+                                               IsVisible="{Binding ImagePath, Converter={StaticResource HasLogo}}" />
+                                    </Grid>
+                                    <VerticalStackLayout Grid.Column="2">
                                         <Label Text="{Binding Name}" FontSize="18" TextColor="{StaticResource RfmText}" />
                                         <Label Text="{Binding ShortPositionName}" FontSize="18" TextColor="{StaticResource RfmText}" />
                                         <Label Text="{Binding Age, StringFormat='{0} Jahre'}" FontSize="16"
                                                TextColor="{StaticResource RfmTextMuted}" />
                                     </VerticalStackLayout>
-                                    <Label Grid.Column="2" Text="{Binding Rating, StringFormat='R {0:0}'}" FontSize="18"
+                                    <Label Grid.Column="3" Text="{Binding Rating, StringFormat='R {0:0}'}" FontSize="18"
                                            TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
-                                    <Label Grid.Column="3" Text="{Binding Talent, StringFormat='T {0}'}" FontSize="18"
+                                    <Label Grid.Column="4" Text="{Binding Talent, StringFormat='T {0}'}" FontSize="18"
                                            FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
                                     <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0">
                                         <Border.StrokeShape>

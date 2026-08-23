@@ -18,9 +18,6 @@ namespace RetroFootballManager.Common
         // Approximate stadium capacity per tier.
         private static readonly int[] TierCapacity = [45000, 24000, 12000, 6000];
 
-        // Starting capital per tier.
-        private static readonly int[] TierBalance = [40_000_000, 12_000_000, 3_000_000, 800_000]; 
-
         public static (List<League> Leagues, List<Team> Teams) CreateUniverse(
             int season,
             Random? random = null,
@@ -80,6 +77,25 @@ namespace RetroFootballManager.Common
                 foreignPlayerChance: 0.15,
                 random: rng,
                 referenceDate: refDate);
+            var youthPlayers = YouthGenerator.GenerateYouthSquad(tier, YouthPerTeam, Nationality.Germany, refDate, rng);
+            FaceImageAssigner.AssignPlayerFaces(players.Concat(youthPlayers), rng);
+
+            var employees = new List<Employee>
+            {
+                StaffGenerator.GenerateStaff(EmployeeType.AssistantCoach, targetRating - 5, Nationality.Germany, rng),
+            };
+            FaceImageAssigner.AssignStaffFaces(employees, rng);
+            var managerProfile = ManagerProfileGenerator.Generate(tier, Nationality.Germany, rng, refDate);
+            var stadium = BuildStadium(tier, shortName, rng);
+
+            // Starting capital covers exactly this season's own committed costs (squad wages,
+            // staff/manager wages, stadium upkeep) instead of a fixed per-league amount - every
+            // club can carry its own infrastructure from day one, regardless of how strong/weak
+            // its randomly generated squad turned out relative to its league. Ticket/sponsor
+            // income and transfer decisions are then entirely up to the manager.
+            double annualPlayerWages = players.Sum(PlayerValuationService.EstimateAnnualSalary);
+            double annualStaffWages = employees.Sum(e => e.Salary) + ManagerEffects.AnnualSalary(managerProfile);
+            int startBalance = (int)Math.Round(annualPlayerWages + annualStaffWages + stadium.MaintenanceCosts);
 
             var team = new Team
             {
@@ -95,19 +111,17 @@ namespace RetroFootballManager.Common
                 TacticalOrientation = TacticalOrientation.Balanced,
                 TacklingIntensity = TacklingIntensity.Normal,
                 Players = players,
-                YouthPlayers = YouthGenerator.GenerateYouthSquad(
-                    tier, YouthPerTeam, Nationality.Germany, refDate, rng),
-                Employees = [StaffGenerator.GenerateStaff(
-                    EmployeeType.AssistantCoach, targetRating - 5, Nationality.Germany, rng)],
-                ManagerProfile = ManagerProfileGenerator.Generate(tier, Nationality.Germany, rng, refDate),
+                YouthPlayers = youthPlayers,
+                Employees = employees,
+                ManagerProfile = managerProfile,
                 Statistics = new TeamStats { Season = season },
-                Stadium = BuildStadium(tier, shortName, rng),
+                Stadium = stadium,
                 Finances = new Finances
                 {
-                    CurrentBalance = TierBalance[tier - 1],
-                    SeasonBudget = TierBalance[tier - 1] / 2,
-                    TransferBudget = TierBalance[tier - 1] / 4,
-                    WageBudget = TierBalance[tier - 1] / 3,
+                    CurrentBalance = startBalance,
+                    SeasonBudget = startBalance / 2,
+                    TransferBudget = startBalance / 4,
+                    WageBudget = startBalance / 3,
                     FinancialHealth = rng.Next(55, 85),
                 },
             };

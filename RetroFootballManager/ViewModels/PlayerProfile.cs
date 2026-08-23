@@ -7,6 +7,7 @@ namespace RetroFootballManager.ViewModels
     // Full player profile shown in a dialog when tapping a player's info button.
     public record PlayerProfile(
         string Name,
+        string? ImagePath,
         string Position,
         string SecondaryPositions,
         int Age,
@@ -44,8 +45,10 @@ namespace RetroFootballManager.ViewModels
         public static PlayerProfile From(
             Player p, Contract? contract = null, TransferListing? listing = null,
             PlayerStats? seasonStats = null, PlayerStats? careerStats = null,
-            IReadOnlyList<CompetitionStatsRow>? competitionStats = null) => new(
+            IReadOnlyList<CompetitionStatsRow>? competitionStats = null,
+            IReadOnlyList<ContractBonus>? bonuses = null) => new(
             p.Name,
+            p.ImagePath,
             p.ShortPositionName,
             p.SecondaryPositions.Count == 0
                 ? "Keine"
@@ -65,7 +68,7 @@ namespace RetroFootballManager.ViewModels
             p.CareerMinutesPlayed,
             p.SeasonMinutes,
             p.IsYouthProspect,
-            ContractText(contract),
+            ContractText(contract, bonuses),
             TransferStatusText(listing),
             seasonStats?.Goals ?? 0,
             seasonStats?.Assists ?? 0,
@@ -82,9 +85,26 @@ namespace RetroFootballManager.ViewModels
             InMatchCharacterDisplay.Name(p.InMatchCharacter),
             competitionStats ?? []);
 
-        private static string ContractText(Contract? c) => c is null
-            ? "Kein aktiver Vertrag."
-            : $"Vertrag bis {c.EndDate:MMMM yyyy} · Gehalt {c.AnnualSalary:N0} €/Jahr";
+        private static string ContractText(Contract? c, IReadOnlyList<ContractBonus>? bonuses)
+        {
+            if (c is null)
+                return "Kein aktiver Vertrag.";
+
+            string text = $"Vertrag bis {c.EndDate:MMMM yyyy} · Gehalt {c.AnnualSalary:N0} €/Jahr";
+            if (!c.HasNegotiatedTerms)
+                return text;
+
+            text += $"\nRolle: {RoleInTeamDisplay.Label(c.RoleInTeam)}";
+            text += c.ReleaseClause > 0
+                ? $"\nAusstiegsklausel: {c.ReleaseClause:N0} €"
+                : "\nAusstiegsklausel: Keine";
+            if (c.SellOnPercentage > 0)
+                text += $"\nWeiterverkaufsbeteiligung: {c.SellOnPercentage:N0} %";
+            if (bonuses is { Count: > 0 })
+                text += "\nBoni: " + string.Join(", ", bonuses.Select(b => $"{ContractBonusTypeDisplay.Label(b.BonusType)} {b.Amount:N0} €"));
+
+            return text;
+        }
 
         private static string TransferStatusText(TransferListing? listing)
         {

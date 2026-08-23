@@ -82,6 +82,7 @@ namespace RetroFootballManager.Common
             var players = PlayerGenerator.GenerateSquad(
                 nationality, teamTarget, squadSize: 22, foreignPlayerChance: 0.1, random: rng,
                 referenceDate: new DateTime(2026, 8, 1));
+            FaceImageAssigner.AssignPlayerFaces(players, rng);
 
             var team = new Team
             {

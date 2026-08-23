@@ -66,6 +66,7 @@ namespace RetroFootballManager.Common
                 candidates.Add(StaffGenerator.GenerateStaff(type, quality, Nationality.Germany, _random));
             }
 
+            FaceImageAssigner.AssignStaffFaces(candidates, _random);
             return candidates;
         }
 

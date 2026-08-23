@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="RetroFootballManager.Views.Controls.SteppedIntegerInput"
+             x:Name="Root">
+    <HorizontalStackLayout Spacing="8">
+        <Button Text="-" WidthRequest="34" HeightRequest="32" Padding="0" FontAttributes="Bold"
+                Clicked="OnDownClicked" BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+        <Label Text="{Binding DisplayText, Source={x:Reference Root}}" FontSize="18" FontAttributes="Bold"
+               WidthRequest="60" HorizontalTextAlignment="Center" VerticalOptions="Center" TextColor="{StaticResource RfmText}" />
+        <Button Text="+" WidthRequest="34" HeightRequest="32" Padding="0" FontAttributes="Bold"
+                Clicked="OnUpClicked" BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+    </HorizontalStackLayout>
+</ContentView>

@@ -96,12 +96,15 @@
                                                     DropCommand="{Binding Source={x:Reference Page}, Path=BindingContext.DropOnCommand}"
                                                     DropCommandParameter="{Binding PlayerId}" />
                                             </Grid.GestureRecognizers>
-                                            <Grid HorizontalOptions="Center" VerticalOptions="Center" RowDefinitions="Auto,Auto,Auto,Auto"  ColumnDefinitions="80,*">
+                                            <Grid HorizontalOptions="Fill" VerticalOptions="Center" RowDefinitions="Auto,Auto,Auto,Auto"  ColumnDefinitions="Auto,*">
                                                 <Label Grid.ColumnSpan="2" Text="{Binding PosLabel}" FontSize="14" TextColor="White" FontAttributes="Bold"
                                                        HorizontalOptions="Center" Opacity="0.8" />
                                                     <Label Grid.ColumnSpan="2" Grid.Row="1" Text="{Binding Name}" FontSize="14" FontAttributes="Bold" TextColor="White"
                                                        HorizontalOptions="Center" LineBreakMode="TailTruncation" MaxLines="1"  HorizontalTextAlignment="Center" />
-                                                    <Image Grid.Row="3" Grid.ColumnSpan="2" Source="avatar.png" Aspect="AspectFit"/>
+                                                    <Image Grid.Row="3" Grid.ColumnSpan="2" Source="avatar.png" Aspect="AspectFit"
+                                                           IsVisible="{Binding ImagePath, Converter={StaticResource NoLogo}}"/>
+                                                    <Image Grid.Row="3" Grid.ColumnSpan="2" Source="{Binding ImagePath}" WidthRequest="80" HeightRequest="80"
+                                                           IsVisible="{Binding ImagePath, Converter={StaticResource HasLogo}}"/>
                                                     <Grid Grid.Row="3" RowDefinitions="Auto,Auto,Auto,Auto" Margin="2">
                                                         <Label Text="{Binding Rating}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}"/>
                                                         <Label Grid.Row="1" Text="{Binding MalusLabel}" IsVisible="{Binding HasMalus}"

@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RetroFootballManager.Common;
@@ -8,6 +7,7 @@ using RetroFootballManager.Data.Repositories;
 using RetroFootballManager.Logging;
 using RetroFootballManager.Models;
 using RetroFootballManager.Services;
+using System.Collections.ObjectModel;
 
 namespace RetroFootballManager.ViewModels
 {
@@ -25,7 +25,8 @@ namespace RetroFootballManager.ViewModels
 
     public record OwnOfferRow(int OfferId, int ListingId, string OfferingTeamName, double Fee, double Wage);
 
-    public record OwnListingRow(int ListingId, string PlayerName, double AskingPrice, bool IsLoan, List<OwnOfferRow> Offers)
+    public record OwnListingRow(
+        int ListingId, int PlayerId, string PlayerName, double AskingPrice, bool IsLoan, List<OwnOfferRow> Offers)
     {
         public bool HasOffers => Offers.Count > 0;
     }
@@ -45,15 +46,22 @@ namespace RetroFootballManager.ViewModels
         private readonly TransferMarketService _market;
         private readonly TransferListingRepository _listingRepo;
         private readonly TransferOfferRepository _offerRepo;
+        private readonly ContractBonusRepository _bonusRepo;
 
         private Team? _team;
         private Dictionary<int, TransferListing> _listingsById = new();
         private Dictionary<int, TransferOffer> _offersById = new();
         private readonly Random _rng = new();
 
+        // Shared negotiation dialog (manager phase + player phase) - see
+        // NegotiationDialogViewModel. Bound in TransferMarketPage.xaml via
+        // BindingContext="{Binding Negotiation}".
+        public NegotiationDialogViewModel Negotiation { get; }
+
         public TransferMarketViewModel(
             IDispatcher dispatcher, GameSession session, SaveGameService saveGame, TransferMarketService market,
-            TransferListingRepository listingRepo, TransferOfferRepository offerRepo)
+            TransferListingRepository listingRepo, TransferOfferRepository offerRepo, ContractBonusRepository bonusRepo,
+            NegotiationDialogViewModel negotiation)
             : base(dispatcher)
         {
             _session = session;
@@ -61,6 +69,8 @@ namespace RetroFootballManager.ViewModels
             _market = market;
             _listingRepo = listingRepo;
             _offerRepo = offerRepo;
+            _bonusRepo = bonusRepo;
+            Negotiation = negotiation;
             Title = "Transfermarkt";
         }
 
@@ -158,7 +168,7 @@ namespace RetroFootballManager.ViewModels
                 }
 
                 OwnListings.Add(new OwnListingRow(
-                    listing.Id, player?.Name ?? "?", listing.AskingPrice, listing.IsLoanListing, pendingRows));
+                    listing.Id, listing.PlayerId, player?.Name ?? "?", listing.AskingPrice, listing.IsLoanListing, pendingRows));
             }
 
             OutgoingOffers.Clear();
@@ -218,7 +228,8 @@ namespace RetroFootballManager.ViewModels
                 var seasonStats = await _saveGame.GetPlayerSeasonStatsAsync(player.Id, _session.State.Season);
                 var careerStats = await _saveGame.GetPlayerCareerStatsAsync(player.Id);
                 var competitionStats = await _saveGame.GetPlayerCompetitionBreakdownAsync(player.Id);
-                SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats, competitionStats);
+                var bonuses = contract is not null ? await _bonusRepo.GetByContractAsync(contract.Id) : null;
+                SelectedProfile = PlayerProfile.From(player, contract, listing, seasonStats, careerStats, competitionStats, bonuses);
             }
             IsPlayerProfileOpen = true;
         }
@@ -338,30 +349,52 @@ namespace RetroFootballManager.ViewModels
             if (_team is null || _session.State is null || !_listingsById.TryGetValue(row.ListingId, out var listing))
                 return;
 
-            if (!TransferMarketService.CanBuy(_team, out string? balanceError))
-            {
-                StatusText = balanceError!;
+            var player = _session.Teams.SelectMany(t => t.Players).FirstOrDefault(p => p.Id == row.PlayerId);
+            var sellingTeam = _session.Teams.FirstOrDefault(t => t.Id == listing.TeamId);
+            if (player is null || sellingTeam is null)
                 return;
-            }
 
-            IsBusy = true;
-            StatusText = $"Angebot für {row.PlayerName} wird abgegeben …";
-            try
-            {
-                double wage = Math.Round(listing.AskingPrice * 0.15);
-                await _market.MakeOfferAsync(listing, _team, listing.AskingPrice, wage, _session.State.CurrentDate);
-                StatusText = $"Angebot für {row.PlayerName} abgegeben.";
-                await RefreshAsync();
-            }
-            catch (Exception ex)
-            {
-                Log.Error("Could not submit offer.", ex);
-                StatusText = "Angebot fehlgeschlagen.";
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+            var seasonStats = await _saveGame.GetPlayerSeasonStatsAsync(player.Id, _session.State.Season);
+            string? error = await Negotiation.TryStartBuyOrLoanNegotiationAsync(
+                _team, listing, player, sellingTeam, seasonStats, _session.State.Season, _session.State.CurrentDate, RefreshAsync);
+            if (error is not null)
+                StatusText = error;
+        }
+
+        [RelayCommand]
+        private async Task NegotiateOwnOffer(OwnOfferRow row)
+        {
+            if (IsBusy) return;
+            if (_team is null || _session.State is null
+                || !_offersById.TryGetValue(row.OfferId, out var offer)
+                || !_listingsById.TryGetValue(row.ListingId, out var listing))
+                return;
+
+            var buyingTeam = _session.Teams.FirstOrDefault(t => t.Id == offer.OfferingTeamId);
+            var player = _team.Players.FirstOrDefault(p => p.Id == listing.PlayerId);
+            if (buyingTeam is null || player is null)
+                return;
+
+            var seasonStats = await _saveGame.GetPlayerSeasonStatsAsync(player.Id, _session.State.Season);
+            await Negotiation.TryStartSellNegotiationAsync(
+                _team, offer, listing, player, buyingTeam, seasonStats, _session.State.CurrentDate, RefreshAsync);
+        }
+
+        [RelayCommand]
+        private async Task RenewContract(OwnPlayerRow row)
+        {
+            if (IsBusy) return;
+            if (_team is null || _session.State is null)
+                return;
+
+            var player = _team.Players.FirstOrDefault(p => p.Id == row.PlayerId);
+            if (player is null)
+                return;
+
+            string? error = await Negotiation.TryStartRenewalNegotiationAsync(
+                _team, player, _session.State.Season, _session.State.CurrentDate, RefreshAsync);
+            if (error is not null)
+                StatusText = error;
         }
 
         [RelayCommand]
@@ -425,6 +458,12 @@ namespace RetroFootballManager.ViewModels
             if (!TransferMarketService.CanBuy(_team, out string? balanceError))
             {
                 StatusText = balanceError!;
+                return;
+            }
+
+            if (!listing.IsLoanListing && !TransferMarketService.CanAffordFee(_team, offer.CounterFee))
+            {
+                StatusText = $"Die geforderte Ablöse von {offer.CounterFee:N0} € würde den Kontostand zu weit ins Minus drücken.";
                 return;
             }
 

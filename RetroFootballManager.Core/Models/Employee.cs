@@ -13,6 +13,13 @@ namespace RetroFootballManager.Models
         public string Name { get; set; } = string.Empty;
         public double Rating { get; set; }
         public EmployeeType EmployeeType { get; set; }
+        public Nationality Nationality { get; set; }
+
+        // Age/Gender drive which NewGen portrait pool FaceImageAssigner picks from
+        // (Age 0 = pre-existing save, backfilled once via StaffGenerator.BackfillAgeIfMissing).
+        public int Age { get; set; }
+        public Gender Gender { get; set; }
+        public string? ImagePath { get; set; }
 
         // Specialised coaching ratings (1-99). A co-trainer strong in offensive training
         // boosts attackers' offensive drills; a weak goalkeeper trainer hurts keeper drills.

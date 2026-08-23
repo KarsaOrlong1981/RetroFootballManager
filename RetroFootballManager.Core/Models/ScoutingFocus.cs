@@ -26,6 +26,7 @@ namespace RetroFootballManager.Models
         public int? MinAge { get; set; }
         public int? MaxAge { get; set; }
         public int? MinTalent { get; set; }
+        public int? MaxTalent { get; set; }
         public int? MinRating { get; set; }
         public InMatchCharacterType? CharacterType { get; set; }
         public Personality? PersonalityType { get; set; }
@@ -52,7 +53,7 @@ namespace RetroFootballManager.Models
         [Ignore]
         public bool HasAnyFilter =>
             Position is not null || MinAge is not null || MaxAge is not null || MinTalent is not null
-            || MinRating is not null || CharacterType is not null || PersonalityType is not null
+            || MaxTalent is not null || MinRating is not null || CharacterType is not null || PersonalityType is not null
             || Nationality is not null || AttributeFilters.Count > 0;
     }
 }

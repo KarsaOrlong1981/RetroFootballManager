@@ -47,6 +47,12 @@
                 <!-- Full profile body -->
                 <ScrollView x:Name="BodyScroll" Grid.Row="1">
                     <VerticalStackLayout Spacing="10" BindingContext="{Binding Profile, Source={x:Reference Root}}" x:DataType="vm:PlayerProfile">
+                        <Grid HeightRequest="110">
+                            <Image Source="avatar.png" Aspect="AspectFit" HeightRequest="110"
+                                   IsVisible="{Binding ImagePath, Converter={StaticResource NoLogo}}" />
+                            <Image Source="{Binding ImagePath}" Aspect="AspectFit" HeightRequest="110"
+                                   IsVisible="{Binding ImagePath, Converter={StaticResource HasLogo}}" />
+                        </Grid>
                         <Label Text="{Binding Status}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
 
                         <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}">

@@ -14,16 +14,19 @@ namespace RetroFootballManager.ViewModels
         private readonly INavigationService _navigation;
         private readonly SponsorshipRepository _sponsorshipRepository;
         private readonly SponsorRepository _sponsorRepository;
+        private readonly ContractRepository _contractRepository;
 
         public FinancesViewModel(
             IDispatcher dispatcher, GameSession session, INavigationService navigation,
-            SponsorshipRepository sponsorshipRepository, SponsorRepository sponsorRepository)
+            SponsorshipRepository sponsorshipRepository, SponsorRepository sponsorRepository,
+            ContractRepository contractRepository)
             : base(dispatcher)
         {
             _session = session;
             _navigation = navigation;
             _sponsorshipRepository = sponsorshipRepository;
             _sponsorRepository = sponsorRepository;
+            _contractRepository = contractRepository;
             Title = "Finanzen";
         }
 
@@ -33,6 +36,7 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private string _merchandiseIncomeText = string.Empty;
         [ObservableProperty] private string _staffWagesText = string.Empty;
         [ObservableProperty] private string _stadiumCostsText = string.Empty;
+        [ObservableProperty] private string _prizeMoneyText = string.Empty;
         [ObservableProperty] private string _transferIncomeText = string.Empty;
         [ObservableProperty] private string _transferExpenseText = string.Empty;
         [ObservableProperty] private string _otherIncomeText = string.Empty;
@@ -40,6 +44,7 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private string _financialHealthText = string.Empty;
 
         [ObservableProperty] private string _currentStaffWagesText = string.Empty;
+        [ObservableProperty] private string _currentPlayerWagesText = string.Empty;
         [ObservableProperty] private string _currentSponsorIncomeText = string.Empty;
         [ObservableProperty] private string _currentStadiumMaintenanceText = string.Empty;
 
@@ -67,6 +72,7 @@ namespace RetroFootballManager.ViewModels
             MerchandiseIncomeText = $"{finances.MerchandiseIncome:N0} €";
             StaffWagesText = $"{finances.StaffWages:N0} €";
             StadiumCostsText = $"{finances.StadiumCosts:N0} €";
+            PrizeMoneyText = $"{finances.PrizeMoney:N0} €";
             TransferIncomeText = $"{finances.TransferIncome:N0} €";
             TransferExpenseText = $"{finances.TransferExpense:N0} €";
             OtherIncomeText = $"{finances.OtherIncome:N0} €";
@@ -74,6 +80,13 @@ namespace RetroFootballManager.ViewModels
             FinancialHealthText = $"{finances.FinancialHealth} / 100";
 
             CurrentStaffWagesText = $"{team.Employees.Sum(e => e.Salary):N0} € / Jahr";
+
+            var contracts = await _contractRepository.GetByTeamAsync(team.Id);
+            var currentDate = state?.CurrentDate ?? DateTime.MinValue;
+            double annualPlayerWages = contracts
+                .Where(c => c.HolderType == ContractHolderType.Player && c.EndDate > currentDate)
+                .Sum(c => c.AnnualSalary);
+            CurrentPlayerWagesText = $"{annualPlayerWages:N0} € / Jahr ({annualPlayerWages / 12:N0} € / Monat)";
 
             var sponsorships = await _sponsorshipRepository.GetByTeamAsync(team.Id);
             var catalog = await _sponsorRepository.GetAllAsync();

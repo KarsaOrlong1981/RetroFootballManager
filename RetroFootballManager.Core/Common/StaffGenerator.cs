@@ -13,7 +13,8 @@ namespace RetroFootballManager.Common
             Random? random = null)
         {
             var rng = random ?? Random.Shared;
-            var (firstName, lastName) = NameBank.GetRandomName(nationality, rng);
+            var gender = rng.NextDouble() < 0.5 ? Gender.Male : Gender.Female;
+            var (firstName, lastName) = NameBank.GetRandomName(nationality, gender, rng);
 
             int Around(double center) => Math.Clamp((int)Math.Round(center + rng.Next(-8, 9)), 1, 99);
 
@@ -45,6 +46,9 @@ namespace RetroFootballManager.Common
             {
                 Name = $"{firstName} {lastName}",
                 EmployeeType = type,
+                Nationality = nationality,
+                Age = rng.Next(25, 66),
+                Gender = gender,
                 Rating = Math.Round(rating, 1),
                 OffensiveTraining = off,
                 DefensiveTraining = def,
@@ -57,6 +61,35 @@ namespace RetroFootballManager.Common
                 MarketValue = Math.Round(rating * rating * 400),
                 Salary = Math.Round(rating * 1200),
             };
+        }
+
+        // Legacy safety net for saves created before Age existed (new column defaults to 0,
+        // which would otherwise pass FaceImageAssigner's "<= 25" check) - a no-op once Age is
+        // set, safe to call on every load (same pattern as PlayerGenerator's Backfill*IfMissing).
+        public static void BackfillAgeIfMissing(Employee employee, Random? random = null)
+        {
+            if (employee.Age > 0)
+                return;
+
+            var rng = random ?? new Random(employee.Id);
+            employee.Age = rng.Next(25, 66);
+        }
+
+        // One-time self-heal for employees generated in the brief window where Gender was
+        // rolled independently of the name pool, which could pair e.g. "Paul" with a female
+        // portrait. Detects the mismatch via NameBank's female-name list and clears ImagePath
+        // too, so FaceImageAssigner picks a matching-gender photo on the same load.
+        public static void FixGenderNameMismatch(Employee employee)
+        {
+            string firstName = employee.Name.Split(' ', 2)[0];
+            var correctGender = NameBank.IsFemaleFirstName(employee.Nationality, firstName)
+                ? Gender.Female
+                : Gender.Male;
+            if (employee.Gender == correctGender)
+                return;
+
+            employee.Gender = correctGender;
+            employee.ImagePath = null;
         }
     }
 }

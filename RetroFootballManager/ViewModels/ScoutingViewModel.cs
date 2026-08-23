@@ -10,32 +10,47 @@ using RetroFootballManager.Services;
 
 namespace RetroFootballManager.ViewModels
 {
-    public record ActiveScoutingRow(int PlayerId, string PlayerName, string TeamName, int DaysRemaining);
+    public record ActiveScoutingRow(int PlayerId, string PlayerName, string TeamName, string PositionShort, int DaysRemaining);
     public record ScoutRecommendationRow(int PlayerId, string PlayerName, string TeamName, string PositionShort, string Reason);
     public record ScoutedPlayerRow(int PlayerId, string PlayerName, string TeamName, string ScoutedDateText, string PositionShort);
-    public record ScoutRow(int EmployeeId, string Name, int ScoutingAbility, int ActiveAssignments, string FocusSummary);
+    public record ScoutRow(int EmployeeId, string Name, int ScoutingAbility, int ActiveAssignments, string FocusSummary, string? ImagePath);
 
     public partial class ScoutingViewModel : BaseViewModel
     {
         private static readonly ILog Log = LogManager.GetLogger<ScoutingViewModel>();
 
+        // Full range = "no filter" (see SaveScoutingFocus) - lets the age/talent steppers
+        // always show a concrete, always-valid value instead of an empty/unclear text field.
+        private const int MinPossibleAge = 10;
+        private const int MinDefaultAge = 15;
+        private const int MaxPossibleAge = 50;
+        private const int MaxDefaultAge = 34;
+        private const int MinPossibleTalent = 1;
+        private const int MinDefaultTalent = 50;
+        private const int MaxPossibleTalent = 99;
+        private const int MinPossibleRating = 1;
+        private const int MaxPossibleRating = 99;
+
         private readonly GameSession _session;
         private readonly SaveGameService _saveGame;
         private readonly INavigationService _navigation;
-        private readonly TransferMarketService _market;
 
         private int _selectedProfilePlayerId;
         private Player? _selectedProfilePlayer;
 
+        // Shared negotiation dialog - see NegotiationDialogViewModel. Bound in
+        // ScoutingPage.xaml via BindingContext="{Binding Negotiation}".
+        public NegotiationDialogViewModel Negotiation { get; }
+
         public ScoutingViewModel(
             IDispatcher dispatcher, GameSession session, SaveGameService saveGame, INavigationService navigation,
-            TransferMarketService market)
+            NegotiationDialogViewModel negotiation)
             : base(dispatcher)
         {
             _session = session;
             _saveGame = saveGame;
             _navigation = navigation;
-            _market = market;
+            Negotiation = negotiation;
             Title = "Scouting";
         }
 
@@ -52,10 +67,11 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private int _focusScoutEmployeeId;
         [ObservableProperty] private string _focusScoutName = string.Empty;
         [ObservableProperty] private PositionFilterOption _focusPosition = PositionFilterOption.All[0];
-        [ObservableProperty] private string _focusMinAgeText = string.Empty;
-        [ObservableProperty] private string _focusMaxAgeText = string.Empty;
-        [ObservableProperty] private string _focusMinTalentText = string.Empty;
-        [ObservableProperty] private string _focusMinRatingText = string.Empty;
+        [ObservableProperty] private int _focusMinAge = MinPossibleAge;
+        [ObservableProperty] private int _focusMaxAge = MaxPossibleAge;
+        [ObservableProperty] private int _focusMinTalent = MinPossibleTalent;
+        [ObservableProperty] private int _focusMaxTalent = MaxPossibleTalent;
+        [ObservableProperty] private int _focusMinRating = MinPossibleRating;
         [ObservableProperty] private CharacterFilterOption _focusCharacter = CharacterFilterOption.All[0];
         [ObservableProperty] private PersonalityFilterOption _focusPersonality = PersonalityFilterOption.All[0];
         [ObservableProperty] private NationalityFilterOption _focusNationality = NationalityFilterOption.All[0];
@@ -112,7 +128,7 @@ namespace RetroFootballManager.ViewModels
                     string summary = focus is null
                         ? "Kein Fokus (Team-Schwächen)"
                         : DescribeFocus(focus);
-                    Scouts.Add(new ScoutRow(scout.Id, scout.Name, scout.ScoutingAbility, active, summary));
+                    Scouts.Add(new ScoutRow(scout.Id, scout.Name, scout.ScoutingAbility, active, summary, scout.ImagePath));
                 }
 
                 foreach (var assignment in assignments)
@@ -122,7 +138,8 @@ namespace RetroFootballManager.ViewModels
                         continue;
                     int daysLeft = Math.Max(0, (assignment.CompletionDate.Date - state.CurrentDate.Date).Days);
                     ActiveScouting.Add(new ActiveScoutingRow(
-                        player.Id, player.Name, names.GetValueOrDefault(player.TeamId, "?"), daysLeft));
+                        player.Id, player.Name, names.GetValueOrDefault(player.TeamId, "?"),
+                        PositionDisplay.Short(player.Position), daysLeft));
                 }
 
                 var recommendations = ScoutingService.GetRecommendations(team, _session.Teams, state.Season, state.CurrentDate.Month);
@@ -224,9 +241,9 @@ namespace RetroFootballManager.ViewModels
         [RelayCommand]
         private Task MakeUnsolicitedLoanOffer() => MakeUnsolicitedOffer(isLoan: true);
 
-        // Unsolicited offer for a scouted-only player their club never listed - a higher price is
-        // needed since the club wasn't looking to sell (see TransferAiService.ShouldAcceptOffer).
-        // The seller's COM manager decides on their next weekly tick, not immediately.
+        // Unsolicited offer for a scouted-only player their club never listed - opens the same
+        // negotiation dialog as a real market listing (a higher price is needed here since the
+        // club wasn't looking to sell at all, see NegotiationExpectationService's premium).
         private async Task MakeUnsolicitedOffer(bool isLoan)
         {
             if (IsBusy || !CanOfferForSelectedPlayer) return;
@@ -237,35 +254,17 @@ namespace RetroFootballManager.ViewModels
             if (team is null || state is null || player is null || sellingTeam is null)
                 return;
 
-            if (!TransferMarketService.CanBuy(team, out string? balanceError))
+            var seasonStats = await _saveGame.GetPlayerSeasonStatsAsync(player.Id, state.Season);
+            string? error = await Negotiation.TryStartUnsolicitedNegotiationAsync(
+                team, player, sellingTeam, seasonStats, isLoan, state.Season, state.CurrentDate,
+                onCompleted: () => ShowProfile(player.Id));
+            if (error is not null)
             {
-                OfferStatusText = balanceError!;
+                OfferStatusText = error;
                 return;
             }
 
-            IsBusy = true;
-            OfferStatusText = "Angebot wird abgegeben …";
-            try
-            {
-                // Starting offer at fair market value - the seller wasn't looking to sell, so this
-                // will often come back as a (higher) counter-offer rather than an instant accept;
-                // see TransferMarketPage's "Eigene abgegebene Angebote" to respond to it.
-                double fee = SelectedPlayerMarketValue;
-                double wage = SelectedPlayerMarketValue * 0.15;
-                await _market.MakeUnsolicitedOfferAsync(
-                    player, sellingTeam, team, fee, wage, state.Season, state.CurrentDate, isLoan);
-                OfferStatusText = $"Angebot für {player.Name} abgegeben - {sellingTeam.Name} entscheidet in Kürze (siehe Transfermarkt).";
-                CanOfferForSelectedPlayer = false;
-            }
-            catch (Exception ex)
-            {
-                Log.Error("Could not submit unsolicited offer.", ex);
-                OfferStatusText = "Angebot fehlgeschlagen.";
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+            CanOfferForSelectedPlayer = false;
         }
 
         [RelayCommand]
@@ -289,25 +288,35 @@ namespace RetroFootballManager.ViewModels
         }
 
         [RelayCommand]
-        private void OpenScoutingFocus(int employeeId)
+        private async Task OpenScoutingFocus(int employeeId)
         {
-            var scout = _session.ManagerTeam?.Employees.FirstOrDefault(e => e.Id == employeeId);
-            if (scout is null)
+            var team = _session.ManagerTeam;
+            var scout = team?.Employees.FirstOrDefault(e => e.Id == employeeId);
+            if (team is null || scout is null)
                 return;
 
             FocusScoutEmployeeId = employeeId;
             FocusScoutName = scout.Name;
-            FocusPosition = PositionFilterOption.All[0];
-            FocusMinAgeText = string.Empty;
-            FocusMaxAgeText = string.Empty;
-            FocusMinTalentText = string.Empty;
-            FocusMinRatingText = string.Empty;
-            FocusCharacter = CharacterFilterOption.All[0];
-            FocusPersonality = PersonalityFilterOption.All[0];
-            FocusNationality = NationalityFilterOption.All[0];
-            FocusAttribute = AttributeFilterOption.All[0];
-            FocusAttributeMinValueText = string.Empty;
             FocusStatusText = string.Empty;
+
+            // Prefill from this scout's already-saved focus (if any) instead of always
+            // resetting to defaults - otherwise reopening the dialog looks like the save
+            // never took effect.
+            var existing = (await _saveGame.GetScoutingFocusesAsync(team.Id))
+                .FirstOrDefault(f => f.ScoutEmployeeId == employeeId);
+            var attributeFilter = existing?.AttributeFilters.FirstOrDefault();
+
+            FocusPosition = PositionFilterOption.All.FirstOrDefault(o => o.Value == existing?.Position) ?? PositionFilterOption.All[0];
+            FocusMinAge = existing?.MinAge ?? MinDefaultAge;
+            FocusMaxAge = existing?.MaxAge ?? MaxDefaultAge;
+            FocusMinTalent = existing?.MinTalent ?? MinDefaultTalent;
+            FocusMaxTalent = existing?.MaxTalent ?? MaxPossibleTalent;
+            FocusMinRating = existing?.MinRating ?? MinPossibleRating;
+            FocusCharacter = CharacterFilterOption.All.FirstOrDefault(o => o.Value == existing?.CharacterType) ?? CharacterFilterOption.All[0];
+            FocusPersonality = PersonalityFilterOption.All.FirstOrDefault(o => o.Value == existing?.PersonalityType) ?? PersonalityFilterOption.All[0];
+            FocusNationality = NationalityFilterOption.All.FirstOrDefault(o => o.Value == existing?.Nationality) ?? NationalityFilterOption.All[0];
+            FocusAttribute = AttributeFilterOption.All.FirstOrDefault(o => o.Value == attributeFilter?.Attribute) ?? AttributeFilterOption.All[0];
+            FocusAttributeMinValueText = attributeFilter is not null ? attributeFilter.MinValue.ToString() : string.Empty;
             IsScoutingFocusDialogOpen = true;
         }
 
@@ -326,10 +335,11 @@ namespace RetroFootballManager.ViewModels
             var focus = new ScoutingFocus
             {
                 Position = FocusPosition.Value,
-                MinAge = ParseIntOrNull(FocusMinAgeText),
-                MaxAge = ParseIntOrNull(FocusMaxAgeText),
-                MinTalent = ParseIntOrNull(FocusMinTalentText),
-                MinRating = ParseIntOrNull(FocusMinRatingText),
+                MinAge = FocusMinAge > MinPossibleAge ? FocusMinAge : null,
+                MaxAge = FocusMaxAge < MaxPossibleAge ? FocusMaxAge : null,
+                MinTalent = FocusMinTalent > MinPossibleTalent ? FocusMinTalent : null,
+                MaxTalent = FocusMaxTalent < MaxPossibleTalent ? FocusMaxTalent : null,
+                MinRating = FocusMinRating > MinPossibleRating ? FocusMinRating : null,
                 CharacterType = FocusCharacter.Value,
                 PersonalityType = FocusPersonality.Value,
                 Nationality = FocusNationality.Value,
@@ -361,6 +371,7 @@ namespace RetroFootballManager.ViewModels
             if (focus.MinAge is { } minAge) parts.Add($"Alter ≥{minAge}");
             if (focus.MaxAge is { } maxAge) parts.Add($"Alter ≤{maxAge}");
             if (focus.MinTalent is { } minTalent) parts.Add($"Talent ≥{minTalent}");
+            if (focus.MaxTalent is { } maxTalent) parts.Add($"Talent ≤{maxTalent}");
             if (focus.MinRating is { } minRating) parts.Add($"Rating ≥{minRating}");
             if (focus.CharacterType is { } characterType) parts.Add(InMatchCharacterDisplay.Name(characterType));
             if (focus.PersonalityType is { } personalityType) parts.Add(PersonalityDisplay.Name(personalityType));
@@ -368,7 +379,7 @@ namespace RetroFootballManager.ViewModels
             foreach (var attributeFilter in focus.AttributeFilters)
                 parts.Add($"{attributeFilter.Attribute} ≥{attributeFilter.MinValue}");
 
-            return string.Join(", ", parts);
+            return string.Join("\n", parts);
         }
 
         [RelayCommand]

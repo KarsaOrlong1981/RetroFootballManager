@@ -26,31 +26,49 @@
                                 <RoundRectangle CornerRadius="8" />
                             </Border.StrokeShape>
                             <VerticalStackLayout Spacing="4">
-                                <Label FontAttributes="Bold" FontSize="18" TextColor="{StaticResource RfmText}">
-                                    <Label.FormattedText>
-                                        <FormattedString>
-                                            <Span Text="{Binding PlayerName}" />
-                                            <Span Text=" - " />
-                                            <Span Text="{Binding AskingPrice, StringFormat='{0:N0} €'}" />
-                                        </FormattedString>
-                                    </Label.FormattedText>
-                                </Label>
-                                <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
-                                    <Label.Triggers>
-                                        <DataTrigger TargetType="Label" Binding="{Binding IsLoan}" Value="True">
-                                            <Setter Property="Text" Value="Zur Leihe angeboten" />
-                                        </DataTrigger>
-                                        <DataTrigger TargetType="Label" Binding="{Binding IsLoan}" Value="False">
-                                            <Setter Property="Text" Value="Zum Transfer angeboten" />
-                                        </DataTrigger>
-                                    </Label.Triggers>
-                                </Label>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                    <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}"
+                                        WidthRequest="26" HeightRequest="26" Padding="0" StrokeThickness="0"
+                                        VerticalOptions="Center">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="13" />
+                                        </Border.StrokeShape>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer
+                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
+                                            CommandParameter="{Binding PlayerId}" />
+                                        </Border.GestureRecognizers>
+                                        <Image Source="info.png" WidthRequest="26" HeightRequest="26" Aspect="AspectFit"
+                                           HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                        <Label FontAttributes="Bold" FontSize="18" TextColor="{StaticResource RfmText}">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="{Binding PlayerName}" />
+                                                    <Span Text=" - " />
+                                                    <Span Text="{Binding AskingPrice, StringFormat='{0:N0} €'}" />
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                        <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsLoan}" Value="True">
+                                                    <Setter Property="Text" Value="Zur Leihe angeboten" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsLoan}" Value="False">
+                                                    <Setter Property="Text" Value="Zum Transfer angeboten" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                    </VerticalStackLayout>
+                                </Grid>
 
                                 <VerticalStackLayout Spacing="4" IsVisible="{Binding HasOffers}"
                                          BindableLayout.ItemsSource="{Binding Offers}">
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="vm:OwnOfferRow">
-                                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" Padding="0,3">
+                                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="6" Padding="0,3">
                                                 <Label Grid.Column="0" TextColor="{StaticResource RfmAccentTeal}" FontSize="18">
                                                     <Label.FormattedText>
                                                         <FormattedString>
@@ -62,11 +80,15 @@
                                                         </FormattedString>
                                                     </Label.FormattedText>
                                                 </Label>
-                                                <Button Grid.Column="1" Text="Annehmen" FontSize="18" Padding="8,4"
+                                                <Button Grid.Column="1" Text="Verhandeln" FontSize="18" Padding="8,4"
+                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.NegotiateOwnOfferCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+                                                <Button Grid.Column="2" Text="Annehmen" FontSize="18" Padding="8,4"
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.AcceptOfferCommand}"
                                             CommandParameter="{Binding .}"
                                             BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
-                                                <Button Grid.Column="2" Text="Ablehnen" FontSize="18" Padding="8,4"
+                                                <Button Grid.Column="3" Text="Ablehnen" FontSize="18" Padding="8,4"
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.RejectOfferCommand}"
                                             CommandParameter="{Binding .}"
                                             BackgroundColor="Transparent" BorderColor="{StaticResource RfmTextMuted}" BorderWidth="1"
@@ -182,12 +204,12 @@
                                             </Label.FormattedText>
                                         </Label>
                                         <Label Text="Leihe" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"
-                               IsVisible="{Binding IsLoan}" />
+                                             IsVisible="{Binding IsLoan}" />
                                     </VerticalStackLayout>
                                     <Button Grid.Column="2" Text="Angebot abgeben" FontSize="18" 
-                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.MakeOfferCommand}"
-                            CommandParameter="{Binding .}"
-                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" />
+                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.MakeOfferCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" />
                                 </Grid>
                             </Border>
                         </DataTemplate>
@@ -250,22 +272,29 @@
                                            IsVisible="{Binding IsLoanListed}" />
                                     </VerticalStackLayout>
 
-                                    <VerticalStackLayout Grid.Column="2" Spacing="4" IsVisible="{Binding CanOffer}">
-                                        <Button Text="Zum Transfer anbieten" FontSize="16" Padding="6,4"
-                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.OfferForTransferCommand}"
+                                    <VerticalStackLayout Grid.Column="2" Spacing="4">
+                                        <VerticalStackLayout Spacing="4" IsVisible="{Binding CanOffer}">
+                                            <Button Text="Zum Transfer anbieten" FontSize="16" Padding="6,4"
+                                                Command="{Binding Source={x:Reference Page}, Path=BindingContext.OfferForTransferCommand}"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+                                            <Button Text="Zur Leihe anbieten" FontSize="16" Padding="6,4"
+                                                Command="{Binding Source={x:Reference Page}, Path=BindingContext.OfferForLoanCommand}"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+                                        </VerticalStackLayout>
+                                        <Button Text="Zurückziehen" FontSize="16" Padding="6,4"
+                                            IsVisible="{Binding IsListed}"
+                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.WithdrawListingCommand}"
                                             CommandParameter="{Binding .}"
-                                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
-                                        <Button Text="Zur Leihe anbieten" FontSize="16" Padding="6,4"
-                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.OfferForLoanCommand}"
+                                            BackgroundColor="Transparent" BorderColor="{StaticResource RfmTextMuted}" BorderWidth="1"
+                                            TextColor="{StaticResource RfmText}" />
+                                        <Button Text="Vertrag verlängern" FontSize="16" Padding="6,4"
+                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.RenewContractCommand}"
                                             CommandParameter="{Binding .}"
-                                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+                                            BackgroundColor="Transparent" BorderColor="{StaticResource RfmAccentTeal}" BorderWidth="1"
+                                            TextColor="{StaticResource RfmText}" />
                                     </VerticalStackLayout>
-                                    <Button Grid.Column="2" Text="Zurückziehen" FontSize="16" Padding="6,4"
-                                        IsVisible="{Binding IsListed}"
-                                        Command="{Binding Source={x:Reference Page}, Path=BindingContext.WithdrawListingCommand}"
-                                        CommandParameter="{Binding .}"
-                                        BackgroundColor="Transparent" BorderColor="{StaticResource RfmTextMuted}" BorderWidth="1"
-                                        TextColor="{StaticResource RfmText}" />
                                 </Grid>
                             </Border>
                         </DataTemplate>
@@ -285,8 +314,10 @@
         LockedStatusText="{Binding ScoutingStatusText}"
         IsLockedBusy="{Binding IsBeingScouted}"
         UnlockCommand="{Binding ScoutPlayerCommand}" />
-
-    <!-- Busy overlay -->
+        
+        <controls:PlayerNegotiationsDialog Grid.RowSpan="4" BindingContext="{Binding Negotiation}" />
+        
+        <!-- Busy overlay -->
     <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000" Grid.RowSpan="4">
         <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="12">
             <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{StaticResource RfmAccentTeal}"

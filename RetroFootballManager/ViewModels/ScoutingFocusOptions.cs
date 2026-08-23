@@ -41,7 +41,7 @@ namespace RetroFootballManager.ViewModels
     {
         public static readonly IReadOnlyList<AttributeFilterOption> All =
             new List<AttributeFilterOption> { new(null, "Keins") }
-                .Concat(Enum.GetValues<PlayerAttributeType>().Select(a => new AttributeFilterOption(a, a.ToString())))
+                .Concat(Enum.GetValues<PlayerAttributeType>().Select(a => new AttributeFilterOption(a, PlayerAttributeTypeDisplay.Label(a))))
                 .ToList();
     }
 }

@@ -66,6 +66,9 @@ namespace RetroFootballManager
             services.AddSingleton<TransferListingRepository>();
             services.AddSingleton<TransferOfferRepository>();
             services.AddSingleton<LoanAgreementRepository>();
+            services.AddSingleton<ContractBonusRepository>();
+            services.AddSingleton<PendingNegotiationRepository>();
+            services.AddSingleton<NegotiationCooldownRepository>();
             services.AddSingleton<MessageRepository>();
             services.AddSingleton<MessageService>();
             services.AddSingleton<ExpiryWarningService>();
@@ -75,6 +78,8 @@ namespace RetroFootballManager
             services.AddSingleton<SponsorService>();
             services.AddSingleton<StaffMarketService>();
             services.AddSingleton<TransferMarketService>();
+            services.AddSingleton<NegotiationResolutionService>();
+            services.AddSingleton<NegotiationDialogViewModel>();
             services.AddSingleton<AiManagerService>();
             services.AddSingleton(sp => new MatchDayService(
                 sp.GetRequiredService<FixtureRepository>(),
