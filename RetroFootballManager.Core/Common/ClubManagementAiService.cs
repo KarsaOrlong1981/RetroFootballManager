@@ -13,8 +13,27 @@ namespace RetroFootballManager.Common
             StadiumUpgradeKind.Merchandise, StadiumUpgradeKind.Infrastructure,
         ];
 
-        private static readonly EmployeeType[] CoreStaffRoles =
+        // Difficulty-scaled staff priority list: a fuller, better-run staff makes for a tougher
+        // AI opponent, so Hard eventually covers every EmployeeType, Normal adds the
+        // fitness/medical/mood roles, Easy never grows past the original 3 core coaching roles.
+        // TryHireMissingStaffAsync still only fills the FIRST missing role per week, so this
+        // just changes how far a healthy club's staff eventually grows, not how fast.
+        private static readonly EmployeeType[] EasyStaffRoles =
             [EmployeeType.AssistantCoach, EmployeeType.FitnessCoach, EmployeeType.GoalkeeperCoach];
+
+        private static readonly EmployeeType[] NormalStaffRoles =
+            [.. EasyStaffRoles, EmployeeType.Physiotherapist, EmployeeType.MedicalStaff, EmployeeType.Psychologist];
+
+        private static readonly EmployeeType[] HardStaffRoles =
+            [.. NormalStaffRoles, EmployeeType.YouthCoach, EmployeeType.Scout, EmployeeType.DirectorOfFootball,
+             EmployeeType.Analyst];
+
+        private static EmployeeType[] StaffRolesFor(Difficulty difficulty) => difficulty switch
+        {
+            Difficulty.Hard => HardStaffRoles,
+            Difficulty.Easy => EasyStaffRoles,
+            _ => NormalStaffRoles,
+        };
 
         // Applies a random affordable upgrade (balance must still cover the upgrade cost
         // afterwards, so the team doesn't go negative). Returns true if an upgrade was made.
@@ -36,18 +55,17 @@ namespace RetroFootballManager.Common
             return StadiumService.TryApplyUpgrade(team, s => StadiumService.ApplyLevelUpgrade(s, choice.Kind), choice.Cost);
         }
 
-        // Fills the first missing core role (assistant/fitness/goalkeeper coach) if budget allows.
+        // Fills the first missing role (from the difficulty's priority list) if budget allows.
         // Never fires existing staff - pure gap-filling.
         public static async Task<Employee?> TryHireMissingStaffAsync(
-            Team team, StaffMarketService staffMarket, DateTime hireDate, Random rng)
+            Team team, StaffMarketService staffMarket, Difficulty difficulty, DateTime hireDate, Random rng)
         {
             if (team.Finances is null || !FinanceService.HasSpendableBalance(team))
                 return null;
 
-            // FirstOrDefault returns default(EmployeeType) = Scout if no core role is missing -
-            // Scout itself is never part of CoreStaffRoles, so this unambiguously means "nothing missing".
-            var missingRole = CoreStaffRoles.FirstOrDefault(role => team.Employees.All(e => e.EmployeeType != role));
-            if (missingRole == default)
+            var roles = StaffRolesFor(difficulty);
+            var missingRole = roles.FirstOrDefault(role => team.Employees.All(e => e.EmployeeType != role), (EmployeeType)(-1));
+            if ((int)missingRole == -1)
                 return null;
 
             // Larger candidate pool so the needed role is likely present - if the AI finds no

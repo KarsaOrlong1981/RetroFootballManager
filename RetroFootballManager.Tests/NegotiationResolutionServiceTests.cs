@@ -46,14 +46,16 @@ namespace RetroFootballManager.Tests
             _messages = new MessageService(new MessageRepository(_db));
             _transferMarket = new TransferMarketService(_listingRepo, _offerRepo, loanRepo, _teamRepo, _contractRepo, _messages);
             var staffMarket = new StaffMarketService(_db, _teamRepo, _contractRepo, new Random(1));
-            var aiManager = new AiManagerService(_transferMarket, staffMarket, _contractRepo, _listingRepo);
+            var aiManager = new AiManagerService(_transferMarket, staffMarket, _contractRepo, _listingRepo, new PlayerRepository(_db));
             var expiryWarnings = new ExpiryWarningService(_contractRepo, loanRepo, _messages);
             var finance = new FinanceService(new SponsorRepository(_db), new SponsorshipRepository(_db), _contractRepo, _messages);
             var trainingCamps = new TrainingCampService(new TrainingCampRepository(_db), _fixtureRepo, _messages, new Random(1));
+            var playerRepo = new PlayerRepository(_db);
             var negotiations = new NegotiationResolutionService(
-                _pendingRepo, _offerRepo, _listingRepo, _contractRepo, _bonusRepo, _transferMarket, _messages);
+                _pendingRepo, _offerRepo, _listingRepo, _contractRepo, _bonusRepo, playerRepo, _transferMarket, _messages);
             _service = new CalendarAdvanceService(
-                _teamRepo, _fixtureRepo, aiManager, expiryWarnings, finance, trainingCamps, _messages, new Random(1),
+                _teamRepo, _fixtureRepo, aiManager, expiryWarnings, finance, trainingCamps, _messages,
+                _contractRepo, _listingRepo, _offerRepo, playerRepo, _transferMarket, new Random(1),
                 negotiations: negotiations);
         }
 
@@ -308,6 +310,52 @@ namespace RetroFootballManager.Tests
 
             var inbox = await _messages.GetInboxAsync();
             Assert.Contains(inbox, m => m.Type == MessageType.ContractRenewed);
+        }
+
+        [Fact]
+        public async Task DueTransferNegotiation_StaysPending_WhileTransferWindowClosed_ThenCompletesOnceOpen()
+        {
+            var humanTeam = TestHelpers.CreateTeam("Mensch FC", baseRating: 60);
+            humanTeam.Finances = new Finances { CurrentBalance = 10_000_000 };
+            await _teamRepo.SaveTeamAsync(humanTeam);
+
+            var aiTeam = TestHelpers.CreateTeam("KI FC", baseRating: 60);
+            aiTeam.Finances = new Finances { CurrentBalance = 1_000_000 };
+            await _teamRepo.SaveTeamAsync(aiTeam);
+
+            var target = aiTeam.Players.First();
+            var listing = await _transferMarket.ListPlayerAsync(target, aiTeam, askingPrice: 100_000, season: 1, Today);
+            var offer = await _transferMarket.MakeOfferAsync(listing, humanTeam, fee: 100_000, wageOffer: 15_000, Today);
+
+            var pending = new PendingNegotiation
+            {
+                Kind = NegotiationKind.TransferOrLoanBuy,
+                TransferOfferId = offer.Id,
+                PlayerId = target.Id,
+                TeamId = humanTeam.Id,
+                CreatedDate = Today,
+                DecisionDate = Today,
+                RoleInTeam = RoleInTeam.RotationPlayer,
+                ContractYears = 3,
+            };
+            await _pendingRepo.SaveAsync(pending);
+
+            var negotiations = new NegotiationResolutionService(
+                _pendingRepo, _offerRepo, _listingRepo, _contractRepo, _bonusRepo, new PlayerRepository(_db), _transferMarket, _messages);
+            var teamsById = new Dictionary<int, Team> { [humanTeam.Id] = humanTeam, [aiTeam.Id] = aiTeam };
+
+            // Window closed: the deal is due and good, but must not complete yet - negotiating
+            // already happened (the offer exists), only finishing the move is gated.
+            await negotiations.ApplyDueNegotiationsAsync(humanTeam.Id, Today, teamsById, isTransferWindowOpen: false);
+            Assert.Contains(await _pendingRepo.GetByTeamAsync(humanTeam.Id), p => p.Id == pending.Id);
+            Assert.Contains(target, aiTeam.Players);
+            Assert.DoesNotContain(target, humanTeam.Players);
+
+            // Window opens later - the same still-pending deal now completes.
+            await negotiations.ApplyDueNegotiationsAsync(humanTeam.Id, Today.AddDays(1), teamsById, isTransferWindowOpen: true);
+            Assert.DoesNotContain(await _pendingRepo.GetByTeamAsync(humanTeam.Id), p => p.Id == pending.Id);
+            Assert.Contains(target, humanTeam.Players);
+            Assert.DoesNotContain(target, aiTeam.Players);
         }
     }
 }

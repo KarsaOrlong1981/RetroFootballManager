@@ -59,12 +59,18 @@ namespace RetroFootballManager.Common
         // false) if already run for this (month, year), so it's safe to call once per day from
         // CalendarAdvanceService.AdvanceOneDayAsync for every team. Returns true when it actually
         // applied development, so the caller knows the team needs to be persisted.
-        public static bool ApplyMonthlyDevelopment(Team team, DateTime currentDate, Random? random = null)
+        // isHuman: false auto-assigns a mentor to every mentorless youth prospect first (mirrors
+        // TrainingService.EnsureAiFocusAssigned's "only fill what's missing" shape) - a human's
+        // own youth squad is never touched, so a deliberate "no mentor yet" choice is preserved.
+        public static bool ApplyMonthlyDevelopment(Team team, DateTime currentDate, Random? random = null, bool isHuman = false)
         {
             if (team.LastDevelopmentMonth == currentDate.Month && team.LastDevelopmentYear == currentDate.Year)
                 return false;
 
             var rng = random ?? Random.Shared;
+
+            if (!isHuman)
+                EnsureAiMentorsAssigned(team);
 
             foreach (var player in team.Players)
                 DevelopSeniorMonthly(player, team, rng);
@@ -75,6 +81,19 @@ namespace RetroFootballManager.Common
             team.LastDevelopmentMonth = currentDate.Month;
             team.LastDevelopmentYear = currentDate.Year;
             return true;
+        }
+
+        // Assigns the squad's highest-Rating senior player as mentor to every youth prospect
+        // that doesn't have one yet - a human manager picks this deliberately via YouthViewModel,
+        // an AI club otherwise never would (Player.MentorId has no other write site at all).
+        private static void EnsureAiMentorsAssigned(Team team)
+        {
+            if (team.Players.Count == 0)
+                return;
+
+            var bestMentor = team.Players.OrderByDescending(p => p.Rating).First();
+            foreach (var youth in team.YouthPlayers.Where(y => y.MentorId is null))
+                youth.MentorId = bestMentor.Id;
         }
 
         private static void DevelopSeniorMonthly(Player player, Team team, Random rng)

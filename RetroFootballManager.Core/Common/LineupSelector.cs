@@ -9,6 +9,10 @@ namespace RetroFootballManager.Common
     // to find sensible substitutes. The human uses the same logic as an auto-pick default.
     public static class LineupSelector
     {
+        // Both the initial pick's bench size (SelectLineup) and the minimum bench strength
+        // RefillBench/LineupViewModel top back up to whenever a departure or an old
+        // under-filled save leaves it short - the two are deliberately the same number so a
+        // freshly repaired bench always looks exactly like a freshly picked one.
         private const int BenchSize = 9;
 
         // Rebuilds the whole matchday squad: sets 11 starters (Status/AssignedPosition),
@@ -202,6 +206,104 @@ namespace RetroFootballManager.Common
                 best.AssignedPosition = slotPos == best.Position ? null : slotPos;
                 best.UsedAsWingBack = slotPos is Position.LeftWingBack or Position.RightWingBack;
             }
+        }
+
+        // Re-applies the manager's/co-trainer's persisted baseline XI+bench (Team.BaselineStartingIds/
+        // BaselineBenchIds, set on LineupViewModel.Confirm) - used right after a match so an
+        // in-match substitution or red-card reshuffle never leaks into the next matchday's
+        // default lineup. A player currently Injured/Suspended is left untouched - the gap this
+        // leaves in the XI is covered by FillMissingStarters afterwards, same as any other
+        // missing starter. No-op if no baseline has ever been confirmed (old saves, AI teams).
+        public static void RestoreBaseline(Team team)
+        {
+            if (team.BaselineStartingIds.Count == 0 && team.BaselineBenchIds.Count == 0)
+                return;
+
+            var byId = team.Players.ToDictionary(p => p.Id);
+            bool Eligible(int id) => byId.TryGetValue(id, out var p) &&
+                p.Status is not (PlayerStatus.Injured or PlayerStatus.Suspended);
+
+            var starterIds = team.BaselineStartingIds.Where(Eligible).ToHashSet();
+            var benchIds = team.BaselineBenchIds.Where(id => Eligible(id) && !starterIds.Contains(id)).ToHashSet();
+
+            foreach (var p in team.Players)
+            {
+                if (p.Status is PlayerStatus.Injured or PlayerStatus.Suspended)
+                    continue;
+
+                if (starterIds.Contains(p.Id))
+                    p.Status = PlayerStatus.InStartingXI;
+                else if (benchIds.Contains(p.Id))
+                {
+                    p.Status = PlayerStatus.OnBench;
+                    p.AssignedPosition = null;
+                }
+                else
+                {
+                    p.Status = PlayerStatus.Available;
+                    p.AssignedPosition = null;
+                }
+            }
+        }
+
+        // Tops the baseline bench (and, if a STARTER left, the baseline XI) back up right after
+        // a squad departure (sale, loan out, contract expiry) - call once the player has already
+        // been removed from team.Players. Only ever fills the vacated slot(s); the rest of the
+        // manager's baseline is left exactly as confirmed, unlike the destructive SelectLineup.
+        public static void RefillBench(Team team)
+        {
+            // No baseline confirmed yet (a fresh team, an AI team, or ANY save from before this
+            // feature existed) - seed one from whatever is currently live BEFORE touching
+            // anything. Without this, an empty BaselineStartingIds looks identical to "nobody
+            // should be a starter" to RestoreBaseline below, and calling it would demote the
+            // entire live XI/bench to Available instead of just topping up the bench.
+            if (team.BaselineStartingIds.Count == 0 && team.BaselineBenchIds.Count == 0)
+            {
+                team.BaselineStartingIds = team.Players
+                    .Where(p => p.Status == PlayerStatus.InStartingXI).Select(p => p.Id).ToList();
+                team.BaselineBenchIds = team.Players
+                    .Where(p => p.Status == PlayerStatus.OnBench).Select(p => p.Id).ToList();
+            }
+
+            var formation = FormationCatalog.GetByName(team.FormationName);
+            var rosterIds = team.Players.Select(p => p.Id).ToHashSet();
+
+            var starters = team.BaselineStartingIds.Where(rosterIds.Contains).ToList();
+            if (starters.Count < team.BaselineStartingIds.Count)
+            {
+                team.BaselineStartingIds = starters;
+                FillMissingStarters(team, formation);
+                team.BaselineStartingIds = team.Players
+                    .Where(p => p.Status == PlayerStatus.InStartingXI).Select(p => p.Id).ToList();
+            }
+
+            var bench = team.BaselineBenchIds.Where(rosterIds.Contains).ToList();
+            var excluded = new HashSet<int>(team.BaselineStartingIds);
+            excluded.UnionWith(bench);
+
+            // Rank reserves by how well they fit a position the current formation actually
+            // uses (best PlayerRoleRating across those positions) - not flat Rating - so a
+            // backup can actually cover a role the team needs instead of just being the
+            // highest-rated player left over regardless of position (e.g. filling every open
+            // bench slot with strikers while the squad has no spare full-back).
+            var formationPositions = formation.Slots
+                .SelectMany(s => s.AlternateRole is Position alt ? new[] { s.Position, alt } : new[] { s.Position })
+                .Distinct()
+                .ToList();
+
+            var reserves = team.Players
+                .Where(p => !excluded.Contains(p.Id) && p.Status == PlayerStatus.Available)
+                .OrderByDescending(p => formationPositions.Max(pos => PlayerRoleRating.For(p, pos)));
+
+            foreach (var p in reserves)
+            {
+                if (bench.Count >= BenchSize)
+                    break;
+                bench.Add(p.Id);
+            }
+
+            team.BaselineBenchIds = bench;
+            RestoreBaseline(team);
         }
 
         // Rates how well the squad fits a formation (sum of the best XI's rating × position

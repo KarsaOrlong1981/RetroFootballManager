@@ -200,6 +200,7 @@ namespace RetroFootballManager.Common
             sellingTeam.Players.Remove(player);
             player.TeamId = buyingTeam.Id;
             buyingTeam.Players.Add(player);
+            LineupSelector.RefillBench(sellingTeam);
 
             int fee = (int)Math.Round(offer.OfferedFee);
             if (sellingTeam.Finances is not null)
@@ -239,6 +240,39 @@ namespace RetroFootballManager.Common
             }
         }
 
+        // Signs a released (contract-expired) free agent - no selling club, no fee, only the
+        // wage is negotiated (see FreeAgentService/NegotiationResolutionService). The listing was
+        // created with TeamId 0 ("no club") by FreeAgentService.ReleaseExpiredContractsAsync,
+        // which already removed the old contract row - so this only ever creates a fresh one.
+        public async Task SignFreeAgentAsync(
+            Player player, TransferListing listing, Team buyingTeam, double wage, int years, DateTime date,
+            int humanTeamId = 0)
+        {
+            player.TeamId = buyingTeam.Id;
+            buyingTeam.Players.Add(player);
+
+            await _contracts.SaveAsync(new Contract
+            {
+                HolderId = player.Id,
+                HolderType = ContractHolderType.Player,
+                TeamId = buyingTeam.Id,
+                StartDate = date,
+                EndDate = date.AddYears(Math.Max(years, 1)),
+                AnnualSalary = wage,
+                MarketValue = PlayerValuationService.EstimateMarketValue(player),
+            });
+
+            await _offers.DeleteByListingAsync(listing.Id);
+            await _listings.DeleteAsync(listing.Id);
+            await _teams.SaveTeamAsync(buyingTeam, includeYouth: false);
+
+            if (_messages is not null && humanTeamId != 0 && buyingTeam.Id == humanTeamId)
+            {
+                await _messages.SendAsync(MessageType.TransferOfferAccepted, "Spieler verpflichtet",
+                    $"{player.Name} wurde ablösefrei verpflichtet.", date, humanTeamId, player.Id);
+            }
+        }
+
         // On a loan, the loan club only takes on the negotiated salary (negotiatedWage), not the
         // market value - the existing player contract moves to the loan club for the loan
         // duration (TeamId + salary changed) and is reset on return.
@@ -248,6 +282,7 @@ namespace RetroFootballManager.Common
             originTeam.Players.Remove(player);
             player.TeamId = loanTeam.Id;
             loanTeam.Players.Add(player);
+            LineupSelector.RefillBench(originTeam);
 
             var contracts = await _contracts.GetByHolderAsync(player.Id, ContractHolderType.Player);
             var activeContract = PlayerContractService.GetActiveContract(player.Id, contracts, start);
@@ -328,6 +363,7 @@ namespace RetroFootballManager.Common
                     loanTeam.Players.Remove(player);
                     player.TeamId = originTeam.Id;
                     originTeam.Players.Add(player);
+                    LineupSelector.RefillBench(loanTeam);
                     await _teams.SaveTeamAsync(loanTeam, includeYouth: false);
                     await _teams.SaveTeamAsync(originTeam, includeYouth: false);
                 }

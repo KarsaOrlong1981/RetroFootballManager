@@ -100,6 +100,16 @@ namespace RetroFootballManager.Tests
         }
 
         [Fact]
+        public void IsTransferWindowOpen_MatchesCalculatesTransferWindow()
+        {
+            var fixtures = BuildSeasonFixtures();
+            var md10Date = fixtures.Where(f => f.Matchday == 10).Max(f => f.Date);
+
+            Assert.False(SeasonPhaseCalculator.IsTransferWindowOpen(md10Date, 10, fixtures));
+            Assert.True(SeasonPhaseCalculator.IsTransferWindowOpen(new DateTime(2026, 7, 1), 0, fixtures));
+        }
+
+        [Fact]
         public void NoFixturesYet_IsPreSeason_WindowOpen()
         {
             var info = SeasonPhaseCalculator.Calculate(new DateTime(2026, 8, 1), matchdayIndex: 0, new List<Fixture>());

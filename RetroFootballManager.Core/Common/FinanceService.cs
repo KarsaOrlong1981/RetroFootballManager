@@ -29,7 +29,9 @@ namespace RetroFootballManager.Common
         private const double MerchandisePerMatchday = 2_000;
         private const int FinanceWarningThreshold = 0;
 
-        private const int FinancialCrisisThreshold = -500_000;
+        // Public - FinanceAiService reuses the exact same line for the AI's own spending caution,
+        // instead of only ever crashing the board's mood for a human.
+        public const int FinancialCrisisThreshold = -500_000;
         private const int FinancialCrisisGraceMonths = 3;
         private const int FinancialCrisisBoardMoodCrash = 30;
 

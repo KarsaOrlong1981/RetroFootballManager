@@ -73,7 +73,7 @@ namespace RetroFootballManager.Tests
             // gesuchte Rolle (AssistantCoach) im Kandidatenpool auftaucht.
             Employee? hired = null;
             for (int seed = 1; seed <= 20 && hired is null; seed++)
-                hired = await ClubManagementAiService.TryHireMissingStaffAsync(team, _staffMarket, Today, new Random(seed));
+                hired = await ClubManagementAiService.TryHireMissingStaffAsync(team, _staffMarket, Difficulty.Easy, Today, new Random(seed));
 
             Assert.NotNull(hired);
             Assert.Contains(team.Employees, e => e.Id == hired!.Id);
@@ -89,7 +89,7 @@ namespace RetroFootballManager.Tests
             team.Employees.Add(new Employee { EmployeeType = EmployeeType.FitnessCoach, Name = "B" });
             team.Employees.Add(new Employee { EmployeeType = EmployeeType.GoalkeeperCoach, Name = "C" });
 
-            var hired = await ClubManagementAiService.TryHireMissingStaffAsync(team, _staffMarket, Today, new Random(1));
+            var hired = await ClubManagementAiService.TryHireMissingStaffAsync(team, _staffMarket, Difficulty.Easy, Today, new Random(1));
 
             Assert.Null(hired);
         }
@@ -101,7 +101,7 @@ namespace RetroFootballManager.Tests
             team.Finances = new Finances { CurrentBalance = 1 };
             team.LeagueTier = 2;
 
-            var hired = await ClubManagementAiService.TryHireMissingStaffAsync(team, _staffMarket, Today, new Random(1));
+            var hired = await ClubManagementAiService.TryHireMissingStaffAsync(team, _staffMarket, Difficulty.Normal, Today, new Random(1));
 
             Assert.Null(hired);
         }
@@ -113,7 +113,40 @@ namespace RetroFootballManager.Tests
             team.Finances = new Finances { CurrentBalance = -1 };
             team.LeagueTier = 2;
 
-            var hired = await ClubManagementAiService.TryHireMissingStaffAsync(team, _staffMarket, Today, new Random(1));
+            var hired = await ClubManagementAiService.TryHireMissingStaffAsync(team, _staffMarket, Difficulty.Normal, Today, new Random(1));
+
+            Assert.Null(hired);
+        }
+
+        [Fact]
+        public async Task TryHireMissingStaffAsync_OnNormalDifficulty_AlsoFillsMedicalAndMoraleRoles()
+        {
+            var team = TestHelpers.CreateTeam("KI FC", baseRating: 60);
+            team.Finances = new Finances { CurrentBalance = 10_000_000 };
+            team.LeagueTier = 2;
+            team.Employees.Add(new Employee { EmployeeType = EmployeeType.AssistantCoach, Name = "A" });
+            team.Employees.Add(new Employee { EmployeeType = EmployeeType.FitnessCoach, Name = "B" });
+            team.Employees.Add(new Employee { EmployeeType = EmployeeType.GoalkeeperCoach, Name = "C" });
+
+            Employee? hired = null;
+            for (int seed = 1; seed <= 30 && hired is null; seed++)
+                hired = await ClubManagementAiService.TryHireMissingStaffAsync(team, _staffMarket, Difficulty.Normal, Today, new Random(seed));
+
+            Assert.NotNull(hired);
+            Assert.Contains(hired!.EmployeeType, new[] { EmployeeType.Physiotherapist, EmployeeType.MedicalStaff, EmployeeType.Psychologist });
+        }
+
+        [Fact]
+        public async Task TryHireMissingStaffAsync_OnEasyDifficulty_NeverGoesBeyondCoreRoles()
+        {
+            var team = TestHelpers.CreateTeam("KI FC", baseRating: 60);
+            team.Finances = new Finances { CurrentBalance = 10_000_000 };
+            team.LeagueTier = 2;
+            team.Employees.Add(new Employee { EmployeeType = EmployeeType.AssistantCoach, Name = "A" });
+            team.Employees.Add(new Employee { EmployeeType = EmployeeType.FitnessCoach, Name = "B" });
+            team.Employees.Add(new Employee { EmployeeType = EmployeeType.GoalkeeperCoach, Name = "C" });
+
+            var hired = await ClubManagementAiService.TryHireMissingStaffAsync(team, _staffMarket, Difficulty.Easy, Today, new Random(1));
 
             Assert.Null(hired);
         }

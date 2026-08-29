@@ -8,6 +8,10 @@ namespace RetroFootballManager.Models
         TransferOfferCountered,
         ContractExpiringSoon,
         LoanExpiringSoon,
+
+        // A player's contract actually reached EndDate without renewal - see FreeAgentService.
+        // Distinct from ContractExpiringSoon (the earlier 60/30/14-day warnings).
+        ContractExpired,
         PlayerInjured,
         PlayerRecovered,
         FinanceWarning,

@@ -9,6 +9,10 @@ namespace RetroFootballManager.Common
     {
         private static readonly ILog Log = LogManager.GetLogger<CalendarAdvanceService>();
 
+        // Matches TransferMarketViewModel's own MinimumForeignListings - same target, now also
+        // enforced independently of whether a human ever opens that page.
+        private const int MinimumForeignListings = 30;
+
         private readonly TeamRepository _teams;
         private readonly FixtureRepository _fixtures;
         private readonly AiManagerService _aiManager;
@@ -16,6 +20,11 @@ namespace RetroFootballManager.Common
         private readonly FinanceService _finance;
         private readonly TrainingCampService _trainingCamps;
         private readonly MessageService _messages;
+        private readonly ContractRepository _contracts;
+        private readonly TransferListingRepository _transferListings;
+        private readonly TransferOfferRepository _transferOffers;
+        private readonly PlayerRepository _players;
+        private readonly TransferMarketService _transferMarket;
         private readonly SaveGameService? _saveGame;
         private readonly NegotiationResolutionService? _negotiations;
         private readonly Random _random;
@@ -23,8 +32,9 @@ namespace RetroFootballManager.Common
         public CalendarAdvanceService(
             TeamRepository teams, FixtureRepository fixtures, AiManagerService aiManager,
             ExpiryWarningService expiryWarnings, FinanceService finance, TrainingCampService trainingCamps,
-            MessageService messages, Random? random = null, SaveGameService? saveGame = null,
-            NegotiationResolutionService? negotiations = null)
+            MessageService messages, ContractRepository contracts, TransferListingRepository transferListings,
+            TransferOfferRepository transferOffers, PlayerRepository players, TransferMarketService transferMarket,
+            Random? random = null, SaveGameService? saveGame = null, NegotiationResolutionService? negotiations = null)
         {
             _teams = teams;
             _fixtures = fixtures;
@@ -33,6 +43,11 @@ namespace RetroFootballManager.Common
             _finance = finance;
             _trainingCamps = trainingCamps;
             _messages = messages;
+            _contracts = contracts;
+            _transferListings = transferListings;
+            _transferOffers = transferOffers;
+            _players = players;
+            _transferMarket = transferMarket;
             _saveGame = saveGame;
             _negotiations = negotiations;
             _random = random ?? Random.Shared;
@@ -51,17 +66,39 @@ namespace RetroFootballManager.Common
             foreach (var team in teams)
             {
                 MatchDayService.RecoverForMatch(team, state.CurrentDate, isMatchDay: false);
-                if (DevelopmentService.ApplyMonthlyDevelopment(team, state.CurrentDate, _random))
+                if (DevelopmentService.ApplyMonthlyDevelopment(team, state.CurrentDate, _random, isHuman: team.Id == state.ManagerTeamId))
                     touchedTeamIds.Add(team.Id);
             }
 
             await _aiManager.ReturnExpiredLoansAsync(state.CurrentDate, teamsById);
 
+            // Contract expiry: release any player (human or AI team) whose contract has actually
+            // run out without renewal, listed ablösefrei on the market - see FreeAgentService.
+            var rosterCountBefore = teams.ToDictionary(t => t.Id, t => t.Players.Count);
+            await FreeAgentService.ReleaseExpiredContractsAsync(
+                teams, _contracts, _transferListings, _players, _messages, state.Season, state.CurrentDate, state.ManagerTeamId);
+            foreach (var team in teams.Where(t => t.Players.Count != rosterCountBefore[t.Id]))
+                touchedTeamIds.Add(team.Id);
+
             var seasonFixtures = await _fixtures.GetBySeasonAsync(state.Season);
             var phase = SeasonPhaseCalculator.Calculate(state.CurrentDate, state.MatchdayIndex, seasonFixtures);
             var windowEnd = TrainingCampService.GetWindowEndDate(state, phase, seasonFixtures);
+            // Negotiating (offers/counter-offers/listings) is always allowed regardless of this -
+            // only actually completing a transfer/loan between two clubs is gated on it (see
+            // TransferAiService.EvaluateIncomingOffersAsync/NegotiationResolutionService).
+            bool isTransferWindowOpen = phase.TransferWindow == TransferWindowState.Open;
 
             bool runWeeklyTick = (state.CurrentDate.Date - state.SeasonStart.Date).Days % 7 == 0;
+
+            if (runWeeklyTick)
+            {
+                // The only other source of transfer listings besides a team's own surplus
+                // (TransferAiService.FindSurplusPlayer) - previously only ever seeded when a
+                // human opened the Transfermarkt page (TransferMarketViewModel.InitializeAsync),
+                // so an AI-only save never had anything on the market for the AI to bid on.
+                await _transferMarket.EnsureMinimumForeignListingsAsync(
+                    teams, state.Season, state.CurrentDate, MinimumForeignListings, _random);
+            }
 
             foreach (var team in teams.Where(t => t.Id != state.ManagerTeamId))
             {
@@ -76,7 +113,8 @@ namespace RetroFootballManager.Common
                     if (runWeeklyTick)
                     {
                         await _aiManager.RunWeeklyTickAsync(
-                            team, state.Season, state.CurrentDate, state.Difficulty, _random, teamsById, state.ManagerTeamId);
+                            team, state.Season, state.CurrentDate, state.Difficulty, _random, teamsById, state.ManagerTeamId,
+                            state.MatchdayIndex, isTransferWindowOpen);
                         touchedTeamIds.Add(team.Id);
                     }
 
@@ -91,6 +129,15 @@ namespace RetroFootballManager.Common
                 {
                     Log.Error($"AI tick for team {team.Id} ({team.Name}) on {state.CurrentDate:yyyy-MM-dd} failed - skipped.", ex);
                 }
+            }
+
+            if (runWeeklyTick)
+            {
+                var freeAgentRosterCountBefore = teams.ToDictionary(t => t.Id, t => t.Players.Count);
+                await FreeAgentService.EvaluateOffersAsync(
+                    teamsById, _players, _transferListings, _transferOffers, _transferMarket, _messages, state.CurrentDate);
+                foreach (var team in teams.Where(t => t.Players.Count != freeAgentRosterCountBefore[t.Id]))
+                    touchedTeamIds.Add(team.Id);
             }
 
             if (humanTeam is not null)
@@ -120,7 +167,7 @@ namespace RetroFootballManager.Common
                 }
 
                 if (_negotiations is not null)
-                    await _negotiations.ApplyDueNegotiationsAsync(humanTeam.Id, state.CurrentDate, teamsById);
+                    await _negotiations.ApplyDueNegotiationsAsync(humanTeam.Id, state.CurrentDate, teamsById, isTransferWindowOpen);
 
                 // Own players are always fully scouted - covers all acquisition paths (transfer,
                 // loan, youth promotion) without patching each one individually.

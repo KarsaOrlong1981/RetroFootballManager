@@ -45,10 +45,21 @@ namespace RetroFootballManager.Common
         private const double YellowCardShare = 0.07;
         private const double InjuryBase = 0.0015;
         private const double SaveReboundCornerChance = 0.3;
+        // A shot that misses the target often still gets deflected/blocked behind for a
+        // corner instead of a clean goal kick - real matches get most of their corners this
+        // way, not from keeper-save rebounds (SaveReboundCornerChance above), which is why
+        // that alone left corners near-zero.
+        private const double MissedShotCornerChance = 0.35;
         private const double PenaltyChance = 0.012;
         private const double PenaltyConversionBase = 0.78;
         private const double PenaltySavedGivenMissChance = 0.65;
         private const double PenaltyRedCardChance = 0.06;
+
+        // "Average" player attribute value for this game's rating scale - the reference every
+        // league-average-relative check below (offside, free-kick taking) is normalized
+        // against, instead of a live per-tier query Match has no access to (it only ever sees
+        // the two teams actually playing). Matches the typical mid-table generation baseline.
+        private const double LeagueAverageReference = 60.0;
 
         // Share of shots that are header attempts vs. long-range attempts (rest are normal
         // open-play shots) - see ResolveShotType/HeaderPower below.
@@ -544,9 +555,16 @@ namespace RetroFootballManager.Common
             }
 
             // Offside: only advanced attackers can be caught out - chance scales inversely
-            // with Positioning (reading the run of play), so a striker with poor positioning
-            // gets flagged noticeably more often than one with good positioning.
-            if (shooter is not null && IsAdvancedPosition(shooter.EffectivePosition) && Roll(OffsideChance(shooter)))
+            // with Positioning (reading the run of play) and with the team's own passing
+            // quality (a side playing sharper, more line-breaking final balls attempts more
+            // ambitious through-balls that flirt with the offside line - see OffsideChance).
+            // Header attempts are excluded: offside there is a crowding/near-post read, not the
+            // through-ball timing this models, and a dominant aerial team getting picked as the
+            // header-shooter far more often than an average team would otherwise rack up far
+            // more offside chances too - enough, at scale, to actually outweigh their real
+            // scoring advantage and net them FEWER goals than a weak aerial team.
+            if (!isHeader && shooter is not null && IsAdvancedPosition(shooter.EffectivePosition)
+                && Roll(OffsideChance(shooter, lineup)))
             {
                 attackingStats.Offsides++;
                 GetOrCreateMatchStats(result, shooter).Offsides++;
@@ -561,7 +579,18 @@ namespace RetroFootballManager.Common
                 shooter is not null ? EventTextHelper.ShotText(shooter, _random) : "Der Ball wird abgeschlossen.");
 
             if (!Roll(OnTargetBase * (attackShare / 0.5)))
+            {
+                // A blocked/deflected off-target effort often still goes out for a corner
+                // instead of a clean goal kick - the other, rarer corner source is a keeper
+                // save that rebounds (SaveReboundCornerChance below).
+                if (Roll(MissedShotCornerChance))
+                {
+                    attackingStats.Corners++;
+                    EmitEvent(result, progress, minute, GameEventType.Corner, isHomeAttacking, null,
+                        EventTextHelper.CornerText(attacking, _random));
+                }
                 return;
+            }
 
             attackingStats.ShotsOnTarget++;
             GetOrCreateMatchStats(result, shooter).ShotsOnTarget++;
@@ -645,7 +674,10 @@ namespace RetroFootballManager.Common
                   .OrderByDescending(HeaderPower)
                   .FirstOrDefault();
 
-        private const double OffsideBaseChance = 0.05;
+        // Raised from 0.05 - at the old rate, combined with the narrow set of checks that
+        // roll it (only advanced-position shot attempts), offsides landed at ~0/match, well
+        // below the realistic ~1-3/team/game this is calibrated against.
+        private const double OffsideBaseChance = 0.07;
 
         private static readonly Position[] AdvancedPositions =
         {
@@ -675,9 +707,20 @@ namespace RetroFootballManager.Common
             0.7 + (Math.Clamp(p.Positioning, 1, 99) / 99.0 * 0.3);
 
         // Worse Positioning roughly doubles the offside chance versus a player with elite
-        // positioning (0.5x-1.5x around the base rate).
-        private static double OffsideChance(Player shooter) =>
-            OffsideBaseChance * (1.5 - (Math.Clamp(shooter.Positioning, 1, 99) / 99.0));
+        // positioning (0.5x-1.5x around the base rate), blended with the attacking team's own
+        // passing quality relative to LeagueAverageReference - a side playing sharper,
+        // line-breaking final balls attempts more ambitious through-balls that flirt with the
+        // offside line, a side with modest passing plays it safer (and gets flagged less).
+        private static double OffsideChance(Player shooter, List<Player> attackingLineup)
+        {
+            // Tighter band than the positioning factor below (0.85x-1.15x, not 0.7x-1.4x) - the
+            // two stack multiplicatively, and this one is a secondary influence (team-wide
+            // average) layered on the shooter's own, more decisive Positioning read.
+            double passingFactor = Math.Clamp(
+                attackingLineup.Average(p => p.PassingAccuracy) / LeagueAverageReference, 0.85, 1.15);
+            double positioningFactor = 1.5 - (Math.Clamp(shooter.Positioning, 1, 99) / 99.0);
+            return OffsideBaseChance * passingFactor * positioningFactor;
+        }
 
         private void RegisterGoal(
             MatchResult result,
@@ -841,7 +884,13 @@ namespace RetroFootballManager.Common
                 ? (goalkeeper.GkReflexes * 0.5) + (goalkeeper.GkOneOnOne * 0.3) + (goalkeeper.GkHandling * 0.2)
                 : 50;
             double duelRatio = taker.FreeKick / Math.Max(0.001, taker.FreeKick + keeperAbility);
-            double conversionProb = Math.Clamp(FreeKickConversionBase + ((duelRatio - 0.5) * 0.5), 0.02, 0.45);
+            // The base rate itself scales with the taker's quality relative to
+            // LeagueAverageReference, on top of the direct taker-vs-keeper duel above - a
+            // genuinely weak taker underperforms even against an average keeper, not just
+            // relative to that one keeper.
+            double takerQualityFactor = Math.Clamp(taker.FreeKick / LeagueAverageReference, 0.6, 1.6);
+            double conversionProb = Math.Clamp(
+                (FreeKickConversionBase * takerQualityFactor) + ((duelRatio - 0.5) * 0.5), 0.02, 0.45);
 
             if (Roll(conversionProb))
             {
@@ -884,6 +933,13 @@ namespace RetroFootballManager.Common
                 matchStats.Fouls++;
                 if (fouler is not null)
                     GetOrCreateMatchStats(result, fouler).Fouls++;
+
+                // Every foul awards the fouled side a free kick - this is what the
+                // "Freistöße" stat should actually track (it used to only count the separate,
+                // deliberately rare ResolveFreeKick "direct shot at goal" special case, which
+                // left it at 0 in most matches despite a realistic foul count). No extra ticker
+                // line - the Foul event below already narrates it.
+                (isHome ? result.MatchStatsAway : result.MatchStatsHome).FreeKicks++;
 
                 EmitEvent(result, progress, minute, GameEventType.Foul, isHome, fouler,
                     fouler is not null ? EventTextHelper.FoulText(fouler, _random) : "Foul im Mittelfeld.");

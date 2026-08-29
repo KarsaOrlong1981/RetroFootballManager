@@ -151,6 +151,47 @@ namespace RetroFootballManager.Tests
         }
 
         [Fact]
+        public async Task GermanCup_ManagerEliminatedInFirstRound_RestOfBracketStillCompletes()
+        {
+            var (leagues, teams) = UniverseGenerator.CreateUniverse(season: 1, random: new Random(9));
+            var seasonStart = new DateTime(2026, 8, 1);
+            var manager = teams.First(t => t.LeagueTier == 1);
+
+            await _saveGame.StartNewCareerAsync("Test", 1, leagues, teams, manager, seasonStart);
+            var allTeams = await _saveGame.GetAllTeamsAsync();
+
+            // Force the manager to lose their own first-round tie, mirroring what
+            // GetNextCompetitionTieForTeamAsync would persist for a played match.
+            var firstRoundTies = await _cupTieRepo.GetBySeasonAsync(1, CompetitionType.GermanCup);
+            var managerTie = firstRoundTies.Single(t => t.HomeTeamId == manager.Id || t.AwayTeamId == manager.Id);
+            bool managerIsHome = managerTie.HomeTeamId == manager.Id;
+            managerTie.HomeGoals = managerIsHome ? 0 : 2;
+            managerTie.AwayGoals = managerIsHome ? 2 : 0;
+            managerTie.Played = true;
+            await _cupTieRepo.SaveAsync(managerTie);
+
+            // Polling for the (now eliminated) manager must still drive the rest of the bracket
+            // to completion instead of stalling forever right after their own elimination.
+            CupTie? tie;
+            int safety = 0;
+            do
+            {
+                tie = await _saveGame.GetNextCompetitionTieForTeamAsync(
+                    CompetitionType.GermanCup, season: 1, manager.Id, allTeams, _cupMatchDayService, seasonStart);
+                safety++;
+            } while (tie is not null && safety < 500);
+
+            Assert.Null(tie);
+
+            var allTies = await _cupTieRepo.GetBySeasonAsync(1, CompetitionType.GermanCup);
+            var final = allTies.SingleOrDefault(t => t.Round == CupDrawService.RoundFinal);
+            Assert.NotNull(final);
+            Assert.True(final!.Played);
+            Assert.DoesNotContain(allTies.Where(t => t.Round > CupDrawService.RoundPreliminary),
+                t => t.HomeTeamId == manager.Id || t.AwayTeamId == manager.Id);
+        }
+
+        [Fact]
         public async Task IsTeamInCompetitionAsync_TrueForQualifier_FalseOtherwise()
         {
             var (leagues, teams) = UniverseGenerator.CreateUniverse(season: 1, random: new Random(6));

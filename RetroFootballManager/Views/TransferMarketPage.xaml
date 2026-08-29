@@ -14,7 +14,15 @@
 
     <Grid RowDefinitions="60,300,50, *">
         <Image Source="transfermarket.png" Aspect="AspectFill" Grid.RowSpan="4"/>
-        <Label Text="Transferstatus" FontSize="26"  FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="12" />
+        <Grid ColumnDefinitions="*,Auto" Margin="12">
+            <Label Grid.Column="0" Text="Transferstatus" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <Border Grid.Column="1" Padding="10,4" VerticalOptions="Center" BackgroundColor="{Binding TransferWindowColor}" StrokeThickness="0">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <Label Text="{Binding TransferWindowInfo}" FontSize="13" TextColor="White" LineBreakMode="NoWrap" />
+            </Border>
+        </Grid>
         <ScrollView Opacity="0.85" Grid.Row="1">
             <VerticalStackLayout  Margin="12" Spacing="14">
                 <Label Text="Eigene Angebote (Listungen)" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
@@ -157,7 +165,7 @@
         </ScrollView>
         <BoxView Grid.Row="2" BackgroundColor="White"  HeightRequest="3"/>
         <ScrollView Grid.Row="3" Opacity="0.85">
-            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,*" Opacity="0.85">
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,*,Auto,Auto" Opacity="0.85">
                 <!-- Market side -->
                 <Label Text="Markt" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="12" />
                 <VerticalStackLayout Grid.Row="1" Margin="12" Spacing="6" BindableLayout.ItemsSource="{Binding MarketListings}">
@@ -295,6 +303,41 @@
                                             BackgroundColor="Transparent" BorderColor="{StaticResource RfmAccentTeal}" BorderWidth="1"
                                             TextColor="{StaticResource RfmText}" />
                                     </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <!-- Free agents (contract expired - see FreeAgentService): no selling club/fee,
+                     only the wage gets negotiated. -->
+                <Label Text="Ablösefrei" Grid.Row="2" Grid.ColumnSpan="2" Margin="12" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                <VerticalStackLayout Grid.Row="3" Grid.ColumnSpan="2" Margin="12" Spacing="6" BindableLayout.ItemsSource="{Binding FreeAgents}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:FreeAgentRow">
+                            <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <VerticalStackLayout Grid.Column="0">
+                                        <Label FontAttributes="Bold" FontSize="18" TextColor="{StaticResource RfmText}">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="{Binding PlayerName}" />
+                                                    <Span Text=" · " />
+                                                    <Span Text="{Binding Position}" />
+                                                    <Span Text=" · R " />
+                                                    <Span Text="{Binding Rating}" />
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                        <Label Text="Ablösefrei" FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                                    </VerticalStackLayout>
+                                    <Button Grid.Column="1" Text="Verpflichten" FontSize="18"
+                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.SignFreeAgentCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" />
                                 </Grid>
                             </Border>
                         </DataTemplate>

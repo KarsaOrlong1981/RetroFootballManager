@@ -23,5 +23,10 @@ namespace RetroFootballManager.Models
         // never put up for transfer (found only via scouting) - never shown as a public market
         // listing, and needs a higher offer to be accepted (see TransferAiService.ShouldAcceptOffer).
         public bool IsUnsolicited { get; set; }
+
+        // True once a player's contract has expired without renewal (see FreeAgentService) -
+        // no club to negotiate a fee with, TeamId is 0 (no club) and AskingPrice is always 0.
+        // Only the wage gets negotiated (see TransferMarketService.SignFreeAgentAsync).
+        public bool IsFreeAgent { get; set; }
     }
 }

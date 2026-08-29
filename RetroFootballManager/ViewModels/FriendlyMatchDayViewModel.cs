@@ -822,6 +822,14 @@ namespace RetroFootballManager.ViewModels
             _match.Result.ApplyInjuryDurations(_fixture.Date);
             int humanTeamId = _isHumanHome ? _homeTeam.Id : _awayTeam.Id;
             await MatchDayService.NotifyInjuriesAsync(_messages, _match.Result, _homeTeam, _awayTeam, humanTeamId, _fixture.Date);
+
+            // Undo any in-match subs/red-card reshuffles for the next matchday - see
+            // LineupSelector.RestoreBaseline.
+            var thisMatchHumanTeam = _isHumanHome ? _homeTeam : _awayTeam;
+            LineupSelector.RestoreBaseline(thisMatchHumanTeam);
+            foreach (var p in thisMatchHumanTeam.Players.Where(p => p.Status == PlayerStatus.SubstitutedOff))
+                p.Status = PlayerStatus.OnBench;
+
             MatchDayService.ApplyCareerMinutes(_match.Result, _homeTeam, _awayTeam, _fixture.Date, countsTowardCareerStats: false);
             await MatchDayService.PersistPlayerStatsAsync(_playerRepository, [_match.Result], _fixture.Season, CompetitionType.Friendly);
             FriendlyService.ApplyFriendlyIncome(_homeTeam, _awayTeam);

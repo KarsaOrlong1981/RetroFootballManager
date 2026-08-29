@@ -1,3 +1,4 @@
+using System.Text.Json;
 using RetroFootballManager.Common;
 using SQLite;
 
@@ -60,6 +61,48 @@ namespace RetroFootballManager.Models
         // current high (BoardMood > 95) - reset once it drops back below 90, so it can fire
         // again on a later high.
         public bool BoardMoodPraiseActive { get; set; }
+
+        private List<int>? _baselineStartingCache;
+        private string _baselineStartingRaw = "[]";
+
+        // The manager's (or accepted co-trainer's) persistent starting XI, set on
+        // LineupViewModel.Confirm - see LineupSelector.RestoreBaseline/RefillBench. Empty =
+        // no baseline yet (old saves, AI teams), all baseline logic then no-ops. Persisted as
+        // JSON, same convention as Player.SecondaryPositionsRaw.
+        public string BaselineStartingRaw
+        {
+            get => _baselineStartingRaw;
+            // sqlite-net reads an existing save's pre-migration row (column added via ALTER
+            // TABLE to a table that predates it) as SQL NULL, calling this setter with a literal
+            // null - never skipped, never coerced to the "[]" field initializer. Guard here so
+            // an old save deserializes as "no baseline yet" instead of crashing on first access.
+            set { _baselineStartingRaw = value ?? "[]"; _baselineStartingCache = null; }
+        }
+
+        [Ignore]
+        public List<int> BaselineStartingIds
+        {
+            get => _baselineStartingCache ??= JsonSerializer.Deserialize<List<int>>(_baselineStartingRaw) ?? [];
+            set { _baselineStartingCache = value; _baselineStartingRaw = JsonSerializer.Serialize(value); }
+        }
+
+        private List<int>? _baselineBenchCache;
+        private string _baselineBenchRaw = "[]";
+
+        // The manager's (or accepted co-trainer's) persistent bench - see BaselineStartingRaw.
+        public string BaselineBenchRaw
+        {
+            get => _baselineBenchRaw;
+            // See BaselineStartingRaw's setter comment - same NULL-from-migration guard.
+            set { _baselineBenchRaw = value ?? "[]"; _baselineBenchCache = null; }
+        }
+
+        [Ignore]
+        public List<int> BaselineBenchIds
+        {
+            get => _baselineBenchCache ??= JsonSerializer.Deserialize<List<int>>(_baselineBenchRaw) ?? [];
+            set { _baselineBenchCache = value; _baselineBenchRaw = JsonSerializer.Serialize(value); }
+        }
 
         [Ignore]
         public Tactic Tactic => new Tactic(PlayingStyle, TacticalOrientation);

@@ -23,6 +23,10 @@ namespace RetroFootballManager.ViewModels
         int ListingId, int PlayerId, string PlayerName, string Position, double Rating, string TeamName,
         double AskingPrice, bool IsLoan);
 
+    // A released (contract-expired) player - see FreeAgentService. No selling club/fee, only
+    // the wage gets negotiated (Negotiation.TryStartFreeAgentNegotiationAsync).
+    public record FreeAgentRow(int ListingId, int PlayerId, string PlayerName, string Position, double Rating);
+
     public record OwnOfferRow(int OfferId, int ListingId, string OfferingTeamName, double Fee, double Wage);
 
     public record OwnListingRow(
@@ -47,10 +51,13 @@ namespace RetroFootballManager.ViewModels
         private readonly TransferListingRepository _listingRepo;
         private readonly TransferOfferRepository _offerRepo;
         private readonly ContractBonusRepository _bonusRepo;
+        private readonly PlayerRepository _playerRepo;
+        private readonly CalendarService _calendar;
 
         private Team? _team;
         private Dictionary<int, TransferListing> _listingsById = new();
         private Dictionary<int, TransferOffer> _offersById = new();
+        private Dictionary<int, Player> _freeAgentsById = new();
         private readonly Random _rng = new();
 
         // Shared negotiation dialog (manager phase + player phase) - see
@@ -61,7 +68,7 @@ namespace RetroFootballManager.ViewModels
         public TransferMarketViewModel(
             IDispatcher dispatcher, GameSession session, SaveGameService saveGame, TransferMarketService market,
             TransferListingRepository listingRepo, TransferOfferRepository offerRepo, ContractBonusRepository bonusRepo,
-            NegotiationDialogViewModel negotiation)
+            PlayerRepository playerRepo, CalendarService calendar, NegotiationDialogViewModel negotiation)
             : base(dispatcher)
         {
             _session = session;
@@ -70,14 +77,24 @@ namespace RetroFootballManager.ViewModels
             _listingRepo = listingRepo;
             _offerRepo = offerRepo;
             _bonusRepo = bonusRepo;
+            _playerRepo = playerRepo;
+            _calendar = calendar;
             Negotiation = negotiation;
             Title = "Transfermarkt";
         }
 
         [ObservableProperty] private string _statusText = string.Empty;
 
+        // Negotiating (browsing/offering/countering) is always possible regardless of this -
+        // only actually completing a transfer/loan is gated on it (AcceptOffer/AcceptCounterOffer
+        // below) - matches SeasonPhaseCalculator/TransferAiService/NegotiationResolutionService.
+        [ObservableProperty] private bool _isTransferWindowOpen = true;
+        [ObservableProperty] private string _transferWindowInfo = string.Empty;
+        [ObservableProperty] private Color _transferWindowColor = Colors.Gray;
+
         public ObservableCollection<OwnPlayerRow> OwnPlayers { get; } = [];
         public ObservableCollection<MarketListingRow> MarketListings { get; } = [];
+        public ObservableCollection<FreeAgentRow> FreeAgents { get; } = [];
         public ObservableCollection<OwnListingRow> OwnListings { get; } = [];
         public ObservableCollection<OutgoingOfferRow> OutgoingOffers { get; } = [];
 
@@ -109,6 +126,20 @@ namespace RetroFootballManager.ViewModels
             {
                 Log.Error("Market replenishment failed.", ex);
             }
+
+            var phase = await _calendar.GetSeasonPhaseAsync(_session.State);
+            IsTransferWindowOpen = phase.TransferWindow == TransferWindowState.Open;
+            string phaseLabel = phase.Phase switch
+            {
+                SeasonPhase.PreSeason => "Vorbereitung",
+                SeasonPhase.WinterBreak => "Winterpause",
+                SeasonPhase.FirstHalf => "Hinrunde",
+                _ => "Rückrunde",
+            };
+            TransferWindowInfo = IsTransferWindowOpen
+                ? $"Transferfenster offen ({phaseLabel})"
+                : $"Transferfenster geschlossen ({phaseLabel})";
+            TransferWindowColor = IsTransferWindowOpen ? Color.FromArgb("#22C55E") : Color.FromArgb("#EF4444");
 
             await RefreshAsync();
         }
@@ -150,6 +181,21 @@ namespace RetroFootballManager.ViewModels
                 MarketListings.Add(new MarketListingRow(
                     listing.Id, player.Id, player.Name, PositionDisplay.Short(player.Position), Math.Round(player.Rating, 1),
                     sellerTeam.Name, listing.AskingPrice, listing.IsLoanListing));
+            }
+
+            // Free agents (contract expired - see FreeAgentService) aren't on any team's roster
+            // any more (TeamId 0), so they have to be looked up directly via PlayerRepository.
+            FreeAgents.Clear();
+            _freeAgentsById.Clear();
+            foreach (var listing in allListings.Where(l => l.IsFreeAgent))
+            {
+                var player = await _playerRepo.GetPlayerAsync(listing.PlayerId);
+                if (player is null)
+                    continue;
+
+                _freeAgentsById[player.Id] = player;
+                FreeAgents.Add(new FreeAgentRow(
+                    listing.Id, player.Id, player.Name, PositionDisplay.Short(player.Position), Math.Round(player.Rating, 1)));
             }
 
             OwnListings.Clear();
@@ -362,6 +408,21 @@ namespace RetroFootballManager.ViewModels
         }
 
         [RelayCommand]
+        private async Task SignFreeAgent(FreeAgentRow row)
+        {
+            if (IsBusy) return;
+            if (_team is null || _session.State is null || !_listingsById.TryGetValue(row.ListingId, out var listing)
+                || !_freeAgentsById.TryGetValue(row.PlayerId, out var player))
+                return;
+
+            var seasonStats = await _saveGame.GetPlayerSeasonStatsAsync(player.Id, _session.State.Season);
+            string? error = await Negotiation.TryStartFreeAgentNegotiationAsync(
+                _team, listing, player, seasonStats, _session.State.Season, _session.State.CurrentDate, RefreshAsync);
+            if (error is not null)
+                StatusText = error;
+        }
+
+        [RelayCommand]
         private async Task NegotiateOwnOffer(OwnOfferRow row)
         {
             if (IsBusy) return;
@@ -410,6 +471,12 @@ namespace RetroFootballManager.ViewModels
             var player = _team.Players.FirstOrDefault(p => p.Id == listing.PlayerId);
             if (buyingTeam is null || player is null)
                 return;
+
+            if (!IsTransferWindowOpen)
+            {
+                StatusText = "Transferfenster geschlossen - der Wechsel kann erst im nächsten Transferfenster abgeschlossen werden. Das Angebot bleibt bestehen.";
+                return;
+            }
 
             IsBusy = true;
             StatusText = "Transfer wird abgewickelt …";
@@ -464,6 +531,12 @@ namespace RetroFootballManager.ViewModels
             if (!listing.IsLoanListing && !TransferMarketService.CanAffordFee(_team, offer.CounterFee))
             {
                 StatusText = $"Die geforderte Ablöse von {offer.CounterFee:N0} € würde den Kontostand zu weit ins Minus drücken.";
+                return;
+            }
+
+            if (!IsTransferWindowOpen)
+            {
+                StatusText = "Transferfenster geschlossen - der Wechsel kann erst im nächsten Transferfenster abgeschlossen werden. Das Gegenangebot bleibt bestehen.";
                 return;
             }
 

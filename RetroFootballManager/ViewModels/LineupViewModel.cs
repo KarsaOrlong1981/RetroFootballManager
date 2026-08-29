@@ -95,11 +95,21 @@ namespace RetroFootballManager.ViewModels
             SelectedOrientation = Orientations.FirstOrDefault(o => o.Orientation == _team.TacticalOrientation);
             SelectedTackling = TacklingOptions.FirstOrDefault(t => t.Value == _team.TacklingIntensity);
 
-            // Self-heal: if the persisted/session lineup is incomplete (fewer starters than
-            // the formation needs), auto-pick a valid position-correct XI before rendering -
-            // otherwise most pitch slots would show empty and never register a swap.
+            // Restore the manager's/co-trainer's confirmed baseline first (undoes any in-match
+            // subs from the last matchday), then self-heal non-destructively: if the XI is still
+            // incomplete (an injury, or a starter who left the club since it was last confirmed),
+            // fill only the missing slot(s) - never rebuild the whole XI/bench from scratch
+            // (that used to wipe the entire manually-picked bench, see LineupSelector.SelectLineup).
+            if (_team.BaselineStartingIds.Count > 0 || _team.BaselineBenchIds.Count > 0)
+                LineupSelector.RestoreBaseline(_team);
             if (_team.Players.Count(p => p.Status == PlayerStatus.InStartingXI) < _formation.Slots.Count)
-                LineupSelector.SelectLineup(_team, _formation);
+                LineupSelector.FillMissingStarters(_team, _formation);
+            // Same self-heal for the bench: tops it back up to BenchCap from the reserves
+            // whenever it's short (a departure that predates this feature, or any other gap) -
+            // the drag&drop Swap below only ever exchanges one player for another, it never grows
+            // the bench, so without this a short bench could never be filled back up from the UI.
+            if (_team.Players.Count(p => p.Status == PlayerStatus.OnBench) < BenchCap)
+                LineupSelector.RefillBench(_team);
 
             BuildInitialLineup();
             RebuildViews();
@@ -544,6 +554,13 @@ namespace RetroFootballManager.ViewModels
             StatusText = "Aufstellung wird gespeichert …";
             try
             {
+                // Snapshot this confirmed XI/bench as the persistent baseline - restored after
+                // every match so an in-match sub/reshuffle never leaks into the next matchday
+                // (see LineupSelector.RestoreBaseline). Covers both a manual edit and an accepted
+                // co-trainer suggestion (AskCoTrainer only stages; Confirm is what persists).
+                _team.BaselineStartingIds = _lineup.Where(id => id.HasValue).Select(id => id!.Value).ToList();
+                _team.BaselineBenchIds = new List<int>(_benchIds);
+
                 await _saveGame.SaveTeamProgressAsync(_session.State, _team);
                 await _navigation.GoBackAsync();
             }

@@ -337,6 +337,44 @@ namespace RetroFootballManager.Tests
             Assert.True(mentored.YouthPlayers[0].Rating >= plain.YouthPlayers[0].Rating);
         }
 
+        // Player.MentorId has no other write site than YouthViewModel (a human UI action) - an
+        // AI club would otherwise never assign one at all. ApplyMonthlyDevelopment(isHuman:
+        // false) fills this gap the same way TrainingService.EnsureAiFocusAssigned does for
+        // training focus, without ever touching a human's own deliberate "no mentor yet" choice.
+        [Fact]
+        public void ApplyMonthlyDevelopment_ForAnAiTeam_AssignsAMentorToAMentorlessYouth()
+        {
+            var team = MakeTeam();
+            var best = MakePlayer(age: 30, talent: 70, attr: 80, id: 99);
+            best.Rating = 80;
+            team.Players.Add(best);
+            var youth = MakePlayer(age: 16, talent: 80, attr: 45, id: 1);
+            youth.IsYouthProspect = true;
+            youth.DateOfBirth = DevDate.AddYears(-16);
+            team.YouthPlayers.Add(youth);
+
+            DevelopmentService.ApplyMonthlyDevelopment(team, DevDate, new Random(1), isHuman: false);
+
+            Assert.Equal(best.Id, youth.MentorId);
+        }
+
+        [Fact]
+        public void ApplyMonthlyDevelopment_ForTheHumanTeam_NeverAssignsAMentor()
+        {
+            var team = MakeTeam();
+            var best = MakePlayer(age: 30, talent: 70, attr: 80, id: 99);
+            best.Rating = 80;
+            team.Players.Add(best);
+            var youth = MakePlayer(age: 16, talent: 80, attr: 45, id: 1);
+            youth.IsYouthProspect = true;
+            youth.DateOfBirth = DevDate.AddYears(-16);
+            team.YouthPlayers.Add(youth);
+
+            DevelopmentService.ApplyMonthlyDevelopment(team, DevDate, new Random(1), isHuman: true);
+
+            Assert.Null(youth.MentorId);
+        }
+
         [Fact]
         public void Development_GoalkeeperWithGoodCoach_GrowsAtLeastAsMuch()
         {

@@ -319,7 +319,15 @@ namespace RetroFootballManager.Tests
 
                 var poorTeam = TestHelpers.CreateTeam("Schlechte Abwehr", baseRating: 65);
                 foreach (var p in poorTeam.Players.Where(p => p.Position == Position.CentralDefender))
+                {
                     p.Positioning = 5;
+                    // BestHeaderDefender picks by raw HeaderPower (HeaderStrength/Jumping/Size),
+                    // not by position - every TestHelpers player ties on those by default, so
+                    // without a clear edge here the tie-break (list order) can silently pick a
+                    // DIFFERENT, unmodified player and the Positioning manipulation below never
+                    // actually reaches the code path being measured.
+                    p.HeaderStrength = 90; p.Jumping = 90; p.Size = 1.95;
+                }
                 var resultPoor = new Match(attackers, poorTeam, random).Simulate();
                 foreach (var stats in resultPoor.PlayerMatchStats.Values.Where(s => poorTeam.Players.Any(p => p.Id == s.PlayerId)))
                 {
@@ -329,7 +337,10 @@ namespace RetroFootballManager.Tests
 
                 var goodTeam = TestHelpers.CreateTeam("Gute Abwehr", baseRating: 65);
                 foreach (var p in goodTeam.Players.Where(p => p.Position == Position.CentralDefender))
+                {
                     p.Positioning = 95;
+                    p.HeaderStrength = 90; p.Jumping = 90; p.Size = 1.95;
+                }
                 var resultGood = new Match(attackers, goodTeam, random).Simulate();
                 foreach (var stats in resultGood.PlayerMatchStats.Values.Where(s => goodTeam.Players.Any(p => p.Id == s.PlayerId)))
                 {

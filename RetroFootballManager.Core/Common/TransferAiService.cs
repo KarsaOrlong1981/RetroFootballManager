@@ -7,8 +7,11 @@ namespace RetroFootballManager.Common
     // Difficulty (Easy = rarer/cautious, Hard = more frequent/aggressive).
     public static class TransferAiService
     {
-        // Positions with more players than this threshold are considered overstocked.
-        private const int SurplusThreshold = 4;
+        // Positions with at least this many players are considered overstocked. Deliberately
+        // low enough that PlayerGenerator.DefaultPositionPlan's own generation counts (3 GKs,
+        // 4 CentralDefenders, 3 Forwards) already qualify - a strict ">4" against a plan that
+        // never generates more than 4 of anything meant this could never fire on a fresh squad.
+        private const int SurplusThreshold = 3;
 
         // DirectorOfFootball negotiates better transfer prices - up to +/-15% depending on his
         // Rating. Only one DoF can ever be on staff (see StaffMarketService.MaxEmployeesPerType),
@@ -33,10 +36,38 @@ namespace RetroFootballManager.Common
             _ => 0.3,
         };
 
+        // How large a single transfer fee may be relative to CURRENT cash - independent of the
+        // season-end trend (cautionFactor), which only reacts to a big one-off fee AFTER it's
+        // already been paid. Without this a well-funded team could blow most of its balance on
+        // one signing while its trend still looks perfectly healthy. Same difficulty direction as
+        // ActivityChance (Hard = most disciplined). cautionFactor still multiplies in on top, so
+        // the cap tightens further as the trend actually worsens - not just a single fixed share.
+        private static double MaxSingleTransferShareOfBalance(Difficulty difficulty) => difficulty switch
+        {
+            Difficulty.Hard => 0.25,
+            Difficulty.Easy => 0.55,
+            _ => 0.4,
+        };
+
+        // A team actively looks to recruit once a position drops below this many senior players
+        // - mirrors SurplusThreshold's shape from the other direction ("too few" vs "too many").
+        private const int MinDepthPerPosition = 2;
+
         // One AI tick per team and call: at most one new listing + at most one offer.
+        // freeAgentsById resolves a free-agent listing's PlayerId to the actual Player (TeamId 0
+        // listings have no owning club to look the player up through) - only needed/fetched by
+        // the caller when at least one such listing exists (see AiManagerService). teamsById
+        // resolves a normal (non-free-agent) listing's player the same way, so the bid-target
+        // pick below can actually tell whether a listing fills a real squad need.
+        // cautionFactor (see FinanceAiService.ComputeCautionFactor) tapers toward 0 as the
+        // team's own finances worsen - selling (the listing half below) is always still allowed
+        // (it helps a struggling club), only spending on a bid is suppressed once things are bad
+        // enough that taking on more wages would make things worse.
         public static async Task RunWeeklyTickAsync(
             Team team, IReadOnlyList<TransferListing> allListings, TransferMarketService market,
-            Difficulty difficulty, int season, DateTime currentDate, Random rng, int humanTeamId = 0)
+            Difficulty difficulty, int season, DateTime currentDate, Random rng, int humanTeamId = 0,
+            IReadOnlyDictionary<int, Player>? freeAgentsById = null, double cautionFactor = 1.0,
+            IReadOnlyDictionary<int, Team>? teamsById = null)
         {
             if (rng.NextDouble() > ActivityChance(difficulty))
                 return;
@@ -49,16 +80,53 @@ namespace RetroFootballManager.Common
                 await market.ListPlayerAsync(surplus, team, askingPrice, season, currentDate);
             }
 
-            var target = allListings
-                .Where(l => l.TeamId != team.Id && CanAfford(team, l))
+            if (cautionFactor <= 0.1)
+                return;
+
+            var affordableListings = allListings
+                .Where(l => l.TeamId != team.Id && CanAfford(team, l, difficulty, cautionFactor)).ToList();
+
+            Player? ResolvePlayer(TransferListing l) =>
+                l.IsFreeAgent && freeAgentsById is not null && freeAgentsById.TryGetValue(l.PlayerId, out var freeAgent) ? freeAgent
+                : teamsById is not null && teamsById.TryGetValue(l.TeamId, out var owner) ? owner.Players.FirstOrDefault(p => p.Id == l.PlayerId)
+                : null;
+
+            // Positions with too few senior players - a hole in the squad, not just a nice-to-
+            // have upgrade. A listing filling one of these is preferred over a random pick, same
+            // "scout and recruit when actually needed" idea FindSurplusPlayer already applies to
+            // selling. Falls back to the old random pick when no player could be resolved (tests
+            // that don't pass teamsById/freeAgentsById) or no listing happens to fill a gap.
+            var shortagePositions = team.Players.GroupBy(p => p.Position)
+                .Where(g => g.Count() < MinDepthPerPosition)
+                .Select(g => g.Key)
+                .Concat(Enum.GetValues<Position>().Except(team.Players.Select(p => p.Position)))
+                .ToHashSet();
+
+            var target = affordableListings
+                .Select(l => (Listing: l, Player: ResolvePlayer(l)))
+                .Where(x => x.Player is not null && shortagePositions.Contains(x.Player!.Position))
                 .OrderBy(_ => rng.Next())
-                .FirstOrDefault();
+                .Select(x => x.Listing)
+                .FirstOrDefault()
+                ?? affordableListings.OrderBy(_ => rng.Next()).FirstOrDefault();
             if (target is not null)
             {
-                double fee = target.AskingPrice * (0.85 + rng.NextDouble() * 0.3) * DirectorOfFootballPriceFactor(team, favorSeller: false);
-                // Rough heuristic (no access to the other team's actual player here) -
-                // ~15% of market value as annual salary, matching PlayerValuationService.EstimateAnnualSalary.
-                double wage = target.AskingPrice * 0.15;
+                double fee, wage;
+                if (target.IsFreeAgent && freeAgentsById is not null && freeAgentsById.TryGetValue(target.PlayerId, out var freeAgent))
+                {
+                    // No fee to negotiate - only the wage, based on the player's own market
+                    // value (AskingPrice is always 0 for a free agent, so it carries no signal).
+                    fee = 0;
+                    wage = PlayerValuationService.EstimateAnnualSalary(freeAgent) * (0.9 + rng.NextDouble() * 0.2)
+                        * DirectorOfFootballPriceFactor(team, favorSeller: false);
+                }
+                else
+                {
+                    fee = target.AskingPrice * (0.85 + rng.NextDouble() * 0.3) * DirectorOfFootballPriceFactor(team, favorSeller: false);
+                    // Rough heuristic (no access to the other team's actual player here) -
+                    // ~15% of market value as annual salary, matching PlayerValuationService.EstimateAnnualSalary.
+                    wage = target.AskingPrice * 0.15;
+                }
                 await market.MakeOfferAsync(target, team, fee, wage, currentDate, humanTeamId);
             }
         }
@@ -71,9 +139,14 @@ namespace RetroFootballManager.Common
 
         // Evaluates incoming offers on the team's OWN listings - without this, offers (including
         // the human player's) would stay "pending" forever since no one ever accepts/rejects them.
+        // isTransferWindowOpen: negotiating (countering/rejecting) is always allowed regardless -
+        // only actually completing a good-enough offer is gated on the window, see
+        // SeasonPhaseCalculator.IsTransferWindowOpen. A good offer outside the window is simply
+        // left Pending (not rejected, not accepted) and re-evaluated again next week.
         public static async Task EvaluateIncomingOffersAsync(
             Team team, IReadOnlyList<TransferListing> ownListings, TransferMarketService market,
-            IReadOnlyDictionary<int, Team> teamsById, DateTime currentDate, int humanTeamId = 0, Random? rng = null)
+            IReadOnlyDictionary<int, Team> teamsById, DateTime currentDate, int humanTeamId = 0, Random? rng = null,
+            bool isTransferWindowOpen = true)
         {
             foreach (var listing in ownListings.Where(l => l.TeamId == team.Id))
             {
@@ -102,6 +175,9 @@ namespace RetroFootballManager.Common
 
                 if (ShouldAcceptOffer(listing, bestOffer, team, buyingTeam))
                 {
+                    if (!isTransferWindowOpen)
+                        continue; // deal is good, window's closed - leave it pending, retry next week
+
                     if (listing.IsLoanListing)
                     {
                         await market.LoanOutAsync(player, team, buyingTeam, currentDate, currentDate.AddMonths(6), bestOffer.WageOffer);
@@ -162,14 +238,21 @@ namespace RetroFootballManager.Common
         {
             foreach (var group in team.Players.Where(p => !alreadyListedIds.Contains(p.Id)).GroupBy(p => p.Position))
             {
-                if (group.Count() > SurplusThreshold)
+                if (group.Count() >= SurplusThreshold)
                     return group.OrderBy(p => p.Rating).First();
             }
             return null;
         }
 
-        private static bool CanAfford(Team team, TransferListing listing) =>
-            team.Finances is not null && FinanceService.HasSpendableBalance(team)
-            && team.Finances.CurrentBalance > listing.AskingPrice * 1.2;
+        private static bool CanAfford(Team team, TransferListing listing, Difficulty difficulty, double cautionFactor)
+        {
+            if (team.Finances is null || !FinanceService.HasSpendableBalance(team))
+                return false;
+
+            double requiredMargin = listing.AskingPrice * 1.2;
+            double maxSingleSpend = team.Finances.CurrentBalance
+                * MaxSingleTransferShareOfBalance(difficulty) * Math.Clamp(cautionFactor, 0.0, 1.0);
+            return requiredMargin <= maxSingleSpend;
+        }
     }
 }

@@ -442,15 +442,26 @@ namespace RetroFootballManager.Data
                     ? roundTies
                     : roundTies.Where(t => t.Date == pendingDates.Min()).ToList();
 
+                // Only return early when the team still has something left to play - once their
+                // own tie is done, fall through so the round-completion/next-round-draw logic
+                // below still runs for the rest of the bracket. Otherwise a team eliminated
+                // mid-competition (as opposed to one that never qualified at all, which never
+                // matches here) would permanently stall every other team's remaining rounds and
+                // prize money, since this per-team method is the only place round advancement
+                // happens.
                 var humanTie = slotTies.FirstOrDefault(t => t.HomeTeamId == teamId || t.AwayTeamId == teamId);
-                if (humanTie is not null)
-                    return humanTie.Played ? null : humanTie;
+                if (humanTie is not null && !humanTie.Played)
+                    return humanTie;
 
                 if (!slotTies.All(t => t.Played))
                 {
+                    // PlayCupRoundAsync blindly (re-)simulates every tie it's given - exclude
+                    // ones already played (e.g. the queried team's own result, resolved earlier
+                    // via the branch above) so they aren't silently overwritten.
+                    var pendingSlotTies = slotTies.Where(t => !t.Played).ToList();
                     var firstLegTies = roundTies.Where(t => t.LegNumber == CupTie.LegFirst).ToList();
                     await cupMatchDayService.PlayCupRoundAsync(
-                        teams, slotTies, humanTie: null, humanResult: null, humanTeamId: teamId, firstLegTies: firstLegTies);
+                        teams, pendingSlotTies, humanTie: null, humanResult: null, humanTeamId: teamId, firstLegTies: firstLegTies);
                     continue;
                 }
 

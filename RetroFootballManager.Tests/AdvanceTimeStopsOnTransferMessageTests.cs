@@ -46,13 +46,15 @@ namespace RetroFootballManager.Tests
             // versenden - das genau ist die Voraussetzung, die dieser Test überprüft.
             _transferMarket = new TransferMarketService(_listingRepo, _offerRepo, loanRepo, _teamRepo, contractRepo, _messages);
             var staffMarket = new StaffMarketService(_db, _teamRepo, contractRepo, new Random(1));
-            var aiManager = new AiManagerService(_transferMarket, staffMarket, contractRepo, _listingRepo);
+            var aiManager = new AiManagerService(_transferMarket, staffMarket, contractRepo, _listingRepo, new PlayerRepository(_db));
             var expiryWarnings = new ExpiryWarningService(contractRepo, loanRepo, _messages);
             var sponsorRepo = new SponsorRepository(_db);
             var sponsorshipRepo = new SponsorshipRepository(_db);
             var finance = new FinanceService(sponsorRepo, sponsorshipRepo, contractRepo, _messages);
             var trainingCamps = new TrainingCampService(new TrainingCampRepository(_db), _fixtureRepo, _messages, new Random(1));
-            _service = new CalendarAdvanceService(_teamRepo, _fixtureRepo, aiManager, expiryWarnings, finance, trainingCamps, _messages, new Random(1));
+            _service = new CalendarAdvanceService(
+                _teamRepo, _fixtureRepo, aiManager, expiryWarnings, finance, trainingCamps, _messages,
+                contractRepo, _listingRepo, _offerRepo, new PlayerRepository(_db), _transferMarket, new Random(1));
         }
 
         public async Task DisposeAsync()

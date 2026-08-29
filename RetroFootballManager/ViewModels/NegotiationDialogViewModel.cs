@@ -62,6 +62,7 @@ namespace RetroFootballManager.ViewModels
         private readonly NegotiationCooldownRepository _cooldownRepo;
         private readonly PendingNegotiationRepository _pendingRepo;
         private readonly CupTieRepository _cupTieRepo;
+        private readonly CalendarService _calendar;
         private readonly Random _rng = new();
 
         private Team? _myTeam;
@@ -80,7 +81,7 @@ namespace RetroFootballManager.ViewModels
         public NegotiationDialogViewModel(
             GameSession session, SaveGameService saveGame, TransferMarketService market, TransferOfferRepository offerRepo,
             ContractRepository contractRepo, NegotiationCooldownRepository cooldownRepo,
-            PendingNegotiationRepository pendingRepo, CupTieRepository cupTieRepo)
+            PendingNegotiationRepository pendingRepo, CupTieRepository cupTieRepo, CalendarService calendar)
         {
             _session = session;
             _saveGame = saveGame;
@@ -90,6 +91,7 @@ namespace RetroFootballManager.ViewModels
             _cooldownRepo = cooldownRepo;
             _pendingRepo = pendingRepo;
             _cupTieRepo = cupTieRepo;
+            _calendar = calendar;
         }
 
         [ObservableProperty] private bool _isBusy;
@@ -173,6 +175,48 @@ namespace RetroFootballManager.ViewModels
             PlayerName = player.Name;
             Subtitle = listing.IsLoanListing
                 ? $"Leihverhandlung mit {sellingTeam.Name}" : $"Ablöseverhandlung mit {sellingTeam.Name}";
+            IsOpen = true;
+            return null;
+        }
+
+        // Free agent (contract expired, no club - see FreeAgentService): no selling club to
+        // negotiate a fee with, so the manager phase is skipped entirely and this goes straight
+        // to the player phase (wage/role/years/bonuses only). NegotiationFee is locked to 0 -
+        // CompletePlayerPhaseAsync's normal Buy path then creates the offer/PendingNegotiation
+        // exactly as usual, resolved by NegotiationResolutionService (free-agent branch).
+        public async Task<string?> TryStartFreeAgentNegotiationAsync(
+            Team myTeam, TransferListing listing, Player player, PlayerStats? seasonStats, int season,
+            DateTime currentDate, Func<Task> onCompleted)
+        {
+            if (!TransferMarketService.CanBuy(myTeam, out string? balanceError))
+                return balanceError;
+
+            var cooldown = await _cooldownRepo.GetActiveAsync(myTeam.Id, player.Id, season);
+            if (cooldown is not null)
+                return $"Die Verhandlungen um {player.Name} sind für diese Saison beendet.";
+
+            var existingOffers = await _offerRepo.GetByListingAsync(listing.Id);
+            if (existingOffers.Any(o => o.OfferingTeamId == myTeam.Id
+                && (o.Status == TransferOfferStatus.Pending || o.Status == TransferOfferStatus.Countered)))
+                return $"Du hast bereits ein laufendes Angebot für {player.Name}.";
+
+            _currentScenario = NegotiationScenario.Buy;
+            _myTeam = myTeam;
+            _negotiationPlayer = player;
+            _negotiationSeasonStats = seasonStats;
+            _negotiationCounterpartTeam = null;
+            _negotiationListing = listing;
+            _negotiationOffer = null;
+            _negotiationExpectedFee = 0;
+            _negotiationConcluded = false;
+            _isLoanDeal = false;
+            _negotiationOriginalWage = PlayerValuationService.EstimateAnnualSalary(player);
+            _onCompleted = onCompleted;
+            NegotiationFee = 0;
+
+            PlayerName = player.Name;
+            Subtitle = "Ablösefrei - Vertragsverhandlung";
+            await OpenPlayerPhaseAsync();
             IsOpen = true;
             return null;
         }
@@ -403,6 +447,21 @@ namespace RetroFootballManager.ViewModels
 
             if (_currentScenario == NegotiationScenario.Sell)
             {
+                // Negotiating (agreeing terms) is always possible - only actually completing the
+                // move is gated on the transfer window (matches SeasonPhaseCalculator/
+                // TransferAiService/NegotiationResolutionService). Doesn't conclude the
+                // negotiation - the offer/listing stay exactly as they are, the manager can just
+                // try "Annehmen" again once the window reopens.
+                if (_session.State is not null)
+                {
+                    var phase = await _calendar.GetSeasonPhaseAsync(_session.State);
+                    if (phase.TransferWindow != TransferWindowState.Open)
+                    {
+                        NegotiationStatusText = "Transferfenster geschlossen - der Wechsel kann erst im nächsten Transferfenster abgeschlossen werden.";
+                        return;
+                    }
+                }
+
                 if (_isLoanDeal)
                 {
                     _negotiationConcluded = true;

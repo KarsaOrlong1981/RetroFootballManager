@@ -38,5 +38,14 @@ namespace RetroFootballManager.Common
 
             return new SeasonPhaseInfo(phase, window);
         }
+
+        // Convenience for the many call sites that only care about the window, not the full
+        // phase - negotiating (offers/counter-offers/listings) is always allowed regardless of
+        // window state; only actually completing a transfer/loan between two clubs is gated on
+        // this (see TransferAiService.EvaluateIncomingOffersAsync, NegotiationResolutionService,
+        // TransferMarketViewModel). Free-agent signings are deliberately NOT gated by this (real
+        // football lets an out-of-contract player join a new club any time).
+        public static bool IsTransferWindowOpen(DateTime currentDate, int matchdayIndex, IReadOnlyList<Fixture> seasonFixtures) =>
+            Calculate(currentDate, matchdayIndex, seasonFixtures).TransferWindow == TransferWindowState.Open;
     }
 }

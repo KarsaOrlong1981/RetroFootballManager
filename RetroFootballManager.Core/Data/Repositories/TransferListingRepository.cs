@@ -19,6 +19,10 @@ namespace RetroFootballManager.Data.Repositories
 
         public async Task<TransferListing?> GetByIdAsync(int id) => await _db.Connection.FindAsync<TransferListing>(id);
 
+        // Released (contract-expired) players currently on the market - see FreeAgentService.
+        public Task<List<TransferListing>> GetFreeAgentsAsync() =>
+            _db.Connection.Table<TransferListing>().Where(l => l.IsFreeAgent).ToListAsync();
+
         public async Task<TransferListing?> GetByPlayerAsync(int playerId) =>
             await _db.Connection.Table<TransferListing>().Where(l => l.PlayerId == playerId).FirstOrDefaultAsync();
 

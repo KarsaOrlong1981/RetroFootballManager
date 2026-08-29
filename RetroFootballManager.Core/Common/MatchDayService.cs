@@ -252,6 +252,13 @@ namespace RetroFootballManager.Common
             var names = teams.ToDictionary(t => t.Id, t => t.Name);
             var fixtures = await _fixtures.GetByMatchdayAsync(state.Season, matchday);
 
+            // Negotiating is always allowed regardless of this - only completing a transfer/loan
+            // is gated on it (see TransferAiService.EvaluateIncomingOffersAsync). Uses the
+            // matchday just played, not state.MatchdayIndex (not updated to it until AdvanceDate
+            // below runs).
+            var seasonFixturesForWindow = await _fixtures.GetBySeasonAsync(state.Season);
+            bool isTransferWindowOpen = SeasonPhaseCalculator.IsTransferWindowOpen(state.CurrentDate, matchday, seasonFixturesForWindow);
+
             var games = new List<MatchdayGame>();
             var touchedTeamIds = new HashSet<int>();
             var matchResults = new List<MatchResult>();
@@ -281,12 +288,14 @@ namespace RetroFootballManager.Common
 
                     var managerTeam = home.Id == state.ManagerTeamId ? home : away;
 
-                    // Subs made during this match leave players stuck as SubstitutedOff, which
-                    // RebuildViews (Lineup page) doesn't render as Bench or Reserve - they'd
-                    // simply vanish until the next matchday prep/calendar tick runs
-                    // RecoverForMatch. Fix it up right here instead of a full RecoverForMatch
-                    // call, which would also touch fitness/suspension counters already handled
-                    // elsewhere and risk double-counting a ban served during pre-match prep.
+                    // Undo any in-match subs/red-card reshuffles: they apply only to this one
+                    // match, never to the next matchday's default lineup (see
+                    // LineupSelector.RestoreBaseline). No-ops if no baseline was ever confirmed
+                    // (e.g. very first match) - the fallback below still fixes up anyone left
+                    // stuck as SubstitutedOff, which RebuildViews (Lineup page) doesn't render as
+                    // Bench or Reserve, so they'd otherwise simply vanish until the next
+                    // RecoverForMatch.
+                    LineupSelector.RestoreBaseline(managerTeam);
                     foreach (var p in managerTeam.Players.Where(p => p.Status == PlayerStatus.SubstitutedOff))
                         p.Status = PlayerStatus.OnBench;
 
@@ -349,7 +358,9 @@ namespace RetroFootballManager.Common
                 ApplyPsychologistMoraleBoost(team);
 
                 if (!isHuman && _aiManager is not null)
-                    await _aiManager.RunWeeklyTickAsync(team, state.Season, state.CurrentDate, state.Difficulty, _random, teamById, state.ManagerTeamId);
+                    await _aiManager.RunWeeklyTickAsync(
+                        team, state.Season, state.CurrentDate, state.Difficulty, _random, teamById, state.ManagerTeamId, matchday,
+                        isTransferWindowOpen);
             }
 
             if (_aiManager is not null)

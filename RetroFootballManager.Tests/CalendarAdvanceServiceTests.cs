@@ -32,16 +32,19 @@ namespace RetroFootballManager.Tests
             var listingRepo = new TransferListingRepository(_db);
             var offerRepo = new TransferOfferRepository(_db);
             var loanRepo = new LoanAgreementRepository(_db);
+            var playerRepo = new PlayerRepository(_db);
             _messages = new MessageService(new MessageRepository(_db));
             var transferMarket = new TransferMarketService(listingRepo, offerRepo, loanRepo, _teamRepo, contractRepo);
             var staffMarket = new StaffMarketService(_db, _teamRepo, contractRepo, new Random(1));
-            var aiManager = new AiManagerService(transferMarket, staffMarket, contractRepo, listingRepo);
+            var aiManager = new AiManagerService(transferMarket, staffMarket, contractRepo, listingRepo, playerRepo);
             var expiryWarnings = new ExpiryWarningService(contractRepo, loanRepo, _messages);
             var sponsorRepo = new SponsorRepository(_db);
             var sponsorshipRepo = new SponsorshipRepository(_db);
             var finance = new FinanceService(sponsorRepo, sponsorshipRepo, contractRepo, _messages);
             var trainingCamps = new TrainingCampService(new TrainingCampRepository(_db), _fixtureRepo, _messages, new Random(1));
-            _service = new CalendarAdvanceService(_teamRepo, _fixtureRepo, aiManager, expiryWarnings, finance, trainingCamps, _messages, new Random(1));
+            _service = new CalendarAdvanceService(
+                _teamRepo, _fixtureRepo, aiManager, expiryWarnings, finance, trainingCamps, _messages,
+                contractRepo, listingRepo, offerRepo, playerRepo, transferMarket, new Random(1));
         }
 
         public async Task DisposeAsync()
@@ -147,11 +150,16 @@ namespace RetroFootballManager.Tests
                     new TransferMarketService(new TransferListingRepository(_db), new TransferOfferRepository(_db),
                         new LoanAgreementRepository(_db), _teamRepo, new ContractRepository(_db)),
                     new StaffMarketService(_db, _teamRepo, new ContractRepository(_db), new Random(1)),
-                    new ContractRepository(_db), new TransferListingRepository(_db)),
+                    new ContractRepository(_db), new TransferListingRepository(_db), new PlayerRepository(_db)),
                 new ExpiryWarningService(new ContractRepository(_db), new LoanAgreementRepository(_db), _messages),
                 new FinanceService(new SponsorRepository(_db), new SponsorshipRepository(_db), new ContractRepository(_db), _messages),
                 new TrainingCampService(new TrainingCampRepository(_db), _fixtureRepo, _messages, new Random(1)),
-                _messages, new Random(1), saveGame);
+                _messages,
+                new ContractRepository(_db), new TransferListingRepository(_db), new TransferOfferRepository(_db),
+                new PlayerRepository(_db),
+                new TransferMarketService(new TransferListingRepository(_db), new TransferOfferRepository(_db),
+                    new LoanAgreementRepository(_db), _teamRepo, new ContractRepository(_db)),
+                new Random(1), saveGame);
 
             var state = new GameState { ManagerTeamId = humanTeam.Id, Season = 1, CurrentDate = Today.AddDays(13) };
             await serviceWithSaveGame.AdvanceOneDayAsync(state, [humanTeam, targetTeam]);
@@ -175,11 +183,16 @@ namespace RetroFootballManager.Tests
                     new TransferMarketService(new TransferListingRepository(_db), new TransferOfferRepository(_db),
                         new LoanAgreementRepository(_db), _teamRepo, new ContractRepository(_db)),
                     new StaffMarketService(_db, _teamRepo, new ContractRepository(_db), new Random(1)),
-                    new ContractRepository(_db), new TransferListingRepository(_db)),
+                    new ContractRepository(_db), new TransferListingRepository(_db), new PlayerRepository(_db)),
                 new ExpiryWarningService(new ContractRepository(_db), new LoanAgreementRepository(_db), _messages),
                 new FinanceService(new SponsorRepository(_db), new SponsorshipRepository(_db), new ContractRepository(_db), _messages),
                 new TrainingCampService(new TrainingCampRepository(_db), _fixtureRepo, _messages, new Random(1)),
-                _messages, new Random(1), saveGame);
+                _messages,
+                new ContractRepository(_db), new TransferListingRepository(_db), new TransferOfferRepository(_db),
+                new PlayerRepository(_db),
+                new TransferMarketService(new TransferListingRepository(_db), new TransferOfferRepository(_db),
+                    new LoanAgreementRepository(_db), _teamRepo, new ContractRepository(_db)),
+                new Random(1), saveGame);
 
             var state = new GameState { ManagerTeamId = humanTeam.Id, Season = 1, CurrentDate = Today, SeasonStart = Today };
 
