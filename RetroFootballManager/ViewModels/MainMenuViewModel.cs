@@ -271,9 +271,13 @@ namespace RetroFootballManager.ViewModels
             SubscribeToFinances(team.Finances);
 
             _nextLeagueFixtureDate = null;
+            // Fetched once and reused below (season-phase/training-camp window calc) - this
+            // whole method reruns once per simulated day during "Zeit vorstellen", so a second
+            // full season-fixtures query here doubled that cost for no reason.
+            List<Fixture> seasonFixtures = [];
             try
             {
-                var seasonFixtures = await _saveGame.GetFixturesAsync(state.Season);
+                seasonFixtures = await _saveGame.GetFixturesAsync(state.Season);
                 var nextFixture = seasonFixtures
                     .Where(f => !f.Played && (f.HomeTeamId == team.Id || f.AwayTeamId == team.Id))
                     .OrderBy(f => f.Matchday)
@@ -352,8 +356,7 @@ namespace RetroFootballManager.ViewModels
 
                 IsPreSeasonOrWinterBreak = _phase is SeasonPhase.PreSeason or SeasonPhase.WinterBreak;
 
-                var allSeasonFixtures = await _saveGame.GetFixturesAsync(state.Season);
-                _windowEnd = TrainingCampService.GetWindowEndDate(state, phase, allSeasonFixtures);
+                _windowEnd = TrainingCampService.GetWindowEndDate(state, phase, seasonFixtures);
             }
             catch (Exception ex)
             {

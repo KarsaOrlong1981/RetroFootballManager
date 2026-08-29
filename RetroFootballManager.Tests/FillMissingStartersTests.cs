@@ -182,6 +182,40 @@ namespace RetroFootballManager.Tests
         }
 
         [Fact]
+        public void ReloadingTheLineup_DoesNotSwapTwoNativeWingBacksOnOppositeFlanks()
+        {
+            // Regression test: two starters whose native Position IS the wide slot's
+            // AlternateRole (a real LAV/RAV specialist, not a toggled LV/RV) sit exactly on
+            // their own natural flank. ApplyLineup then leaves AssignedPosition == null for
+            // both (EffectivePosition already equals their native Position, no override
+            // needed) - so pass 1 (explicit AssignedPosition) finds nothing for either slot.
+            // The old pass 2 only checked "p.Position == slot.Position", never
+            // slot.AlternateRole, so it missed them too, and both fell through to pass 3's
+            // side-blind fallback - which could hand the LEFT slot to the RIGHT wingback and
+            // vice versa, silently swapping them on every reload.
+            var team = TestHelpers.CreateTeam("WB Test", baseRating: 60);
+            var formation = FormationCatalog.F442;
+
+            var leftWingBack = team.Players.First(p => p.Position == Position.LeftDefender);
+            leftWingBack.Position = Position.LeftWingBack;
+            var rightWingBack = team.Players.First(p => p.Position == Position.RightDefender);
+            rightWingBack.Position = Position.RightWingBack;
+
+            // Order matters for the old pass 3 fallback (picks "any remaining starter" in list
+            // order, side-blind) - a real squad's Players list has no relation to formation slot
+            // order, so list the RAV before the LAV to reproduce that failure mode reliably.
+            var starters = team.Players.Where(p => p.Status == PlayerStatus.InStartingXI)
+                .OrderBy(p => p.Id == rightWingBack.Id ? 0 : p.Id == leftWingBack.Id ? 1 : 2)
+                .ToList();
+            var matched = LineupSelector.MatchStartersToSlots(starters, formation);
+
+            int ldSlotIndex = formation.Slots.ToList().FindIndex(s => s.Position == Position.LeftDefender);
+            int rdSlotIndex = formation.Slots.ToList().FindIndex(s => s.Position == Position.RightDefender);
+            Assert.Equal(leftWingBack.Id, matched[ldSlotIndex]);
+            Assert.Equal(rightWingBack.Id, matched[rdSlotIndex]);
+        }
+
+        [Fact]
         public void FillMissingStarters_OnlyPromotesReplacementForTheMissingSlot()
         {
             var team = BuildFullSquad();

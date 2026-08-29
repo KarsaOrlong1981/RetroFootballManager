@@ -142,7 +142,8 @@ namespace RetroFootballManager.Common
                 if (result.ContainsKey(i))
                     continue;
                 var slot = formation.Slots[i];
-                var match = starters.FirstOrDefault(p => !used.Contains(p.Id) && p.AssignedPosition is null && p.Position == slot.Position);
+                var match = starters.FirstOrDefault(p => !used.Contains(p.Id) && p.AssignedPosition is null &&
+                    (p.Position == slot.Position || p.Position == slot.AlternateRole));
                 if (match is null)
                     continue;
                 result[i] = match.Id;

@@ -1,4 +1,5 @@
 using RetroFootballManager.Models;
+using SQLite;
 
 namespace RetroFootballManager.Data.Repositories
 {
@@ -15,76 +16,83 @@ namespace RetroFootballManager.Data.Repositories
 
         // includeYouth = false skips persisting youth prospects (they don't change during a
         // matchday, so the matchday loop avoids re-saving hundreds of unchanged youth rows).
+        //
+        // Everything below runs as ONE transaction (was: one Find + Insert/Update roundtrip pair
+        // PER entity, no shared transaction - the difference between a handful of disk syncs and
+        // 50+ of them for a single team save, see CalendarAdvanceService which calls this once per
+        // touched team, per day). team.Id must be resolved (via the first UpsertSync call, which
+        // assigns the auto-increment Id synchronously) BEFORE it's copied onto player/employee/etc.
+        // TeamId - both happen inside the same synchronous callback so that ordering is guaranteed.
         public async Task<int> SaveTeamAsync(Team team, bool includeYouth = true)
         {
-            await UpsertAsync(team, team.Id);
-
-            foreach (var player in team.Players)
+            await _db.Connection.RunInTransactionAsync(conn =>
             {
-                player.TeamId = team.Id;
-                player.IsYouthProspect = false;
-                await UpsertAsync(player, player.Id);
-            }
+                UpsertSync(conn, team, team.Id);
 
-            if (includeYouth)
-            {
-                foreach (var youth in team.YouthPlayers)
+                foreach (var player in team.Players)
                 {
-                    youth.TeamId = team.Id;
-                    youth.IsYouthProspect = true;
-                    await UpsertAsync(youth, youth.Id);
+                    player.TeamId = team.Id;
+                    player.IsYouthProspect = false;
+                    UpsertSync(conn, player, player.Id);
                 }
-            }
 
-            foreach (var employee in team.Employees)
-            {
-                employee.TeamId = team.Id;
-                await UpsertAsync(employee, employee.Id);
-            }
+                if (includeYouth)
+                {
+                    foreach (var youth in team.YouthPlayers)
+                    {
+                        youth.TeamId = team.Id;
+                        youth.IsYouthProspect = true;
+                        UpsertSync(conn, youth, youth.Id);
+                    }
+                }
 
-            if (team.Stadium is not null)
-            {
-                team.Stadium.TeamId = team.Id;
-                await UpsertAsync(team.Stadium, team.Stadium.Id);
-            }
+                foreach (var employee in team.Employees)
+                {
+                    employee.TeamId = team.Id;
+                    UpsertSync(conn, employee, employee.Id);
+                }
 
-            if (team.Finances is not null)
-            {
-                team.Finances.TeamId = team.Id;
-                await UpsertAsync(team.Finances, team.Finances.Id);
-            }
-
-            if (team.ActiveLoan is not null)
-            {
-                team.ActiveLoan.TeamId = team.Id;
-                await UpsertAsync(team.ActiveLoan, team.ActiveLoan.Id);
-            }
-
-            if (team.Statistics is not null)
-            {
-                team.Statistics.TeamId = team.Id;
-                await UpsertAsync(team.Statistics, team.Statistics.Id);
-            }
-
-            if (team.ManagerProfile is not null)
-            {
-                team.ManagerProfile.TeamId = team.Id;
-                await UpsertAsync(team.ManagerProfile, team.ManagerProfile.Id);
-            }
+                if (team.Stadium is not null)
+                {
+                    team.Stadium.TeamId = team.Id;
+                    UpsertSync(conn, team.Stadium, team.Stadium.Id);
+                }
+                if (team.Finances is not null)
+                {
+                    team.Finances.TeamId = team.Id;
+                    UpsertSync(conn, team.Finances, team.Finances.Id);
+                }
+                if (team.ActiveLoan is not null)
+                {
+                    team.ActiveLoan.TeamId = team.Id;
+                    UpsertSync(conn, team.ActiveLoan, team.ActiveLoan.Id);
+                }
+                if (team.Statistics is not null)
+                {
+                    team.Statistics.TeamId = team.Id;
+                    UpsertSync(conn, team.Statistics, team.Statistics.Id);
+                }
+                if (team.ManagerProfile is not null)
+                {
+                    team.ManagerProfile.TeamId = team.Id;
+                    UpsertSync(conn, team.ManagerProfile, team.ManagerProfile.Id);
+                }
+            });
 
             return team.Id;
         }
 
-        // Inserts a new row or updates it - regardless of whether the caller already
-        // pre-assigned the Id (e.g. in tests or editors); as long as no matching row
-        // exists in the DB, it still inserts.
-        private async Task UpsertAsync<T>(T entity, int id) where T : new()
+        // Id == 0 means "never saved" - a plain Insert leaves the AutoIncrement PK column out of
+        // the statement so SQLite assigns a fresh one (and sqlite-net writes it back onto entity).
+        // InsertOrReplace always includes the PK column, so for Id == 0 it would insert the
+        // literal value 0 instead of auto-assigning - fine for an already-known Id (replaces the
+        // existing row in place), wrong for a brand-new one.
+        private static void UpsertSync<T>(SQLiteConnection conn, T entity, int id) where T : new()
         {
-            bool exists = id != 0 && await _db.Connection.FindAsync<T>(id) is not null;
-            if (exists)
-                await _db.Connection.UpdateAsync(entity);
+            if (id == 0)
+                conn.Insert(entity);
             else
-                await _db.Connection.InsertAsync(entity);
+                conn.InsertOrReplace(entity);
         }
 
         public async Task<Team?> GetTeamAsync(int teamId)

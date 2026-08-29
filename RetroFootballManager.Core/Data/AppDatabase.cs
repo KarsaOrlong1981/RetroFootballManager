@@ -15,6 +15,13 @@ namespace RetroFootballManager.Data
 
         public async Task InitializeAsync()
         {
+            // WAL avoids readers/writers blocking each other and batches commits far more
+            // cheaply than the default rollback journal; NORMAL still fsyncs at WAL checkpoints
+            // (safe against app crashes), just not on every single commit like FULL does - the
+            // right tradeoff for a local single-player save file.
+            await Connection.EnableWriteAheadLoggingAsync();
+            await Connection.ExecuteAsync("PRAGMA synchronous=NORMAL");
+
             await Connection.CreateTableAsync<Team>();
             await Connection.CreateTableAsync<Player>();
             await Connection.CreateTableAsync<PlayerStats>();
