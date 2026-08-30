@@ -431,7 +431,10 @@ namespace RetroFootballManager.Common
                 await _finance.ApplyMonthlySettlementAsync(team, state.CurrentDate, sendMessage: isHumanTeam);
 
                 if (isHumanTeam)
+                {
                     await _finance.CheckFinanceWarningAsync(team, state.CurrentDate);
+                    await _finance.CheckSeasonEndProjectionAsync(team, state, state.CurrentDate);
+                }
             }
         }
 

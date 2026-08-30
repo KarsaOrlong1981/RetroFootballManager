@@ -36,12 +36,14 @@ namespace RetroFootballManager.Tests
         }
 
         // A team whose season-end projection lands comfortably below the -500k crisis
-        // threshold (matchdaysPlayed=10 out of 34, heavy wage spend so far).
+        // threshold. EstimateSeasonEndBalanceAsync projects from live contracts/employees/
+        // stadium data (none set up here), not season-to-date Finances fields, so the balance
+        // itself is set low enough to land in crisis on its own.
         private static Team CreateCrisisTeam()
         {
             var team = TestHelpers.CreateTeam("Krise FC", baseRating: 60);
             team.Id = 1;
-            team.Finances = new Finances { CurrentBalance = -300_000, PlayerWages = 500_000 };
+            team.Finances = new Finances { CurrentBalance = -600_000 };
             return team;
         }
 
@@ -49,7 +51,7 @@ namespace RetroFootballManager.Tests
         {
             var team = TestHelpers.CreateTeam("Gesund FC", baseRating: 60);
             team.Id = 2;
-            team.Finances = new Finances { CurrentBalance = 1_000_000, SponsorIncome = 100_000 };
+            team.Finances = new Finances { CurrentBalance = 1_000_000 };
             return team;
         }
 

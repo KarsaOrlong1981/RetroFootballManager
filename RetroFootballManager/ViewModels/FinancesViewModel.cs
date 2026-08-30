@@ -15,11 +15,12 @@ namespace RetroFootballManager.ViewModels
         private readonly SponsorshipRepository _sponsorshipRepository;
         private readonly SponsorRepository _sponsorRepository;
         private readonly ContractRepository _contractRepository;
+        private readonly FinanceService _financeService;
 
         public FinancesViewModel(
             IDispatcher dispatcher, GameSession session, INavigationService navigation,
             SponsorshipRepository sponsorshipRepository, SponsorRepository sponsorRepository,
-            ContractRepository contractRepository)
+            ContractRepository contractRepository, FinanceService financeService)
             : base(dispatcher)
         {
             _session = session;
@@ -27,6 +28,7 @@ namespace RetroFootballManager.ViewModels
             _sponsorshipRepository = sponsorshipRepository;
             _sponsorRepository = sponsorRepository;
             _contractRepository = contractRepository;
+            _financeService = financeService;
             Title = "Finanzen";
         }
 
@@ -133,10 +135,8 @@ namespace RetroFootballManager.ViewModels
 
             if (state is not null)
             {
-                var (projected, isReliable) = FinanceService.EstimateSeasonEndBalance(finances, state.MatchdayIndex, team.ActiveLoan);
-                SeasonEndForecastText = isReliable
-                    ? $"ca. {projected:N0} €"
-                    : "Noch keine Schätzung (erst nach dem 1. Spieltag).";
+                int projected = await _financeService.EstimateSeasonEndBalanceAsync(team, state.MatchdayIndex, state.CurrentDate);
+                SeasonEndForecastText = $"ca. {projected:N0} €";
             }
         }
 

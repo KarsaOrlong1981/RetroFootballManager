@@ -146,8 +146,10 @@ namespace RetroFootballManager.Common
                 await ClubMoodService.CheckBoardMoodPraise(humanTeam, _messages, state.CurrentDate);
                 await _expiryWarnings.CheckAsync(humanTeam, state.CurrentDate);
                 await _finance.CheckFinanceWarningAsync(humanTeam, state.CurrentDate);
-                if (runWeeklyTick)
-                    await _finance.CheckSeasonEndProjectionAsync(humanTeam, state, state.CurrentDate);
+                // Daily, not just runWeeklyTick - a spend (transfer, stadium, staff) can push the
+                // projection into crisis on any day, and the board should react the same day, not
+                // up to a week later.
+                await _finance.CheckSeasonEndProjectionAsync(humanTeam, state, state.CurrentDate);
                 bool settledHuman = await _finance.ApplyMonthlySettlementAsync(humanTeam, state.CurrentDate);
                 if (settledHuman)
                     FinanceService.ApplyFinancialHealthMoodCoupling(humanTeam);

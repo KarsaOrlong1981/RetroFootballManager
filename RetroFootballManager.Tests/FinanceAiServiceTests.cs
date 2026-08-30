@@ -41,11 +41,25 @@ namespace RetroFootballManager.Tests
         };
 
         [Fact]
-        public void ComputeCautionFactor_ReturnsFull_WhenNoMatchdaysPlayedYet()
+        public void ComputeCautionFactor_ReturnsFull_AtSeasonStart_WithNothingBookedYet()
         {
-            // Not reliable yet (preseason) - nothing to react to.
-            double factor = FinanceAiService.ComputeCautionFactor(StrugglingTeam(), Difficulty.Hard, matchdaysPlayed: 0);
+            var team = new Team
+            {
+                Name = "Frisch FC",
+                Finances = new Finances { CurrentBalance = 2_000_000 },
+            };
+            double factor = FinanceAiService.ComputeCautionFactor(team, Difficulty.Hard, matchdaysPlayed: 0);
             Assert.Equal(1.0, factor);
+        }
+
+        [Fact]
+        public void ComputeCautionFactor_TapersEvenBeforeMatchday1_IfPreseasonSpendAlreadyLooksBad()
+        {
+            // Preseason settlements (ApplyMonthlySettlementAsync) already run before matchday 1 -
+            // the AI must react to a bad trajectory immediately, not wait for the first matchday.
+            double factor = FinanceAiService.ComputeCautionFactor(StrugglingTeam(), Difficulty.Normal, matchdaysPlayed: 0);
+            Assert.InRange(factor, 0.0, 1.0);
+            Assert.True(factor < 1.0, $"expected tapered caution, got {factor}");
         }
 
         [Fact]

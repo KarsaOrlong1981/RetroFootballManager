@@ -97,9 +97,7 @@ namespace RetroFootballManager.Common
             if (finances is null)
                 return;
 
-            var (projected, isReliable) = EstimateSeasonEndBalance(finances, state.MatchdayIndex, team.ActiveLoan);
-            if (!isReliable)
-                return;
+            int projected = await EstimateSeasonEndBalanceAsync(team, state.MatchdayIndex, currentDate);
 
             if (projected < FinancialCrisisThreshold)
             {
@@ -109,7 +107,8 @@ namespace RetroFootballManager.Common
                     finances.FinancialCrisisEscalated = false;
                     if (_messages is not null)
                         await _messages.SendAsync(MessageType.BoardUltimatum, "Ultimatum des Vorstands",
-                            $"Die Saisonprognose liegt bei rund {projected:N0} € - der Vorstand gibt dir 3 Monate Zeit, die Finanzen zu stabilisieren.",
+                            $"Die Saisonprognose liegt bei rund {projected:N0} € - so treibst du den Verein in den Ruin. " +
+                            "Der Vorstand gibt dir 3 Monate Zeit, die Finanzen zu stabilisieren, sonst steht dein Job auf dem Spiel.",
                             currentDate, team.Id);
                     return;
                 }
@@ -279,29 +278,80 @@ namespace RetroFootballManager.Common
             return (int)Math.Round(income);
         }
 
-        // Estimates the balance at season end. Two separate projections, since they now
-        // follow different cadences: ticket/merchandise keep running per matchday (average
-        // so far * remaining matchdays), wages/stadium/sponsor now run truly monthly
-        // (ApplyMonthlySettlementAsync) - approximated by converting matchdays-played-as-
-        // fraction-of-season into elapsed/remaining months, since this method gets no real
-        // calendar date. Deliberately just an estimate ("approx.") - ticket income varies
-        // with standings/form/opponent/attendance. Computed purely from already-booked
-        // Finances fields, so it's instantly correct on the next call after ANY finance
-        // change - no cached value.
-        public static (int ProjectedBalance, bool IsReliable) EstimateSeasonEndBalance(
-            Finances finances, int matchdaysPlayed, ClubLoan? activeLoan = null, int totalMatchdays = MatchdaysPerSeason)
+        // Estimates the balance at season end from the team's actually contracted run rate
+        // (player/staff wages, sponsor deal, stadium upkeep) rather than a season-to-date
+        // average - a signed contract's cost is known before it's ever "booked" by
+        // ApplyMonthlySettlementAsync, so this is accurate from matchdaysPlayed 0 onward with
+        // no early-season instability to guard against. Ticket/merchandise income can't be
+        // known in advance (depends on standings/attendance), so that half still extrapolates
+        // from the season-to-date per-matchday average. Used for the human-facing forecast and
+        // the board's own crisis check - see EstimateSeasonEndBalance for the cheaper,
+        // synchronous variant the AI's spending caution uses instead.
+        public async Task<int> EstimateSeasonEndBalanceAsync(
+            Team team, int matchdaysPlayed, DateTime currentDate, int totalMatchdays = MatchdaysPerSeason)
         {
-            if (matchdaysPlayed <= 0)
-                return (finances.CurrentBalance, false);
+            var finances = team.Finances;
+            if (finances is null)
+                return 0;
 
             int remainingMatchdays = Math.Max(0, totalMatchdays - matchdaysPlayed);
             double matchNetSoFar = finances.TicketIncome + finances.MerchandiseIncome;
-            double avgMatchNetPerMatchday = matchNetSoFar / matchdaysPlayed;
+            double avgMatchNetPerMatchday = matchdaysPlayed > 0 ? matchNetSoFar / matchdaysPlayed : 0;
+            double projectedMatchNet = avgMatchNetPerMatchday * remainingMatchdays;
+
+            double monthsElapsed = matchdaysPlayed / (double)totalMatchdays * 12.0;
+            double remainingMonths = Math.Max(0, 12.0 - monthsElapsed);
+
+            int monthlyPlayerWages = await CalculateMonthlyPlayerWagesAsync(team, currentDate);
+            int managerSalary = team.ManagerProfile is null ? 0 : ManagerEffects.AnnualSalary(team.ManagerProfile);
+            int monthlyStaffWages = (int)Math.Round((team.Employees.Sum(e => e.Salary) + managerSalary) / 12.0);
+            int monthlyStadiumCost = team.Stadium is null ? 0 : (int)Math.Round(team.Stadium.MaintenanceCosts / 12.0);
+            int monthlySponsorIncome = finances.SponsorPaymentsThisSeason < SponsorPaymentMonths
+                ? await CalculateMonthlySponsorIncomeAsync(team)
+                : 0;
+
+            double monthlyNet = monthlySponsorIncome - monthlyPlayerWages - monthlyStaffWages - monthlyStadiumCost;
+            double projectedMonthlyNet = monthlyNet * remainingMonths;
+
+            int projected = finances.CurrentBalance + (int)Math.Round(projectedMatchNet + projectedMonthlyNet);
+
+            if (team.ActiveLoan is { Status: ClubLoanStatus.Active } loan)
+            {
+                double loanMonths = Math.Min(remainingMonths, ClubLoanService.EstimateMonthsRemaining(loan));
+                projected -= (int)Math.Round(loanMonths * loan.MonthlyPayment);
+            }
+
+            return projected;
+        }
+
+        // Below this many elapsed months, the monthly run rate (see below) is no longer
+        // divided by the raw elapsed fraction - flooring it here is what keeps the estimate
+        // sane right at the start of a season: without it, a single preseason settlement
+        // (ApplyMonthlySettlementAsync also runs before matchday 1) divided by a tiny
+        // elapsed-month fraction gets amplified many times over once extrapolated across the
+        // rest of the season.
+        private const double MinMonthsForRunRate = 1.0;
+
+        // Cheaper, synchronous, season-to-date-average variant of EstimateSeasonEndBalanceAsync
+        // - used only by FinanceAiService's spending caution, which runs for every AI team and
+        // can't afford a contract-table round trip each time. Extrapolates already-booked
+        // Finances fields (wages/stadium/sponsor run truly monthly via
+        // ApplyMonthlySettlementAsync, approximated here by converting matchdays-played-as-
+        // fraction-of-season into elapsed/remaining months, since this method gets no real
+        // calendar date) - less accurate right at matchdaysPlayed 0 (nothing booked yet, so it
+        // just carries the current balance forward) than the async variant, but good enough for
+        // a soft AI nudge.
+        public static int EstimateSeasonEndBalance(
+            Finances finances, int matchdaysPlayed, ClubLoan? activeLoan = null, int totalMatchdays = MatchdaysPerSeason)
+        {
+            int remainingMatchdays = Math.Max(0, totalMatchdays - matchdaysPlayed);
+            double matchNetSoFar = finances.TicketIncome + finances.MerchandiseIncome;
+            double avgMatchNetPerMatchday = matchdaysPlayed > 0 ? matchNetSoFar / matchdaysPlayed : 0;
             double projectedMatchNet = avgMatchNetPerMatchday * remainingMatchdays;
 
             double monthsElapsed = matchdaysPlayed / (double)totalMatchdays * 12.0;
             double monthlyNetSoFar = finances.SponsorIncome - finances.StaffWages - finances.PlayerWages - finances.StadiumCosts;
-            double avgNetPerMonth = monthsElapsed > 0 ? monthlyNetSoFar / monthsElapsed : 0;
+            double avgNetPerMonth = monthlyNetSoFar / Math.Max(monthsElapsed, MinMonthsForRunRate);
             double remainingMonths = Math.Max(0, 12.0 - monthsElapsed);
             double projectedMonthlyNet = avgNetPerMonth * remainingMonths;
 
@@ -313,7 +363,7 @@ namespace RetroFootballManager.Common
                 projected -= (int)Math.Round(loanMonths * activeLoan.MonthlyPayment);
             }
 
-            return (projected, true);
+            return projected;
         }
 
         // Season rollover: zero the season-tracked fields, ready for the next season's booking.
@@ -333,9 +383,7 @@ namespace RetroFootballManager.Common
             finances.SponsorPaymentsThisSeason = 0;
 
             // A stale crisis-start date from last season would otherwise look like the grace
-            // period had already elapsed on day 1 of the new season (EstimateSeasonEndBalance
-            // needs matchdaysPlayed > 0 to even project, so the crisis check is naturally
-            // dormant until then anyway, but there's no reason to carry it over).
+            // period had already elapsed on day 1 of the new season.
             finances.FinancialCrisisStartDate = null;
             finances.FinancialCrisisEscalated = false;
         }

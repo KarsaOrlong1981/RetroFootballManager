@@ -217,10 +217,39 @@ namespace RetroFootballManager.Tests
                 SponsorIncome = 20_000, StaffWages = 5_000, PlayerWages = 15_000, StadiumCosts = 3_000,
             };
 
-            var (projected, isReliable) = FinanceService.EstimateSeasonEndBalance(finances, matchdaysPlayed: 10);
+            int projected = FinanceService.EstimateSeasonEndBalance(finances, matchdaysPlayed: 10);
 
-            Assert.True(isReliable);
             Assert.True(projected != 0);
+        }
+
+        [Fact]
+        public void EstimateSeasonEndBalance_AtSeasonStart_DoesNotBlowUpFromDivisionByZero()
+        {
+            var finances = new Finances { CurrentBalance = 100_000 };
+
+            int projected = FinanceService.EstimateSeasonEndBalance(finances, matchdaysPlayed: 0);
+
+            // Nothing booked yet in this fixture, so nothing to project a crisis from - just
+            // the current balance carried forward.
+            Assert.Equal(100_000, projected);
+        }
+
+        [Fact]
+        public void EstimateSeasonEndBalance_AtSeasonStart_ExtrapolatesAlreadyBookedPreseasonCosts()
+        {
+            // One preseason settlement already booked (ApplyMonthlySettlementAsync runs before
+            // matchday 1 too) - the projection must react to it immediately instead of waiting
+            // for matchday 1, but without amplifying it into a wildly exaggerated forecast.
+            var finances = new Finances
+            {
+                CurrentBalance = 100_000, SponsorIncome = 1_000,
+                StaffWages = 2_000, PlayerWages = 10_000, StadiumCosts = 1_000,
+            };
+
+            int projected = FinanceService.EstimateSeasonEndBalance(finances, matchdaysPlayed: 0);
+
+            // Net -12,000/month, floored at 1 elapsed month, extrapolated over the 12 remaining.
+            Assert.Equal(100_000 - 12_000 * 12, projected);
         }
 
         [Fact]
@@ -236,11 +265,41 @@ namespace RetroFootballManager.Tests
                 RemainingBalance = 50_000, MonthlyPayment = 5_000, Status = ClubLoanStatus.Active,
             };
 
-            var (withoutLoan, _) = FinanceService.EstimateSeasonEndBalance(finances, matchdaysPlayed: 10);
-            var (withLoan, isReliable) = FinanceService.EstimateSeasonEndBalance(finances, matchdaysPlayed: 10, loan);
+            int withoutLoan = FinanceService.EstimateSeasonEndBalance(finances, matchdaysPlayed: 10);
+            int withLoan = FinanceService.EstimateSeasonEndBalance(finances, matchdaysPlayed: 10, loan);
 
-            Assert.True(isReliable);
             Assert.True(withLoan < withoutLoan);
+        }
+
+        [Fact]
+        public async Task EstimateSeasonEndBalanceAsync_AtSeasonStart_ReflectsContractedCosts_EvenBeforeAnySettlement()
+        {
+            // Brand-new save, matchdaysPlayed=0, no ApplyMonthlySettlementAsync has ever run -
+            // nothing is booked into Finances yet, but the contracted staff/player wages and
+            // stadium upkeep are already known and must already drag the forecast down.
+            var team = CreateTeamWithEconomy(); // Stadium.MaintenanceCosts = 340_000, CurrentBalance = 100_000
+            team.Employees.Add(new Employee { Salary = 120_000 });
+            await _contractRepo.SaveAsync(new Contract
+            {
+                HolderId = 1, HolderType = ContractHolderType.Player, TeamId = team.Id,
+                StartDate = CurrentDate.AddYears(-1), EndDate = CurrentDate.AddYears(1),
+                AnnualSalary = 1_200_000,
+            });
+
+            int projected = await _service.EstimateSeasonEndBalanceAsync(team, matchdaysPlayed: 0, CurrentDate);
+
+            Assert.Equal(100_000 - 12 * (100_000 + 10_000 + 28_333), projected);
+        }
+
+        [Fact]
+        public async Task EstimateSeasonEndBalanceAsync_AtSeasonStart_WithNoCommitments_CarriesBalanceForward()
+        {
+            var team = CreateTeamWithEconomy();
+            team.Stadium!.MaintenanceCosts = 0;
+
+            int projected = await _service.EstimateSeasonEndBalanceAsync(team, matchdaysPlayed: 0, CurrentDate);
+
+            Assert.Equal(100_000, projected);
         }
 
         [Fact]

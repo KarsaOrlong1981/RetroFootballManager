@@ -23,17 +23,14 @@ namespace RetroFootballManager.Common
         };
 
         // 1.0 = spend freely, tapering linearly to 0.0 once the season-end projection reaches
-        // FinanceService.FinancialCrisisThreshold. Defaults to 1.0 whenever the projection isn't
-        // reliable yet (e.g. preseason, matchdaysPlayed <= 0) - nothing to react to yet.
+        // FinanceService.FinancialCrisisThreshold. Reacts from matchdaysPlayed 0 onward -
+        // preseason settlements already count toward the projection.
         public static double ComputeCautionFactor(Team team, Difficulty difficulty, int matchdaysPlayed)
         {
             if (team.Finances is null)
                 return 1.0;
 
-            var (projected, isReliable) = FinanceService.EstimateSeasonEndBalance(
-                team.Finances, matchdaysPlayed, team.ActiveLoan);
-            if (!isReliable)
-                return 1.0;
+            int projected = FinanceService.EstimateSeasonEndBalance(team.Finances, matchdaysPlayed, team.ActiveLoan);
 
             double crisisLine = FinanceService.FinancialCrisisThreshold;
             double startAt = crisisLine * (1 - CautionStartFactor(difficulty));
