@@ -18,6 +18,8 @@ A new department to buy fan merchandise at wholesale cost and sell it at a marku
   the generic ones.
 - Revenue should scale with how well the season is going (results, table position) - the
   better the team performs, the more merchandise income it generates.
+- **Membership recruitment campaign**: launchable from this department, attracts additional
+  club members. Cost scales with league tier (higher tier = more expensive).
 
 ### Universe editor (new)
 
@@ -46,6 +48,8 @@ Eine neue Abteilung, um Fanartikel günstig einzukaufen und mit Aufschlag zu ver
   sich besser verkaufen als die generischen Trikots.
 - Die Einnahmen sollen mit dem Saisonverlauf skalieren (Ergebnisse, Tabellenplatz) - je besser
   es läuft, desto mehr Merchandise-Einnahmen werden generiert.
+- **Mitglieder-Werbekampagne**: aus dieser Abteilung startbar, lockt zusätzliche Vereinsmitglieder
+  an. Kosten skalieren mit der Liga (höhere Liga = teurer).
 
 ### Universen-Editor (neu)
 
