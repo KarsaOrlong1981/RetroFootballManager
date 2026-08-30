@@ -23,11 +23,14 @@
                 <Label Text="{Binding TransferWindowInfo}" FontSize="13" TextColor="White" LineBreakMode="NoWrap" />
             </Border>
         </Grid>
-        <ScrollView Opacity="0.85" Grid.Row="1">
+        <ScrollView  Opacity="0.85" Grid.Row="1">
             <VerticalStackLayout  Margin="12" Spacing="14">
                 <Label Text="Eigene Angebote (Listungen)" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-            <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding OwnListings}">
-                <BindableLayout.ItemTemplate>
+            <CollectionView HorizontalOptions="Start" WidthRequest="800" ItemsSource="{Binding OwnListings}">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="6" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="vm:OwnListingRow">
                         <Border StrokeThickness="0" Padding="10" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
                             <Border.StrokeShape>
@@ -72,9 +75,11 @@
                                     </VerticalStackLayout>
                                 </Grid>
 
-                                <VerticalStackLayout Spacing="4" IsVisible="{Binding HasOffers}"
-                                         BindableLayout.ItemsSource="{Binding Offers}">
-                                    <BindableLayout.ItemTemplate>
+                                <CollectionView IsVisible="{Binding HasOffers}" ItemsSource="{Binding Offers}">
+                                    <CollectionView.ItemsLayout>
+                                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="4" />
+                                    </CollectionView.ItemsLayout>
+                                    <CollectionView.ItemTemplate>
                                         <DataTemplate x:DataType="vm:OwnOfferRow">
                                             <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="6" Padding="0,3">
                                                 <Label Grid.Column="0" TextColor="{StaticResource RfmAccentTeal}" FontSize="18">
@@ -103,18 +108,20 @@
                                             TextColor="{StaticResource RfmText}" />
                                             </Grid>
                                         </DataTemplate>
-                                    </BindableLayout.ItemTemplate>
-                                </VerticalStackLayout>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
                             </VerticalStackLayout>
                         </Border>
                     </DataTemplate>
-                </BindableLayout.ItemTemplate>
-            </VerticalStackLayout>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
                 <Label Text="Eigene abgegebene Angebote" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,4,0,0" />
-                <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding OutgoingOffers}">
-                
-                <BindableLayout.ItemTemplate>
+                <CollectionView HorizontalOptions="Start" WidthRequest="800" ItemsSource="{Binding OutgoingOffers}">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="6" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="vm:OutgoingOfferRow">
                         <Border StrokeThickness="0" Padding="10" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
                             <Border.StrokeShape>
@@ -157,19 +164,23 @@
                             </VerticalStackLayout>
                         </Border>
                     </DataTemplate>
-                </BindableLayout.ItemTemplate>
-            </VerticalStackLayout>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
             <Label Text="{Binding StatusText}" FontSize="18" TextColor="{StaticResource RfmText}" />
         </VerticalStackLayout>
         </ScrollView>
         <BoxView Grid.Row="2" BackgroundColor="White"  HeightRequest="3"/>
         <ScrollView Grid.Row="3" Opacity="0.85">
-            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,*,Auto,Auto" Opacity="0.85">
+            <VerticalStackLayout>
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
                 <!-- Market side -->
                 <Label Text="Markt" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="12" />
-                <VerticalStackLayout Grid.Row="1" Margin="12" Spacing="6" BindableLayout.ItemsSource="{Binding MarketListings}">
-                    <BindableLayout.ItemTemplate>
+                <CollectionView Grid.Row="1" Margin="12" ItemsSource="{Binding MarketListings}">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="6" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="vm:MarketListingRow">
                             <Border StrokeThickness="0" Padding="10"  BackgroundColor="{StaticResource RfmSurface}">
                                 <Border.StrokeShape>
@@ -214,23 +225,25 @@
                                         <Label Text="Leihe" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"
                                              IsVisible="{Binding IsLoan}" />
                                     </VerticalStackLayout>
-                                    <Button Grid.Column="2" Text="Angebot abgeben" FontSize="18" 
+                                    <Button Grid.Column="2" Text="Angebot abgeben" FontSize="18"
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.MakeOfferCommand}"
                                             CommandParameter="{Binding .}"
                                             BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" />
                                 </Grid>
                             </Border>
                         </DataTemplate>
-                    </BindableLayout.ItemTemplate>
-                </VerticalStackLayout>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
 
 
 
                 <!--Own Player side -->
                 <Label Text="Eigene Spieler" Grid.Column="1" Margin="12" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                <VerticalStackLayout Grid.Column="1" Grid.Row="1" Margin="12"  Spacing="6" BindableLayout.ItemsSource="{Binding OwnPlayers}">
-                   
-                    <BindableLayout.ItemTemplate>
+                <CollectionView Grid.Column="1" Grid.Row="1" Margin="12" ItemsSource="{Binding OwnPlayers}">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="6" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="vm:OwnPlayerRow">
                             <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}">
                                 <Border.StrokeShape>
@@ -306,44 +319,48 @@
                                 </Grid>
                             </Border>
                         </DataTemplate>
-                    </BindableLayout.ItemTemplate>
-                </VerticalStackLayout>
-
-                <!-- Free agents (contract expired - see FreeAgentService): no selling club/fee,
-                     only the wage gets negotiated. -->
-                <Label Text="Ablösefrei" Grid.Row="2" Grid.ColumnSpan="2" Margin="12" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                <VerticalStackLayout Grid.Row="3" Grid.ColumnSpan="2" Margin="12" Spacing="6" BindableLayout.ItemsSource="{Binding FreeAgents}">
-                    <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="vm:FreeAgentRow">
-                            <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
-                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                    <VerticalStackLayout Grid.Column="0">
-                                        <Label FontAttributes="Bold" FontSize="18" TextColor="{StaticResource RfmText}">
-                                            <Label.FormattedText>
-                                                <FormattedString>
-                                                    <Span Text="{Binding PlayerName}" />
-                                                    <Span Text=" · " />
-                                                    <Span Text="{Binding Position}" />
-                                                    <Span Text=" · R " />
-                                                    <Span Text="{Binding Rating}" />
-                                                </FormattedString>
-                                            </Label.FormattedText>
-                                        </Label>
-                                        <Label Text="Ablösefrei" FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
-                                    </VerticalStackLayout>
-                                    <Button Grid.Column="1" Text="Verpflichten" FontSize="18"
-                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.SignFreeAgentCommand}"
-                                            CommandParameter="{Binding .}"
-                                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" />
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </BindableLayout.ItemTemplate>
-                </VerticalStackLayout>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
             </Grid>
+
+            <!-- Free agents (contract expired - see FreeAgentService): no selling club/fee,
+                 only the wage gets negotiated. -->
+            <Label Text="Ablösefrei" Margin="12" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <CollectionView Margin="12" ItemsSource="{Binding FreeAgents}">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="6" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:FreeAgentRow">
+                        <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="8" />
+                            </Border.StrokeShape>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <VerticalStackLayout Grid.Column="0">
+                                    <Label FontAttributes="Bold" FontSize="18" TextColor="{StaticResource RfmText}">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{Binding PlayerName}" />
+                                                <Span Text=" · " />
+                                                <Span Text="{Binding Position}" />
+                                                <Span Text=" · R " />
+                                                <Span Text="{Binding Rating}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label Text="Ablösefrei" FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                                </VerticalStackLayout>
+                                <Button Grid.Column="1" Text="Verpflichten" FontSize="18"
+                                        Command="{Binding Source={x:Reference Page}, Path=BindingContext.SignFreeAgentCommand}"
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            </VerticalStackLayout>
         </ScrollView>
 
     <!-- Player profile dialog -->
@@ -357,9 +374,9 @@
         LockedStatusText="{Binding ScoutingStatusText}"
         IsLockedBusy="{Binding IsBeingScouted}"
         UnlockCommand="{Binding ScoutPlayerCommand}" />
-        
+
         <controls:PlayerNegotiationsDialog Grid.RowSpan="4" BindingContext="{Binding Negotiation}" />
-        
+
         <!-- Busy overlay -->
     <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000" Grid.RowSpan="4">
         <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="12">

@@ -17,6 +17,8 @@ namespace RetroFootballManager.WinUI
         public App()
         {
             this.InitializeComponent();
+            this.UnhandledException += (s, e) =>
+                Serilog.Log.Fatal(e.Exception, "Unhandled WinUI exception.");
         }
 
         protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();

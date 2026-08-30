@@ -43,6 +43,14 @@ namespace RetroFootballManager
                 .WriteTo.File(logPath, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)
                 .CreateLogger();
 
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+                Log.Fatal(e.ExceptionObject as Exception, "Unhandled AppDomain exception.");
+            TaskScheduler.UnobservedTaskException += (s, e) =>
+            {
+                Log.Error(e.Exception, "Unobserved task exception.");
+                e.SetObserved();
+            };
+
             Log.Information("RetroFootballManager gestartet.");
         }
 

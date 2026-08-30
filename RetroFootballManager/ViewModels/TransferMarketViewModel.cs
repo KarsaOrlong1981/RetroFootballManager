@@ -156,10 +156,19 @@ namespace RetroFootballManager.ViewModels
             var teamNames = _session.Teams.ToDictionary(t => t.Id, t => t.Name);
             var ownListingByPlayerId = allListings.Where(l => l.TeamId == _team.Id).ToDictionary(l => l.PlayerId);
 
+            // Load every player's contract concurrently first, then populate the (UI-bound)
+            // collection in one uninterrupted burst - an await between each Add() left the UI
+            // thread free to run partial layout passes on a half-populated BindableLayout,
+            // which is what caused the missing Border backgrounds on Windows.
+            var orderedPlayers = _team.Players.OrderBy(p => p.Position).ThenByDescending(p => p.Rating).ToList();
+            var playerContracts = await Task.WhenAll(
+                orderedPlayers.Select(p => _saveGame.GetActivePlayerContractAsync(p.Id, _session.State.CurrentDate)));
+
             OwnPlayers.Clear();
-            foreach (var player in _team.Players.OrderBy(p => p.Position).ThenByDescending(p => p.Rating))
+            for (int i = 0; i < orderedPlayers.Count; i++)
             {
-                var contract = await _saveGame.GetActivePlayerContractAsync(player.Id, _session.State.CurrentDate);
+                var player = orderedPlayers[i];
+                var contract = playerContracts[i];
                 double salary = contract?.AnnualSalary ?? 0;
                 double marketValue = contract?.MarketValue ?? TransferAiService.EstimateMarketValue(player);
                 bool isListed = ownListingByPlayerId.TryGetValue(player.Id, out var ownListing);
@@ -185,11 +194,15 @@ namespace RetroFootballManager.ViewModels
 
             // Free agents (contract expired - see FreeAgentService) aren't on any team's roster
             // any more (TeamId 0), so they have to be looked up directly via PlayerRepository.
+            var freeAgentListings = allListings.Where(l => l.IsFreeAgent).ToList();
+            var freeAgentPlayers = await Task.WhenAll(freeAgentListings.Select(l => _playerRepo.GetPlayerAsync(l.PlayerId)));
+
             FreeAgents.Clear();
             _freeAgentsById.Clear();
-            foreach (var listing in allListings.Where(l => l.IsFreeAgent))
+            for (int i = 0; i < freeAgentListings.Count; i++)
             {
-                var player = await _playerRepo.GetPlayerAsync(listing.PlayerId);
+                var listing = freeAgentListings[i];
+                var player = freeAgentPlayers[i];
                 if (player is null)
                     continue;
 
@@ -198,14 +211,17 @@ namespace RetroFootballManager.ViewModels
                     listing.Id, player.Id, player.Name, PositionDisplay.Short(player.Position), Math.Round(player.Rating, 1)));
             }
 
+            var ownListingsList = allListings.Where(l => l.TeamId == _team.Id).ToList();
+            var offersPerOwnListing = await Task.WhenAll(ownListingsList.Select(l => _offerRepo.GetByListingAsync(l.Id)));
+
             OwnListings.Clear();
             _offersById.Clear();
-            foreach (var listing in allListings.Where(l => l.TeamId == _team.Id))
+            for (int i = 0; i < ownListingsList.Count; i++)
             {
+                var listing = ownListingsList[i];
                 var player = _team.Players.FirstOrDefault(p => p.Id == listing.PlayerId);
-                var offersForListing = await _offerRepo.GetByListingAsync(listing.Id);
                 var pendingRows = new List<OwnOfferRow>();
-                foreach (var offer in offersForListing.Where(o => o.Status == TransferOfferStatus.Pending))
+                foreach (var offer in offersPerOwnListing[i].Where(o => o.Status == TransferOfferStatus.Pending))
                 {
                     _offersById[offer.Id] = offer;
                     pendingRows.Add(new OwnOfferRow(
