@@ -52,6 +52,11 @@ namespace RetroFootballManager.ViewModels
 
         [ObservableProperty] private string _seasonEndForecastText = string.Empty;
 
+        [ObservableProperty] private string _membershipCountText = string.Empty;
+        [ObservableProperty] private string _membershipFeeText = string.Empty;
+        [ObservableProperty] private string _membershipIncomeMonthlyText = string.Empty;
+        [ObservableProperty] private string _membershipIncomeYearlyText = string.Empty;
+
         public ObservableCollection<SponsorOverviewItem> SponsorDeals { get; } = [];
 
         [ObservableProperty] private bool _hasActiveLoan;
@@ -80,6 +85,12 @@ namespace RetroFootballManager.ViewModels
             OtherIncomeText = $"{finances.OtherIncome:N0} €";
             OtherExpensesText = $"{finances.OtherExpenses:N0} €";
             FinancialHealthText = $"{finances.FinancialHealth} / 100";
+
+            MembershipCountText = $"{finances.ClubMembers:N0}";
+            MembershipFeeText = $"{finances.MembershipFeePerMember:N0} € / Jahr";
+            long annualMembershipIncome = (long)finances.ClubMembers * finances.MembershipFeePerMember;
+            MembershipIncomeMonthlyText = $"{annualMembershipIncome / 12:N0} € / Monat";
+            MembershipIncomeYearlyText = $"{annualMembershipIncome:N0} € / Jahr";
 
             CurrentStaffWagesText = $"{team.Employees.Sum(e => e.Salary):N0} € / Jahr";
 

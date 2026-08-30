@@ -367,7 +367,7 @@ namespace RetroFootballManager.Common
                 await _aiManager.ReturnExpiredLoansAsync(state.CurrentDate, teamById);
 
             if (_finance is not null)
-                await ApplyFinanceAsync(state, teamById, names, fixtures, touchedTeamIds, teamFixture);
+                await ApplyFinanceAsync(state, teamById, names, fixtures, touchedTeamIds, teamFixture, matchday);
 
             // Persist: changed fixtures and all involved teams (TeamStats + career minutes).
             foreach (var fixture in fixtures)
@@ -392,7 +392,8 @@ namespace RetroFootballManager.Common
             IReadOnlyDictionary<int, string> names,
             IReadOnlyList<Fixture> todaysFixtures,
             IReadOnlyCollection<int> touchedTeamIds,
-            IReadOnlyDictionary<int, (Fixture Fixture, bool IsHome)> teamFixture)
+            IReadOnlyDictionary<int, (Fixture Fixture, bool IsHome)> teamFixture,
+            int matchday)
         {
             var standingsByTier = new Dictionary<int, List<StandingRow>>();
 
@@ -435,7 +436,24 @@ namespace RetroFootballManager.Common
                     await _finance.CheckFinanceWarningAsync(team, state.CurrentDate);
                     await _finance.CheckSeasonEndProjectionAsync(team, state, state.CurrentDate);
                 }
+
+                var row = standings.FirstOrDefault(s => s.TeamId == id);
+                if (row is not null)
+                {
+                    int memberDelta = ClubMembershipService.ApplyQuarterlyPerformance(team, row, matchday);
+                    if (memberDelta != 0 && isHumanTeam && _messages is not null)
+                        await SendMembershipUpdateAsync(team, memberDelta, state.CurrentDate);
+                }
             }
+        }
+
+        private async Task SendMembershipUpdateAsync(Team team, int delta, DateTime currentDate)
+        {
+            string direction = delta > 0 ? "gestiegen" : "gefallen";
+            string sign = delta > 0 ? "+" : "-";
+            await _messages!.SendAsync(MessageType.ClubMembershipUpdate, "Vereinsmitglieder",
+                $"Die Mitgliederzahl ist auf {team.Finances!.ClubMembers:N0} {direction} ({sign}{Math.Abs(delta):N0}).",
+                currentDate, team.Id);
         }
 
         private static void ApplyResult(Fixture fixture, MatchResult result, Team home, Team away)

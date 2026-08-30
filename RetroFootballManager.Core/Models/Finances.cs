@@ -35,6 +35,13 @@ namespace RetroFootballManager.Models
         public int TicketIncome { get; set; }            // Matchday revenue
         public int SponsorIncome { get; set; }           // Sponsorship deals
         public int MerchandiseIncome { get; set; }       // Shirts, scarves, retro stuff
+        public int ClubMembershipIncome { get; set; }    // Season-to-date, see ApplyMonthlySettlementAsync
+
+        public int ClubMembers { get; set; }
+        public int MembershipFeePerMember { get; set; }  // Annual fee per member, in euros
+
+        public int MembershipCheckMatchday { get; set; }
+        public int MembershipCheckPoints { get; set; }
 
         // Expenses
         public int PlayerWages { get; set; }             // Total weekly/monthly wages

@@ -193,6 +193,7 @@ namespace RetroFootballManager.Common
             int managerSalary = team.ManagerProfile is null ? 0 : ManagerEffects.AnnualSalary(team.ManagerProfile);
             int staffWages = (int)Math.Round((team.Employees.Sum(e => e.Salary) + managerSalary) / 12.0);
             int stadiumCost = team.Stadium is null ? 0 : (int)Math.Round(team.Stadium.MaintenanceCosts / 12.0);
+            int membershipIncome = (int)Math.Round(finances.ClubMembers * finances.MembershipFeePerMember / 12.0);
 
             int sponsorIncome = 0;
             if (finances.SponsorPaymentsThisSeason < SponsorPaymentMonths)
@@ -213,7 +214,8 @@ namespace RetroFootballManager.Common
             finances.StaffWages += staffWages;
             finances.StadiumCosts += stadiumCost;
             finances.SponsorIncome += sponsorIncome;
-            finances.CurrentBalance += sponsorIncome - playerWages - staffWages - stadiumCost - loanPayment;
+            finances.ClubMembershipIncome += membershipIncome;
+            finances.CurrentBalance += membershipIncome + sponsorIncome - playerWages - staffWages - stadiumCost - loanPayment;
 
             finances.LastSettlementMonth = currentDate.Month;
             finances.LastSettlementYear = currentDate.Year;
@@ -309,8 +311,9 @@ namespace RetroFootballManager.Common
             int monthlySponsorIncome = finances.SponsorPaymentsThisSeason < SponsorPaymentMonths
                 ? await CalculateMonthlySponsorIncomeAsync(team)
                 : 0;
+            double monthlyMembershipIncome = finances.ClubMembers * finances.MembershipFeePerMember / 12.0;
 
-            double monthlyNet = monthlySponsorIncome - monthlyPlayerWages - monthlyStaffWages - monthlyStadiumCost;
+            double monthlyNet = monthlyMembershipIncome + monthlySponsorIncome - monthlyPlayerWages - monthlyStaffWages - monthlyStadiumCost;
             double projectedMonthlyNet = monthlyNet * remainingMonths;
 
             int projected = finances.CurrentBalance + (int)Math.Round(projectedMatchNet + projectedMonthlyNet);
@@ -350,7 +353,7 @@ namespace RetroFootballManager.Common
             double projectedMatchNet = avgMatchNetPerMatchday * remainingMatchdays;
 
             double monthsElapsed = matchdaysPlayed / (double)totalMatchdays * 12.0;
-            double monthlyNetSoFar = finances.SponsorIncome - finances.StaffWages - finances.PlayerWages - finances.StadiumCosts;
+            double monthlyNetSoFar = finances.ClubMembershipIncome + finances.SponsorIncome - finances.StaffWages - finances.PlayerWages - finances.StadiumCosts;
             double avgNetPerMonth = monthlyNetSoFar / Math.Max(monthsElapsed, MinMonthsForRunRate);
             double remainingMonths = Math.Max(0, 12.0 - monthsElapsed);
             double projectedMonthlyNet = avgNetPerMonth * remainingMonths;
@@ -381,6 +384,7 @@ namespace RetroFootballManager.Common
             finances.OtherIncome = 0;
             finances.OtherExpenses = 0;
             finances.SponsorPaymentsThisSeason = 0;
+            finances.ClubMembershipIncome = 0;
 
             // A stale crisis-start date from last season would otherwise look like the grace
             // period had already elapsed on day 1 of the new season.

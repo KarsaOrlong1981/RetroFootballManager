@@ -636,10 +636,27 @@ namespace RetroFootballManager.Data
             await PaySponsorSeasonBonusesAsync(teams, result);
 
             PrizeMoneyService.AwardLeaguePrizes(teams, result);
+            int membersBefore = managerTeam?.Finances?.ClubMembers ?? 0;
+            ClubMembershipService.ApplySeasonEndAdjustments(teams, result);
             foreach (var competition in new[] { CompetitionType.GermanCup, CompetitionType.ChampionsLeague, CompetitionType.EuropaCup })
             {
                 var ties = await _cupTieRepository.GetBySeasonAsync(state.Season, competition);
                 PrizeMoneyService.AwardCupPrizes(teams, ties, competition);
+                if (competition == CompetitionType.GermanCup)
+                    ClubMembershipService.ApplyCupPrizes(teams, ties);
+            }
+
+            if (managerTeam?.Finances is not null)
+            {
+                int memberDelta = managerTeam.Finances.ClubMembers - membersBefore;
+                if (memberDelta != 0)
+                {
+                    string direction = memberDelta > 0 ? "gestiegen" : "gefallen";
+                    string sign = memberDelta > 0 ? "+" : "-";
+                    await _messageService.SendAsync(MessageType.ClubMembershipUpdate, "Vereinsmitglieder",
+                        $"Die Mitgliederzahl ist auf {managerTeam.Finances.ClubMembers:N0} {direction} ({sign}{Math.Abs(memberDelta):N0}).",
+                        state.CurrentDate, managerTeam.Id);
+                }
             }
 
             int newSeason = state.Season + 1;

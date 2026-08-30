@@ -124,6 +124,18 @@ namespace RetroFootballManager.Tests
         }
 
         [Fact]
+        public async Task ApplyMonthlySettlement_CreditsMembershipIncome_AsAnnualDividedByTwelve()
+        {
+            var team = CreateTeamWithEconomy();
+            team.Finances!.ClubMembers = 1_200;
+            team.Finances!.MembershipFeePerMember = 120;
+
+            await _service.ApplyMonthlySettlementAsync(team, new DateTime(2026, 8, 15));
+
+            Assert.Equal((int)Math.Round(1_200 * 120 / 12.0), team.Finances!.ClubMembershipIncome);
+        }
+
+        [Fact]
         public async Task ApplyMonthlySettlement_DeductsActivePlayerWages_IgnoresExpiredContracts()
         {
             var team = CreateTeamWithEconomy();

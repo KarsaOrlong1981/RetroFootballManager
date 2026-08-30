@@ -27,5 +27,8 @@ namespace RetroFootballManager.Models
         // NegotiationResolutionService. Renewal-only; the transfer/loan case reuses
         // TransferOfferAccepted/TransferOfferRejected.
         ContractRenewed,
+
+        // Club membership count changed - see ClubMembershipService.
+        ClubMembershipUpdate,
     }
 }

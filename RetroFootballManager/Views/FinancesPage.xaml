@@ -92,6 +92,23 @@
                 </Grid>
             </Border>
 
+            <Label Text="Vereinsmitglieder" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+                        <Label Grid.Row="0" Grid.Column="0" FontSize="18" Text="Mitglieder" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="0" Grid.Column="1" FontSize="18" Text="{Binding MembershipCountText}" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="1" Grid.Column="0" FontSize="18" Text="Beitrag pro Mitglied" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="1" Grid.Column="1" FontSize="18" Text="{Binding MembershipFeeText}" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="2" Grid.Column="0" FontSize="18" Text="Einnahmen pro Monat" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="2" Grid.Column="1" FontSize="18" Text="{Binding MembershipIncomeMonthlyText}" TextColor="{StaticResource RfmAccentTeal}" />
+                        <Label Grid.Row="3" Grid.Column="0" FontSize="18" Text="Einnahmen pro Jahr" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="3" Grid.Column="1" FontSize="18" Text="{Binding MembershipIncomeYearlyText}" TextColor="{StaticResource RfmAccentTeal}" />
+                </Grid>
+            </Border>
+
             <Label Text="Sponsoren im Detail" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
             <Label Text="Die Grundzahlung läuft monatlich zum 15.; alle Bonuszahlungen (pro Sieg, Aufstieg, Platzierung) werden erst am Saisonende ausgezahlt."
                    FontSize="18" TextColor="{StaticResource RfmText}" />

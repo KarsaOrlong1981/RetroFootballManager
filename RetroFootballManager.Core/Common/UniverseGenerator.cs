@@ -93,6 +93,8 @@ namespace RetroFootballManager.Common
             // club can carry its own infrastructure from day one, regardless of how strong/weak
             // its randomly generated squad turned out relative to its league. Ticket/sponsor
             // income and transfer decisions are then entirely up to the manager.
+            var (clubMembers, membershipFee) = ClubMembershipService.ForTierAndRating(tier, players.Average(p => p.Rating));
+
             double annualPlayerWages = players.Sum(PlayerValuationService.EstimateAnnualSalary);
             double annualStaffWages = employees.Sum(e => e.Salary) + ManagerEffects.AnnualSalary(managerProfile);
             int startBalance = (int)Math.Round(annualPlayerWages + annualStaffWages + stadium.MaintenanceCosts);
@@ -123,6 +125,8 @@ namespace RetroFootballManager.Common
                     TransferBudget = startBalance / 4,
                     WageBudget = startBalance / 3,
                     FinancialHealth = rng.Next(55, 85),
+                    ClubMembers = clubMembers,
+                    MembershipFeePerMember = membershipFee,
                 },
             };
 
