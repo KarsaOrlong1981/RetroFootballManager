@@ -873,6 +873,9 @@ namespace RetroFootballManager.Common
             if (taker is null)
                 return;
 
+            EmitEvent(result, progress, minute, GameEventType.FreeKick, isHomeAttacking, taker,
+                EventTextHelper.FreeKickAwardedText(attacking, taker, _random));
+
             attackingStats.FreeKicks++;
             attackingStats.Shots++;
             GetOrCreateMatchStats(result, taker).Shots++;

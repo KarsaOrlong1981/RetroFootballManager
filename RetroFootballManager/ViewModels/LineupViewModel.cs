@@ -585,7 +585,8 @@ namespace RetroFootballManager.ViewModels
         int MalusPercent = 0,
         int Fitness = 100,
         int YellowCards = 0,
-        string? ImagePath = null)
+        string? ImagePath = null,
+        double? LiveRating = null)
     {
         // Visible only when the position-fit penalty actually reduces the player's
         // contribution (0 on the home position, since PositionSkillEffects.GetMultiplier is 1.0).
@@ -597,6 +598,19 @@ namespace RetroFootballManager.ViewModels
         public Color FitnessColor => Fitness >= 75 ? Color.FromArgb("#22C55E")
             : Fitness >= 50 ? Color.FromArgb("#EAB308")
             : Color.FromArgb("#EF4444");
+
+        // Live in-match performance rating (German school-grade scale, 1.0 best - 6.0 worst) -
+        // only set once a player has actually played some minutes this match, so a manager can
+        // judge who's playing badly before deciding on a substitution.
+        public bool HasLiveRating => LiveRating.HasValue;
+        public string LiveRatingLabel => LiveRating?.ToString("0.0") ?? "";
+        public Color LiveRatingColor => LiveRating switch
+        {
+            null => Color.FromArgb("#8FA3B8"),
+            <= 2.5 => Color.FromArgb("#22C55E"),
+            <= 4.0 => Color.FromArgb("#EAB308"),
+            _ => Color.FromArgb("#EF4444"),
+        };
     }
 
     public record SquadToken(

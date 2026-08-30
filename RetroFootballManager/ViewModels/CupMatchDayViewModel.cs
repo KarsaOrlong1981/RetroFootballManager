@@ -295,7 +295,7 @@ namespace RetroFootballManager.ViewModels
                     await WaitWhilePausedAsync();
 
                     _match.AdvanceMinute();
-                    var (sawRedCard, sawInjury) = UpdateLiveState();
+                    var (sawRedCard, sawInjury) = await UpdateLiveStateAsync();
 
                     if (_match.Phase == MatchPhase.HalfTime && !_halfTimeShown)
                     {
@@ -339,7 +339,7 @@ namespace RetroFootballManager.ViewModels
             }
         }
 
-        private (bool SawRedCard, bool SawInjury) UpdateLiveState()
+        private async Task<(bool SawRedCard, bool SawInjury)> UpdateLiveStateAsync()
         {
             if (_match is null || _homeTeam is null || _awayTeam is null)
                 return (false, false);
@@ -349,11 +349,8 @@ namespace RetroFootballManager.ViewModels
 
             bool sawRedCard = false;
             bool sawInjury = false;
-            var events = _match.Result.Events;
-            for (; _tickerCursor < events.Count; _tickerCursor++)
+            _tickerCursor = await LiveMatchTicker.ProcessNewEventsAsync(_match.Result.Events, _tickerCursor, Ticker, e =>
             {
-                var e = events[_tickerCursor];
-
                 switch (e.Type)
                 {
                     case GameEventType.YellowCard when e.Player is not null:
@@ -375,13 +372,7 @@ namespace RetroFootballManager.ViewModels
                             sawInjury = true;
                         break;
                 }
-
-                if (e.Type is GameEventType.Shot or GameEventType.DangerousAttack)
-                    continue;
-
-                bool isTeamEvent = e.Type is not (GameEventType.KickOff or GameEventType.HalfTime or GameEventType.FullTime);
-                Ticker.Insert(0, new TickerEntry(e.Minute, IconFor(e.Type), e.Player?.Name, e.Description, e.IsHomeTeam, isTeamEvent));
-            }
+            });
 
             UpdateSubsRemaining();
             return (sawRedCard, sawInjury);
@@ -401,15 +392,6 @@ namespace RetroFootballManager.ViewModels
                 Scorers.Add(new MatchScorerEntry(playerName, isHomeTeam, [minute]));
             }
         }
-
-        private static string IconFor(GameEventType type) => type switch
-        {
-            GameEventType.Goal => "ball.png",
-            GameEventType.YellowCard => "yellowcard.png",
-            GameEventType.RedCard => "redcard.png",
-            GameEventType.Substitution => "substitution.png",
-            _ => "",
-        };
 
         [RelayCommand]
         private void PauseResume()
@@ -484,11 +466,18 @@ namespace RetroFootballManager.ViewModels
             _managementFormation = FormationCatalog.GetByName(_managementTeam.FormationName);
 
             var onPitch = _match.OnPitch(_isHumanHome).ToList();
-            _originalOnPitchIds = onPitch.Select(p => p.Id).ToHashSet();
 
             var matchingPool = onPitch
                 .Concat(_managementTeam.Players.Where(p => p.Status is PlayerStatus.Suspended or PlayerStatus.Injured))
                 .ToList();
+
+            // Must include the suspended/injured players too, not just OnPitch() - a slot they
+            // vacated is still "theirs" for the leaving/entering diff in ConfirmTeamManagement.
+            // Without this, dragging a substitute into an already-vacated slot never counts as
+            // an entering player with a matching leaving one, so Match.TrySubstitute is never
+            // called and the sub has no effect on the actual simulation (the dialog shows the
+            // slot filled, but it silently reverts to empty next time it's reopened).
+            _originalOnPitchIds = matchingPool.Select(p => p.Id).ToHashSet();
 
             _managementLineup = new int?[_managementFormation.Slots.Count];
             // Explicit AssignedPosition overrides are matched to their
@@ -754,7 +743,8 @@ namespace RetroFootballManager.ViewModels
                     player?.UsedAsWingBack ?? false,
                     MalusPercent: (int)Math.Round((1 - multiplier) * 100),
                     Fitness: player?.Fitness ?? 100,
-                    YellowCards: player is null ? 0 : YellowCardsFor(player.Id)));
+                    YellowCards: player is null ? 0 : YellowCardsFor(player.Id),
+                    LiveRating: player is null ? null : LiveRatingFor(player.Id, effectivePos)));
             }
 
             var candidatePool = _managementTeam.Players
@@ -792,6 +782,14 @@ namespace RetroFootballManager.ViewModels
 
         private int YellowCardsFor(int playerId) =>
             _match?.Result.PlayerMatchStats.TryGetValue(playerId, out var stats) == true ? stats.YellowCards : 0;
+
+        private double? LiveRatingFor(int playerId, Position position)
+        {
+            if (_match is null || !_match.Result.PlayerMatchStats.TryGetValue(playerId, out var stats))
+                return null;
+            int minutesPlayed = _match.Result.MinutesPlayed.GetValueOrDefault(playerId);
+            return minutesPlayed > 0 ? MatchRatingCalculator.Calculate(stats, position, minutesPlayed) : null;
+        }
 
         [RelayCommand]
         private void ConfirmTeamManagement()

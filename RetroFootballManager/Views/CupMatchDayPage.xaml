@@ -356,6 +356,9 @@
                                                                    HorizontalOptions="Center" LineBreakMode="TailTruncation" MaxLines="1" />
                                                             <Label Text="{Binding Rating}" FontSize="11" TextColor="{StaticResource RfmAccentTeal}"
                                                                    HorizontalOptions="Center" />
+                                                            <Label Text="{Binding LiveRatingLabel}" IsVisible="{Binding HasLiveRating}"
+                                                                   FontSize="9" FontAttributes="Bold" TextColor="{Binding LiveRatingColor}"
+                                                                   HorizontalOptions="Center" />
                                                             <Label Text="{Binding MalusLabel}" IsVisible="{Binding HasMalus}"
                                                                    FontSize="9" FontAttributes="Bold"
                                                                    TextColor="{Binding Fit, Converter={StaticResource FitColor}}"

@@ -107,6 +107,24 @@ namespace RetroFootballManager.Tests
         }
 
         [Fact]
+        public void Simulate_OverManyMatches_SometimesAwardsDirectFreeKicks()
+        {
+            int totalFreeKickEvents = 0;
+            var random = new Random(99);
+
+            for (int i = 0; i < 60; i++)
+            {
+                var home = TestHelpers.CreateTeam("Heim FC", baseRating: 65);
+                var away = TestHelpers.CreateTeam("Gast FC", baseRating: 65);
+                var result = new Match(home, away, random).Simulate();
+
+                totalFreeKickEvents += result.Events.Count(e => e.Type == GameEventType.FreeKick);
+            }
+
+            Assert.True(totalFreeKickEvents > 0);
+        }
+
+        [Fact]
         public void Simulate_SecondYellowCardAlwaysBecomesRedCard()
         {
             var random = new Random(55);

@@ -56,6 +56,18 @@ namespace RetroFootballManager.Helper
         public static string OffsideText(Player player, Random random) =>
             string.Format(Pick(random, OffsideTemplates), player.Name);
 
+        public static string FreeKickAwardedText(Team attackingTeam, Player taker, Random random) =>
+            string.Format(Pick(random, FreeKickTemplates), attackingTeam.Name, taker.Name);
+
+        // Dramatic filler lines for the live ticker's staged penalty/free-kick reveal (see
+        // LiveMatchTicker) - no player name needed since the payoff line (goal/save/miss text)
+        // already names the taker.
+        public static string PenaltyReadyText(Random random) => Pick(random, PenaltyReadyTemplates);
+
+        public static string PenaltyRunUpText(Random random) => Pick(random, PenaltyRunUpTemplates);
+
+        public static string FreeKickRunUpText(Random random) => Pick(random, FreeKickRunUpTemplates);
+
         // Picks a teammate as the assist provider for a goal - weighted by crossing and
         // passing accuracy so wingers/midfielders show up as assist givers more often
         // than center-backs or the goalkeeper.
@@ -220,6 +232,34 @@ namespace RetroFootballManager.Helper
             "Abseits! {0} stand zu früh in der Schusslinie.",
             "Die Fahne geht hoch - Abseits gegen {0}.",
             "{0} läuft sich im Abseits fest.",
+        ];
+
+        private static readonly string[] FreeKickTemplates =
+        [
+            "Freistoß für {0} in aussichtsreicher Position! {1} legt sich den Ball zurecht.",
+            "Gefährlicher Freistoß für {0} - {1} übernimmt die Ausführung.",
+            "{1} steht bereit für den direkten Freistoß zugunsten von {0}.",
+        ];
+
+        private static readonly string[] PenaltyReadyTemplates =
+        [
+            "Der Schütze legt sich den Ball auf den Punkt und macht sich bereit...",
+            "Ruhe im Strafraum - der Elfmeterschütze sammelt sich...",
+            "Alle Blicke auf den Punkt - der Schütze macht sich bereit...",
+        ];
+
+        private static readonly string[] PenaltyRunUpTemplates =
+        [
+            "Der Schiedsrichter pfeift an - Anlauf...",
+            "Jetzt geht's los - der Schütze läuft an...",
+            "Anlauf... und Schuss!",
+        ];
+
+        private static readonly string[] FreeKickRunUpTemplates =
+        [
+            "Die Mauer steht - Anlauf...",
+            "Der Schütze läuft an...",
+            "Jetzt kommt der Schuss...",
         ];
     }
 }

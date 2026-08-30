@@ -208,6 +208,7 @@
                         </FlexLayout>
 
                         <Label Text="Statistiken" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,6,0,0" />
+                        <Label Text="{Binding AverageMatchRating, StringFormat='Ø Bewertung diese Saison: {0:0.0}'}" FontSize="16" TextColor="{StaticResource RfmText}" />
                         <Label Text="{Binding CareerAppearances, StringFormat='Karriere-Einsätze: {0}'}" FontSize="16" TextColor="{StaticResource RfmText}" />
                         <Label Text="{Binding CareerMinutesPlayed, StringFormat='Karriere-Minuten: {0}'}" FontSize="16" TextColor="{StaticResource RfmText}" />
                         <Label Text="{Binding SeasonMinutes, StringFormat='Minuten diese Saison: {0}'}" FontSize="16" TextColor="{StaticResource RfmText}" />
