@@ -141,8 +141,8 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-            <VerticalStackLayout Grid.Row="4" Spacing="8">
-                <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
+            <VerticalStackLayout Grid.Row="2" Spacing="8">
+                <Label Text="{Binding StatusText}" FontSize="24" TextColor="{StaticResource RfmText}" />
             </VerticalStackLayout>
         </Grid>
 

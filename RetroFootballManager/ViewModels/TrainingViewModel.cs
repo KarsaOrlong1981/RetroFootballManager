@@ -134,6 +134,7 @@ namespace RetroFootballManager.ViewModels
             {
                 IsBusy = false;
                 ShowAttributeSection = false;
+                StatusText = string.Empty;
             }
         }
 
