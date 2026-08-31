@@ -14,14 +14,100 @@
 
     <Grid>
         <Image Source="youth_ac.png" Aspect="Fill"/>
-        <Grid RowDefinitions="*,Auto" Padding="14" Opacity="0.85" RowSpacing="10">
-
-            <CollectionView Grid.Row="0" ItemsSource="{Binding Youth}"
+        <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="*,*" Padding="14" Opacity="0.85" RowSpacing="10">
+            <Label Grid.Row="0" Padding="8,2"  FontSize="24" BackgroundColor="Black" HorizontalOptions="Start" VerticalTextAlignment="Center" TextColor="{StaticResource RfmText}"
+                 Text="Jugend Trainer:" />
+            <!-- Co-Trainer profiles -->
+            <CollectionView 
+                Grid.Row="1"
+                ItemsSource="{Binding CoTrainers}"
+                HorizontalOptions="Start" 
+                WidthRequest="800"
+                MaximumHeightRequest="880">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="0" VerticalItemSpacing="8" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.EmptyView>
+                    <ContentView>
+                        <Border HorizontalOptions="Center" VerticalOptions="Center"  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+                            <Grid>
+                                <Label Grid.Column="0" Text="Aktuell sind keine Jugend Trainer Eingestellt." FontSize="22"
+                            TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+                    </ContentView>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Employee">
+                        <Border  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                <Image Source="{Binding ImagePath}" WidthRequest="150" HeightRequest="150"/>
+                                <VerticalStackLayout Spacing="4" Grid.Column="1">
+                                    <Label FontSize="18" TextColor="{StaticResource RfmText}">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{Binding Name}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{Binding EmployeeType}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label FontSize="18">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="Fähigkeit Jugendentwicklung: " TextColor="{StaticResource RfmTextMuted}" />
+                                                <Span Text="{Binding YouthDevelopment}" TextColor="{StaticResource RfmAccentTeal}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label FontSize="18">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="Fähigkeit Offensiv Training: " TextColor="{StaticResource RfmTextMuted}" />
+                                                <Span Text="{Binding OffensiveTraining}" TextColor="{StaticResource RfmAccentTeal}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label FontSize="18">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="Fähigkeit Defensiv Training: " TextColor="{StaticResource RfmTextMuted}" />
+                                                <Span Text="{Binding DefensiveTraining}" TextColor="{StaticResource RfmAccentTeal}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label FontSize="18">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="Fähigkeit Torwart Training: " TextColor="{StaticResource RfmTextMuted}" />
+                                                <Span Text="{Binding GoalkeeperTraining}" TextColor="{StaticResource RfmAccentTeal}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            
+            <CollectionView Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Youth}"
                             SelectionMode="Single" SelectedItem="{Binding SelectedYouth, Mode=TwoWay}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Player">
                         <Grid Padding="3">
-                            <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}" WidthRequest="850" HorizontalOptions="Start" StrokeThickness="0">
+                            <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}"   StrokeThickness="0">
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
@@ -59,7 +145,7 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <VerticalStackLayout Grid.Row="1" Spacing="8">
+            <VerticalStackLayout Grid.Row="2" Grid.Column="1" Spacing="8">
                 <Label Text="{Binding YouthInfo}" FontSize="18" TextColor="{StaticResource RfmText}" />
                 <Label Text="{Binding CurrentMentorInfo}" FontSize="18" FontAttributes="Bold"
                        TextColor="{StaticResource RfmAccentTeal}" />
@@ -82,22 +168,22 @@
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                     <Button Grid.Column="0" Text="Hochziehen" FontSize="18" Command="{Binding PromoteCommand}"
                             BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" />
-                    <Button Grid.Column="1" Text="Bestätigen" FontSize="18" Command="{Binding ConfirmCommand}"
-                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
                 </Grid>
             </VerticalStackLayout>
         </Grid>
 
         <!-- Player profile dialog -->
         <controls:PlayerProfileDialog
+            Grid.ColumnSpan="2"
+            Grid.RowSpan="3"
             IsOpen="{Binding IsPlayerProfileOpen}"
             Title="{Binding SelectedProfile.Name}"
             Profile="{Binding SelectedProfile}"
             CloseCommand="{Binding CloseProfileCommand}" />
 
         <!-- Busy overlay -->
-        <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000">
-            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="12">
+        <Grid IsVisible="{Binding IsBusy}" Grid.ColumnSpan="2" Grid.RowSpan="3"   BackgroundColor="#C0000000">
+            <VerticalStackLayout Spacing="12" HorizontalOptions="Center" VerticalOptions="Center">
                 <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{StaticResource RfmAccentTeal}"
                                    WidthRequest="48" HeightRequest="48" />
                 <Label Text="{Binding StatusText}" FontSize="14" TextColor="{StaticResource RfmText}"

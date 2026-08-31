@@ -16,9 +16,7 @@
             </Border.StrokeShape>
             <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-                    <Label Grid.Column="0"
-                           Text="{Binding Profile.FirstName, Source={x:Reference Root}, StringFormat='{0} '}"
-                           FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                    
                     <Button Grid.Column="1" ImageSource="close.png" Command="{Binding CloseCommand, Source={x:Reference Root}}"
                             BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}"
                             WidthRequest="36" HeightRequest="36" Padding="8" />
@@ -39,7 +37,9 @@
                                        IsVisible="{Binding Profile.AvatarPath, Source={x:Reference Root}, Converter={StaticResource HasLogo}}" />
                             </Grid>
                         </Border>
-
+                        <Label Grid.Column="0"
+                           Text="{Binding Profile.FirstName, Source={x:Reference Root}, StringFormat='{0} '}"
+                           FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" VerticalOptions="Center" />
                         <Label Text="{Binding Profile.LastName, Source={x:Reference Root}}" FontSize="24" FontAttributes="Bold"
                                HorizontalOptions="Center" TextColor="{StaticResource RfmText}" />
                         <Label Text="{Binding Profile.License, Source={x:Reference Root}, Converter={StaticResource CoachingLicenseDisplay}}"

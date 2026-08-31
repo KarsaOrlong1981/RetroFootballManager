@@ -12,6 +12,7 @@ namespace RetroFootballManager.Common
 
         public static string Label(TrainableAttribute attribute) => attribute switch
         {
+            TrainableAttribute.None => "Kein Fokus",
             TrainableAttribute.Offensive => "Offensivkraft",
             TrainableAttribute.Defensive => "Defensivkraft",
             TrainableAttribute.GameIntelligence => "Spielintelligenz",

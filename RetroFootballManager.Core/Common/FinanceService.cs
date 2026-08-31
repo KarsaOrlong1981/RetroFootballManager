@@ -29,6 +29,16 @@ namespace RetroFootballManager.Common
         private const double MerchandisePerMatchday = 2_000;
         private const int FinanceWarningThreshold = 0;
 
+        // DirectorOfFootball's financial management skill boosts overall club income
+        // (ticket/merchandise/membership/sponsor) by up to +10%.
+        private const double DirectorOfFootballMaxRevenueBoost = 0.10;
+
+        private static double RevenueFactor(Team team)
+        {
+            var dof = team.Employees.FirstOrDefault(e => e.EmployeeType == EmployeeType.DirectorOfFootball);
+            return dof is null ? 1.0 : 1.0 + (dof.FinancialManagement / 100.0) * DirectorOfFootballMaxRevenueBoost;
+        }
+
         // Public - FinanceAiService reuses the exact same line for the AI's own spending caution,
         // instead of only ever crashing the board's mood for a human.
         public const int FinancialCrisisThreshold = -500_000;
@@ -164,10 +174,13 @@ namespace RetroFootballManager.Common
             if (finances is null || stadium is null)
                 return new MatchdayFinanceResult(0, 0);
 
-            int ticketIncome = isHome ? CalculateTicketIncome(team, stadium, standings, opponentTierRank) : 0;
+            double revenueFactor = RevenueFactor(team);
+            int ticketIncome = isHome
+                ? (int)Math.Round(CalculateTicketIncome(team, stadium, standings, opponentTierRank) * revenueFactor)
+                : 0;
             finances.TicketIncome += ticketIncome;
 
-            int merchandiseIncome = (int)(MerchandisePerMatchday * stadium.MerchandiseLevel);
+            int merchandiseIncome = (int)Math.Round(MerchandisePerMatchday * stadium.MerchandiseLevel * revenueFactor);
             finances.MerchandiseIncome += merchandiseIncome;
 
             finances.CurrentBalance += ticketIncome + merchandiseIncome;
@@ -193,12 +206,13 @@ namespace RetroFootballManager.Common
             int managerSalary = team.ManagerProfile is null ? 0 : ManagerEffects.AnnualSalary(team.ManagerProfile);
             int staffWages = (int)Math.Round((team.Employees.Sum(e => e.Salary) + managerSalary) / 12.0);
             int stadiumCost = team.Stadium is null ? 0 : (int)Math.Round(team.Stadium.MaintenanceCosts / 12.0);
-            int membershipIncome = (int)Math.Round(finances.ClubMembers * finances.MembershipFeePerMember / 12.0);
+            double revenueFactor = RevenueFactor(team);
+            int membershipIncome = (int)Math.Round(finances.ClubMembers * finances.MembershipFeePerMember / 12.0 * revenueFactor);
 
             int sponsorIncome = 0;
             if (finances.SponsorPaymentsThisSeason < SponsorPaymentMonths)
             {
-                sponsorIncome = await CalculateMonthlySponsorIncomeAsync(team);
+                sponsorIncome = (int)Math.Round(await CalculateMonthlySponsorIncomeAsync(team) * revenueFactor);
                 finances.SponsorPaymentsThisSeason++;
             }
 
@@ -308,10 +322,11 @@ namespace RetroFootballManager.Common
             int managerSalary = team.ManagerProfile is null ? 0 : ManagerEffects.AnnualSalary(team.ManagerProfile);
             int monthlyStaffWages = (int)Math.Round((team.Employees.Sum(e => e.Salary) + managerSalary) / 12.0);
             int monthlyStadiumCost = team.Stadium is null ? 0 : (int)Math.Round(team.Stadium.MaintenanceCosts / 12.0);
+            double revenueFactor = RevenueFactor(team);
             int monthlySponsorIncome = finances.SponsorPaymentsThisSeason < SponsorPaymentMonths
-                ? await CalculateMonthlySponsorIncomeAsync(team)
+                ? (int)Math.Round(await CalculateMonthlySponsorIncomeAsync(team) * revenueFactor)
                 : 0;
-            double monthlyMembershipIncome = finances.ClubMembers * finances.MembershipFeePerMember / 12.0;
+            double monthlyMembershipIncome = finances.ClubMembers * finances.MembershipFeePerMember / 12.0 * revenueFactor;
 
             double monthlyNet = monthlyMembershipIncome + monthlySponsorIncome - monthlyPlayerWages - monthlyStaffWages - monthlyStadiumCost;
             double projectedMonthlyNet = monthlyNet * remainingMonths;

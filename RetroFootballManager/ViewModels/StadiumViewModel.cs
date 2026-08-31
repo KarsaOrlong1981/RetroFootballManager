@@ -47,9 +47,9 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private string _capacitySummary = string.Empty;
         [ObservableProperty] private string _attendanceEstimateText = string.Empty;
 
-        [ObservableProperty] private double _seatPrice;
-        [ObservableProperty] private double _standingPrice;
-        [ObservableProperty] private double _logePrice;
+        [ObservableProperty] private int _seatPrice;
+        [ObservableProperty] private int _standingPrice;
+        [ObservableProperty] private int _logePrice;
 
         [ObservableProperty] private string _seatUpgradeCostText = string.Empty;
         [ObservableProperty] private string _standingUpgradeCostText = string.Empty;
@@ -89,9 +89,9 @@ namespace RetroFootballManager.ViewModels
             BackgroundImageSource = EvolutionImages[StadiumService.GetEvolutionStage(stadium.Capacity)];
             HasRoof = stadium.HasRoof;
 
-            SeatPrice = stadium.SeatPrice;
-            StandingPrice = stadium.StandingPrice;
-            LogePrice = stadium.LogePrice;
+            SeatPrice = (int)Math.Round(stadium.SeatPrice);
+            StandingPrice = (int)Math.Round(stadium.StandingPrice);
+            LogePrice = (int)Math.Round(stadium.LogePrice);
 
             ComfortLevelText = $"Komfort: Stufe {stadium.ComfortLevel}/5";
             CateringLevelText = $"Gastronomie: Stufe {stadium.CateringLevel}/5";
@@ -118,21 +118,21 @@ namespace RetroFootballManager.ViewModels
             AttendanceEstimateText = $"Geschätzter Zuschauerschnitt: {estimate.TotalAttendance:N0} ({estimate.AvgFillRate:P0} Auslastung)";
         }
 
-        partial void OnSeatPriceChanged(double value)
+        partial void OnSeatPriceChanged(int value)
         {
             if (_team?.Stadium is null) return;
             _team.Stadium.SeatPrice = value;
             UpdateAttendanceEstimate();
         }
 
-        partial void OnStandingPriceChanged(double value)
+        partial void OnStandingPriceChanged(int value)
         {
             if (_team?.Stadium is null) return;
             _team.Stadium.StandingPrice = value;
             UpdateAttendanceEstimate();
         }
 
-        partial void OnLogePriceChanged(double value)
+        partial void OnLogePriceChanged(int value)
         {
             if (_team?.Stadium is null) return;
             _team.Stadium.LogePrice = value;

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RetroFootballManager.Common;
@@ -29,8 +30,8 @@ namespace RetroFootballManager.ViewModels
             Title = "Mitarbeiter";
         }
 
-        public ObservableCollection<Employee> CurrentStaff { get; } = [];
-        public ObservableCollection<Employee> Candidates { get; } = [];
+        public ObservableCollection<StaffRow> CurrentStaff { get; } = [];
+        public ObservableCollection<StaffRow> Candidates { get; } = [];
 
         [ObservableProperty] private string _statusText = string.Empty;
 
@@ -54,7 +55,7 @@ namespace RetroFootballManager.ViewModels
         {
             CurrentStaff.Clear();
             foreach (var employee in _team!.Employees)
-                CurrentStaff.Add(employee);
+                CurrentStaff.Add(new StaffRow(employee, EmployeeAttributeSummary.From(employee).Chips));
         }
 
         [RelayCommand]
@@ -65,7 +66,7 @@ namespace RetroFootballManager.ViewModels
 
             Candidates.Clear();
             foreach (var candidate in _staffMarket.GenerateCandidates(_team.LeagueTier))
-                Candidates.Add(candidate);
+                Candidates.Add(new StaffRow(candidate, EmployeeAttributeSummary.From(candidate).Chips));
         }
 
         [RelayCommand]
@@ -83,7 +84,9 @@ namespace RetroFootballManager.ViewModels
             try
             {
                 await _staffMarket.HireAsync(_team, candidate, _session.State.CurrentDate);
-                Candidates.Remove(candidate);
+                var candidateRow = Candidates.FirstOrDefault(r => r.Employee == candidate);
+                if (candidateRow is not null)
+                    Candidates.Remove(candidateRow);
                 RefreshCurrentStaff();
                 StatusText = $"{candidate.Name} eingestellt.";
             }
@@ -179,4 +182,6 @@ namespace RetroFootballManager.ViewModels
             }
         }
     }
+
+    public record StaffRow(Employee Employee, IReadOnlyList<AttributeChip> Attributes);
 }

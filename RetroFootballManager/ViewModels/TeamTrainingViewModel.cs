@@ -34,13 +34,19 @@ namespace RetroFootballManager.ViewModels
         public ObservableCollection<TeamFocusRow> Focuses { get; } = [];
 
         [ObservableProperty] private string _statusText = string.Empty;
+        [ObservableProperty] private ObservableCollection<Employee> _coTrainers;
+        [ObservableProperty] private ManagerProfile? _manager;
 
         public void Initialize()
         {
             _team = _session.ManagerTeam;
+            
             if (_team is null)
                 return;
 
+            Manager = _team.ManagerProfile;
+            var emplyoees = _team.Employees.Where(e => e.EmployeeType == EmployeeType.AssistantCoach || e.EmployeeType == EmployeeType.FitnessCoach || e.EmployeeType == EmployeeType.GoalkeeperCoach).ToList();
+            CoTrainers = new ObservableCollection<Employee>(emplyoees);
             RebuildFocuses();
         }
 
@@ -55,7 +61,7 @@ namespace RetroFootballManager.ViewModels
         }
 
         [RelayCommand]
-        private void SetFocus(TeamFocusRow row)
+        private async Task SetFocus(TeamFocusRow row)
         {
             if (_team is null)
                 return;
@@ -63,9 +69,9 @@ namespace RetroFootballManager.ViewModels
             _team.TeamTrainingFocus = row.Focus;
             StatusText = $"Team-Trainingsfokus: {row.Label} - wirkt über die Saison langsam auf das ganze Team.";
             RebuildFocuses();
+            await Confirm();
         }
 
-        [RelayCommand]
         private async Task Confirm()
         {
             if (_team is null || _session.State is null)
@@ -80,7 +86,6 @@ namespace RetroFootballManager.ViewModels
             try
             {
                 await _saveGame.SaveTeamProgressAsync(_session.State, _team);
-                await _navigation.GoBackAsync();
             }
             catch (Exception ex)
             {

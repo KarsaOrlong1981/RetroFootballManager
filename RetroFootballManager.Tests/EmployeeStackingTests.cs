@@ -209,27 +209,35 @@ namespace RetroFootballManager.Tests
                 $"oneCoach={totalRatingOneCoach}, twoCoaches={totalRatingTwoCoaches}");
         }
 
-        // --- TransferAiService.DirectorOfFootballPriceFactor ---
+        // --- TransferAiService DirectorOfFootball price factors ---
 
         [Fact]
-        public void DirectorOfFootballPriceFactor_NoDirector_ReturnsNeutral()
+        public void PriceFactors_NoDirector_ReturnNeutral()
         {
             var team = TestHelpers.CreateTeam("Ohne DoF", baseRating: 60);
-            Assert.Equal(1.0, TransferAiService.DirectorOfFootballPriceFactor(team, favorSeller: true));
-            Assert.Equal(1.0, TransferAiService.DirectorOfFootballPriceFactor(team, favorSeller: false));
+            Assert.Equal(1.0, TransferAiService.SellingPriceFactor(team));
+            Assert.Equal(1.0, TransferAiService.CounterOfferPriceFactor(team));
+            Assert.Equal(1.0, TransferAiService.AcceptanceFirmnessFactor(team));
+            Assert.Equal(1.0, TransferAiService.BuyingPriceFactor(team));
         }
 
         [Fact]
-        public void DirectorOfFootballPriceFactor_FavorsSeller_AboveOne_AndBuyer_BelowOne()
+        public void PriceFactors_FavorSeller_AboveOne_AndBuyer_BelowOne()
         {
             var team = TestHelpers.CreateTeam("Mit DoF", baseRating: 60);
-            team.Employees.Add(new Employee { EmployeeType = EmployeeType.DirectorOfFootball, Rating = 80 });
+            team.Employees.Add(new Employee
+            {
+                EmployeeType = EmployeeType.DirectorOfFootball,
+                Rating = 80,
+                SellingNegotiation = 80,
+                CounterOfferNegotiation = 80,
+                AcceptanceFirmness = 80,
+            });
 
-            double sellFactor = TransferAiService.DirectorOfFootballPriceFactor(team, favorSeller: true);
-            double buyFactor = TransferAiService.DirectorOfFootballPriceFactor(team, favorSeller: false);
-
-            Assert.True(sellFactor > 1.0, $"sellFactor={sellFactor}");
-            Assert.True(buyFactor < 1.0, $"buyFactor={buyFactor}");
+            Assert.True(TransferAiService.SellingPriceFactor(team) > 1.0);
+            Assert.True(TransferAiService.CounterOfferPriceFactor(team) > 1.0);
+            Assert.True(TransferAiService.AcceptanceFirmnessFactor(team) > 1.0);
+            Assert.True(TransferAiService.BuyingPriceFactor(team) < 1.0);
         }
     }
 }

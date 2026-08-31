@@ -6,18 +6,145 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:RetroFootballManager.Views"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    xmlns:models="clr-namespace:RetroFootballManager.Models;assembly=RetroFootballManager.Core"
     x:DataType="vm:TeamTrainingViewModel"
     Title="Team-Training"
     BackgroundColor="{StaticResource RfmBackground}">
 
     <Grid>
         <Image Source="teamtraining.png" Aspect="AspectFill"/>
-        <Grid Opacity="0.85" RowDefinitions="Auto,Auto,*" Padding="14" RowSpacing="10">
+        <Grid Opacity="0.85" RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,*" Padding="14" RowSpacing="10">
 
-            <Label Grid.Row="0" FontSize="24" BackgroundColor="Black" HorizontalOptions="Start" TextColor="{StaticResource RfmText}"
+            <Label Grid.Row="0" Padding="8,2"  FontSize="24" BackgroundColor="Black" HorizontalOptions="Start" VerticalTextAlignment="Center" TextColor="{StaticResource RfmText}"
+                Text="Trainer:" />
+            <Label Grid.Row="0" Padding="8,2" Grid.Column="1" FontSize="24" BackgroundColor="Black" HorizontalOptions="Start" TextColor="{StaticResource RfmText}"
                    Text="Der Team-Fokus trainiert passende Attribute für den ganzen Kader - langsam, über die Saison verteilt." />
 
-            <CollectionView Grid.Row="2" ItemsSource="{Binding Focuses}" WidthRequest="800" HorizontalOptions="Start">
+            <!-- Manager and Co-Trainer profiles -->
+            <Grid Grid.Row="1"  RowDefinitions="Auto,Auto" RowSpacing="18">
+                <Border  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10" />
+                    </Border.StrokeShape>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <Image Source="{Binding Manager.AvatarPath}" WidthRequest="150" HeightRequest="150"/>
+                        <VerticalStackLayout Spacing="4" Grid.Column="1">
+                            <HorizontalStackLayout Spacing="8">
+                                <Label FontSize="18" Text="{Binding Manager.FirstName}" TextColor="{StaticResource RfmText}"/>
+                                <Label FontSize="18" Text="{Binding Manager.LastName}" TextColor="{StaticResource RfmText}"/>
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="8">
+                                <Label Text="Trainer Lizenz"
+                                      FontSize="20" TextColor="{StaticResource RfmAccentTeal}" />
+                                <Label Text="{Binding Manager.License}"
+                                      FontSize="20" TextColor="{StaticResource RfmAccentTeal}" />
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="8">
+                                <Label FontSize="18" Text="Trainingsgestaltung: " TextColor="{StaticResource RfmText}"/>
+                                <Label FontSize="18" Text="{Binding Manager.TrainingDesign}" TextColor="{StaticResource RfmAccentTeal}"/>
+                                <Label FontSize="18" Text=" von 10 " TextColor="{StaticResource RfmText}"/>
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="8">
+                                <Label FontSize="18" Text="Motivationsfähigkeit: " TextColor="{StaticResource RfmText}"/>
+                                <Label FontSize="18" Text="{Binding Manager.Motivation}" TextColor="{StaticResource RfmAccentTeal}"/>
+                                <Label FontSize="18" Text=" von 10 " TextColor="{StaticResource RfmText}"/>
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="8">
+                                <Label FontSize="18" Text="Offensivkreation: " TextColor="{StaticResource RfmText}"/>
+                                <Label FontSize="18" Text="{Binding Manager.OffensiveCreation}" TextColor="{StaticResource RfmAccentTeal}"/>
+                                <Label FontSize="18" Text=" von 10 " TextColor="{StaticResource RfmText}"/>
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="8">
+                                <Label FontSize="18" Text="Defensive Organisation: " TextColor="{StaticResource RfmText}"/>
+                                <Label FontSize="18" Text="{Binding Manager.DefensiveOrganization}" TextColor="{StaticResource RfmAccentTeal}"/>
+                                <Label FontSize="18" Text=" von 10 " TextColor="{StaticResource RfmText}"/>
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="8">
+                                <Label FontSize="18" Text="In-Game-Coaching: " TextColor="{StaticResource RfmText}"/>
+                                <Label FontSize="18" Text="{Binding Manager.InGameCoaching}" TextColor="{StaticResource RfmAccentTeal}"/>
+                                <Label FontSize="18" Text=" von 10 " TextColor="{StaticResource RfmText}"/>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+                <CollectionView 
+                 Grid.Row="1" 
+                 ItemsSource="{Binding CoTrainers}"
+                 HorizontalOptions="Start" 
+                 WidthRequest="800"
+                 MaximumHeightRequest="550">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="0" VerticalItemSpacing="8" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.EmptyView>
+                    <ContentView>
+                        <Border HorizontalOptions="Center" VerticalOptions="Center"  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+                            <Grid>
+                                <Label Grid.Column="0" Text="Aktuell sind keine Assistent Trainer Eingestellt." FontSize="22"
+                                      TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+                    </ContentView>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Employee">
+                        <Border  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                <Image Source="{Binding ImagePath}" WidthRequest="150" HeightRequest="150"/>
+                                <VerticalStackLayout Spacing="4" Grid.Column="1">
+                                    <Label FontSize="18" TextColor="{StaticResource RfmText}">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{Binding Name}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{Binding EmployeeType}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label FontSize="18">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="Fähigkeit Offensiv Training: " TextColor="{StaticResource RfmTextMuted}" />
+                                                <Span Text="{Binding OffensiveTraining}" TextColor="{StaticResource RfmAccentTeal}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label FontSize="18">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="Fähigkeit Defensiv Training: " TextColor="{StaticResource RfmTextMuted}" />
+                                                <Span Text="{Binding DefensiveTraining}" TextColor="{StaticResource RfmAccentTeal}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label FontSize="18">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="Fähigkeit Torwart Training: " TextColor="{StaticResource RfmTextMuted}" />
+                                                <Span Text="{Binding GoalkeeperTraining}" TextColor="{StaticResource RfmAccentTeal}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            </Grid>
+            
+            <CollectionView Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Focuses}"  HorizontalOptions="Start">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="vm:TeamFocusRow">
                         <Grid Padding="3">
@@ -39,17 +166,11 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-
-            <VerticalStackLayout Grid.Row="1" Spacing="8" WidthRequest="800" HorizontalOptions="Start">
-                <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
-                <Button Text="Übernehmen" Command="{Binding ConfirmCommand}"
-                        BackgroundColor="{StaticResource RfmFormationGreen}" FontSize="22" TextColor="White" />
-            </VerticalStackLayout>
         </Grid>
 
         <!-- Busy overlay -->
-        <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000">
-            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="12">
+        <Grid IsVisible="{Binding IsBusy}" Grid.RowSpan="3" Grid.ColumnSpan="2" BackgroundColor="#C0000000">
+            <VerticalStackLayout  Spacing="12" HorizontalOptions="Center" VerticalOptions="Center">
                 <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{StaticResource RfmAccentTeal}"
                                    WidthRequest="48" HeightRequest="48" />
                 <Label Text="{Binding StatusText}" FontSize="14" TextColor="{StaticResource RfmText}"

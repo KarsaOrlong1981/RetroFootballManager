@@ -21,7 +21,9 @@ namespace RetroFootballManager.Common
             // Base spread for all coaching ratings.
             int off = Around(quality), def = Around(quality), gk = Around(quality * 0.7),
                 fit = Around(quality), youth = Around(quality), scout = Around(quality),
-                mot = Around(quality), analysis = Around(quality);
+                mot = Around(quality), analysis = Around(quality),
+                sell = Around(quality), counter = Around(quality), firm = Around(quality),
+                finance = Around(quality);
 
             // Emphasise the rating matching the role.
             switch (type)
@@ -38,9 +40,13 @@ namespace RetroFootballManager.Common
                 // ApplyMedicalStaffReduction), same as FitnessCoach's own emphasis.
                 case EmployeeType.Physiotherapist: fit = Around(quality + 14); break;
                 case EmployeeType.MedicalStaff: fit = Around(quality + 14); break;
+                case EmployeeType.DirectorOfFootball:
+                    sell = Around(quality + 14); counter = Around(quality + 14);
+                    firm = Around(quality + 14); finance = Around(quality + 14);
+                    break;
             }
 
-            double rating = new[] { off, def, gk, fit, youth, scout, mot, analysis }.Average();
+            double rating = new[] { off, def, gk, fit, youth, scout, mot, analysis, sell, counter, firm, finance }.Average();
 
             return new Employee
             {
@@ -58,6 +64,10 @@ namespace RetroFootballManager.Common
                 ScoutingAbility = scout,
                 Motivation = mot,
                 AnalysisAbility = analysis,
+                SellingNegotiation = sell,
+                CounterOfferNegotiation = counter,
+                AcceptanceFirmness = firm,
+                FinancialManagement = finance,
                 MarketValue = Math.Round(rating * rating * 400),
                 Salary = Math.Round(rating * 1200),
             };

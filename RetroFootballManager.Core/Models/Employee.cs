@@ -32,6 +32,14 @@ namespace RetroFootballManager.Models
         public int Motivation { get; set; }
         public int AnalysisAbility { get; set; }
 
+        // DirectorOfFootball-specific skills (1-99): each stage of a transfer deal, plus
+        // overall club revenue, draws on a different skill (see TransferAiService and
+        // FinanceService) so a DoF can be sharp at one part of the job and weak at another.
+        public int SellingNegotiation { get; set; }
+        public int CounterOfferNegotiation { get; set; }
+        public int AcceptanceFirmness { get; set; }
+        public int FinancialManagement { get; set; }
+
         // Contract/market info (full negotiation comes with the staff market in M4).
         public double MarketValue { get; set; }
         public double Salary { get; set; }

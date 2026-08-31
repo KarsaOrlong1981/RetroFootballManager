@@ -10,10 +10,10 @@
     Title="Finanzen"
     BackgroundColor="{StaticResource RfmBackground}">
 
-    <Grid>
-        <Image Source="finaces.png" Opacity="0.6" Aspect="AspectFill"/>
-    
-    <ScrollView>
+    <Grid ColumnDefinitions="*,*">
+        <Image Grid.ColumnSpan="2" Source="finaces.png" Opacity="0.6" Aspect="AspectFill"/>
+
+    <ScrollView Grid.Column="0">
         <VerticalStackLayout Opacity="0.95" Padding="20" Spacing="14">
 
             <Border StrokeThickness="0" Padding="16" HorizontalOptions="Start"  WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
@@ -205,5 +205,60 @@
                 </Border>
             </VerticalStackLayout>
     </ScrollView>
+
+    <Border Grid.Column="1" StrokeThickness="0" Padding="12,8" Margin="10"
+            MaximumHeightRequest="200"
+         BackgroundColor="{StaticResource RfmSurface}">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="10" />
+        </Border.StrokeShape>
+        <Grid>
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" IsVisible="{Binding HasDirectorOfFootball}">
+                <Image Source="{Binding DirectorOfFootballImagePath}" WidthRequest="150" HeightRequest="150" HorizontalOptions="Center"/>
+                    <VerticalStackLayout Spacing="4" Grid.Column="1">
+                        <Label Text="{Binding DirectorOfFootballName}" FontSize="18" FontAttributes="Bold"  
+                             TextColor="{StaticResource RfmText}" HorizontalOptions="Start" />
+                        <Label Text="Sportdirektor" FontSize="16" TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Start" />
+                        <Label FontSize="18">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Verkaufsverhandlung: " TextColor="{StaticResource RfmTextMuted}" />
+                                    <Span Text="{Binding DirectorOfFootballSellingNegotiation}" TextColor="{StaticResource RfmAccentTeal}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label FontSize="18">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Gegenangebote: " TextColor="{StaticResource RfmTextMuted}" />
+                                    <Span Text="{Binding DirectorOfFootballCounterOfferNegotiation}" TextColor="{StaticResource RfmAccentTeal}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label FontSize="18">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Verhandlungshärte: " TextColor="{StaticResource RfmTextMuted}" />
+                                    <Span Text="{Binding DirectorOfFootballAcceptanceFirmness}" TextColor="{StaticResource RfmAccentTeal}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label FontSize="18">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Finanzmanagement: " TextColor="{StaticResource RfmTextMuted}" />
+                                    <Span Text="{Binding DirectorOfFootballFinancialManagement}" TextColor="{StaticResource RfmAccentTeal}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </VerticalStackLayout>
+                </Grid>
+            <VerticalStackLayout Spacing="8" IsVisible="{Binding HasDirectorOfFootball, Converter={StaticResource InvertedBool}}">
+                <Label Text="Kein Sportdirektor eingestellt." FontSize="24" TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" />
+                <Button Text="Mitarbeiter" FontSize="16" Command="{Binding OpenStaffCommand}"
+                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </Grid>
+    </Border>
     </Grid>
 </local:BaseContentPage>

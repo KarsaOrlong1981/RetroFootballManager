@@ -3,6 +3,7 @@ namespace RetroFootballManager.Models
     // Trainable attributes and which player field they map to.
     public enum TrainableAttribute
     {
+        None,
         Offensive,
         Defensive,
         GameIntelligence,

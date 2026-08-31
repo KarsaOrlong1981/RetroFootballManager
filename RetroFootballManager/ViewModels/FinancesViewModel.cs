@@ -65,6 +65,14 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private string _loanInterestRateText = string.Empty;
         [ObservableProperty] private string _loanPayoffEstimateText = string.Empty;
 
+        [ObservableProperty] private bool _hasDirectorOfFootball;
+        [ObservableProperty] private string _directorOfFootballName = string.Empty;
+        [ObservableProperty] private string _directorOfFootballImagePath = string.Empty;
+        [ObservableProperty] private int _directorOfFootballSellingNegotiation;
+        [ObservableProperty] private int _directorOfFootballCounterOfferNegotiation;
+        [ObservableProperty] private int _directorOfFootballAcceptanceFirmness;
+        [ObservableProperty] private int _directorOfFootballFinancialManagement;
+
         public async Task InitializeAsync()
         {
             var team = _session.ManagerTeam;
@@ -149,6 +157,18 @@ namespace RetroFootballManager.ViewModels
                 int projected = await _financeService.EstimateSeasonEndBalanceAsync(team, state.MatchdayIndex, state.CurrentDate);
                 SeasonEndForecastText = $"ca. {projected:N0} €";
             }
+
+            var dof = team.Employees.FirstOrDefault(e => e.EmployeeType == EmployeeType.DirectorOfFootball);
+            HasDirectorOfFootball = dof is not null;
+            if (dof is not null)
+            {
+                DirectorOfFootballName = dof.Name;
+                DirectorOfFootballImagePath = dof.ImagePath ?? string.Empty;
+                DirectorOfFootballSellingNegotiation = dof.SellingNegotiation;
+                DirectorOfFootballCounterOfferNegotiation = dof.CounterOfferNegotiation;
+                DirectorOfFootballAcceptanceFirmness = dof.AcceptanceFirmness;
+                DirectorOfFootballFinancialManagement = dof.FinancialManagement;
+            }
         }
 
         private static string SlotLabel(SponsorType slot) => slot switch
@@ -164,5 +184,8 @@ namespace RetroFootballManager.ViewModels
 
         [RelayCommand]
         private Task TakeLoan() => _navigation.GoToAsync("clubloan");
+
+        [RelayCommand]
+        private Task OpenStaff() => _navigation.GoToAsync("staff");
     }
 }

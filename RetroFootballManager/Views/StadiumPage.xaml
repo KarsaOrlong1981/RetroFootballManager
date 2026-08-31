@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:RetroFootballManager.Views"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
+    xmlns:controls="clr-namespace:RetroFootballManager.Views.Controls"
     x:DataType="vm:StadiumViewModel"
     Title="Stadion"
     BackgroundColor="{StaticResource RfmBackground}">
@@ -37,13 +38,16 @@
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="12" />
                     </Border.StrokeShape>
-                    <Grid ColumnDefinitions="*,120" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" Text="Sitzplatz" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
-                        <Entry Grid.Row="0" Grid.Column="1" Text="{Binding SeatPrice}" Keyboard="Numeric" TextColor="{StaticResource RfmText}" />
+                        <controls:SteppedIntegerInput Grid.Row="0" Grid.Column="1" Value="{Binding SeatPrice}"
+                                                       Minimum="1" Maximum="200" Increment="1" Suffix=" €" />
                         <Label Grid.Row="1" Grid.Column="0" Text="Stehplatz" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
-                        <Entry Grid.Row="1" Grid.Column="1" Text="{Binding StandingPrice}" Keyboard="Numeric" TextColor="{StaticResource RfmText}" />
+                        <controls:SteppedIntegerInput Grid.Row="1" Grid.Column="1" Value="{Binding StandingPrice}"
+                                                       Minimum="1" Maximum="100" Increment="1" Suffix=" €" />
                         <Label Grid.Row="2" Grid.Column="0" Text="Loge" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
-                        <Entry Grid.Row="2" Grid.Column="1" Text="{Binding LogePrice}" Keyboard="Numeric" TextColor="{StaticResource RfmText}" />
+                        <controls:SteppedIntegerInput Grid.Row="2" Grid.Column="1" Value="{Binding LogePrice}"
+                                                       Minimum="1" Maximum="500" Increment="5" Suffix=" €" />
                     </Grid>
                 </Border>
 

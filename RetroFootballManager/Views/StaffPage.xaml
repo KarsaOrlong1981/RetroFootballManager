@@ -6,7 +6,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:RetroFootballManager.Views"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
-    xmlns:models="clr-namespace:RetroFootballManager.Models;assembly=RetroFootballManager.Core"
     xmlns:controls="clr-namespace:RetroFootballManager.Views.Controls"
     x:DataType="vm:StaffViewModel"
     Title="Mitarbeiter"
@@ -18,7 +17,7 @@
 
         <CollectionView Grid.Row="1"  ItemsSource="{Binding CurrentStaff}" WidthRequest="800" HorizontalOptions="Start">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:Employee">
+                <DataTemplate x:DataType="vm:StaffRow">
                     <Grid Padding="3">
                         <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
                             <Border.StrokeShape>
@@ -27,18 +26,38 @@
                             <Grid ColumnDefinitions="Auto,*,Auto">
                                 <Grid Grid.Column="0" WidthRequest="56" HeightRequest="56" Margin="0,0,10,0">
                                     <Image Source="avatar.png" Aspect="AspectFit"
-                                           IsVisible="{Binding ImagePath, Converter={StaticResource NoLogo}}" />
-                                    <Image Source="{Binding ImagePath}" Aspect="AspectFit"
-                                           IsVisible="{Binding ImagePath, Converter={StaticResource HasLogo}}" />
+                                           IsVisible="{Binding Employee.ImagePath, Converter={StaticResource NoLogo}}" />
+                                    <Image Source="{Binding Employee.ImagePath}" Aspect="AspectFit"
+                                           IsVisible="{Binding Employee.ImagePath, Converter={StaticResource HasLogo}}" />
                                 </Grid>
                                 <VerticalStackLayout Grid.Column="1">
-                                    <Label Text="{Binding Name}" FontSize="22" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
-                                    <Label Text="{Binding EmployeeType, StringFormat='{0}'}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
-                                    <Label Text="{Binding Salary, StringFormat='Gehalt: {0:N0} € / Jahr'}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                                    <Label Text="{Binding Employee.Name}" FontSize="22" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                    <Label Text="{Binding Employee.EmployeeType, StringFormat='{0}'}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
+                                    <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding Attributes}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:AttributeChip">
+                                                <Border BackgroundColor="{StaticResource RfmSurfaceAlt}" Margin="0,2,6,0" Padding="8,4" StrokeThickness="0">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="6" />
+                                                    </Border.StrokeShape>
+                                                    <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
+                                                        <Label.FormattedText>
+                                                            <FormattedString>
+                                                                <Span Text="{Binding Label}" />
+                                                                <Span Text=": " />
+                                                                <Span Text="{Binding Value}" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" />
+                                                            </FormattedString>
+                                                        </Label.FormattedText>
+                                                    </Label>
+                                                </Border>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </FlexLayout>
+                                    <Label Text="{Binding Employee.Salary, StringFormat='Gehalt: {0:N0} € / Jahr'}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
                                 </VerticalStackLayout>
                                 <Button Grid.Column="2" Text="Entlassen"
                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.FireCommand}"
-                                        CommandParameter="{Binding .}"
+                                        CommandParameter="{Binding Employee}"
                                         BackgroundColor="#EF4444" TextColor="White" FontSize="18" />
                             </Grid>
                         </Border>
@@ -58,7 +77,7 @@
 
         <CollectionView Grid.Row="4"  ItemsSource="{Binding Candidates}" WidthRequest="800" HorizontalOptions="Start">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:Employee">
+                <DataTemplate x:DataType="vm:StaffRow">
                     <Grid Padding="3">
                         <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
                             <Border.StrokeShape>
@@ -67,19 +86,39 @@
                             <Grid ColumnDefinitions="Auto,*,Auto">
                                 <Grid Grid.Column="0" WidthRequest="56" HeightRequest="56" Margin="0,0,10,0">
                                     <Image Source="avatar.png" Aspect="AspectFit"
-                                           IsVisible="{Binding ImagePath, Converter={StaticResource NoLogo}}" />
-                                    <Image Source="{Binding ImagePath}" Aspect="AspectFit"
-                                           IsVisible="{Binding ImagePath, Converter={StaticResource HasLogo}}" />
+                                           IsVisible="{Binding Employee.ImagePath, Converter={StaticResource NoLogo}}" />
+                                    <Image Source="{Binding Employee.ImagePath}" Aspect="AspectFit"
+                                           IsVisible="{Binding Employee.ImagePath, Converter={StaticResource HasLogo}}" />
                                 </Grid>
                                 <VerticalStackLayout Grid.Column="1">
-                                    <Label Text="{Binding Name}" FontSize="22" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
-                                    <Label Text="{Binding EmployeeType, StringFormat='{0}'}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
-                                    <Label Text="{Binding Rating, StringFormat='Rating: {0:0.0}'}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
-                                    <Label Text="{Binding Salary, StringFormat='Gehalt: {0:N0} € / Jahr'}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                                    <Label Text="{Binding Employee.Name}" FontSize="22" TextColor="{StaticResource RfmText}" FontAttributes="Bold" />
+                                    <Label Text="{Binding Employee.EmployeeType, StringFormat='{0}'}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
+                                    <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding Attributes}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:AttributeChip">
+                                                <Border BackgroundColor="{StaticResource RfmSurfaceAlt}" Margin="0,2,6,0" Padding="8,4" StrokeThickness="0">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="6" />
+                                                    </Border.StrokeShape>
+                                                    <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
+                                                        <Label.FormattedText>
+                                                            <FormattedString>
+                                                                <Span Text="{Binding Label}" />
+                                                                <Span Text=": " />
+                                                                <Span Text="{Binding Value}" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" />
+                                                            </FormattedString>
+                                                        </Label.FormattedText>
+                                                    </Label>
+                                                </Border>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </FlexLayout>
+                                    <Label Text="{Binding Employee.Rating, StringFormat='Rating: {0:0.0}'}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                                    <Label Text="{Binding Employee.Salary, StringFormat='Gehalt: {0:N0} € / Jahr'}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
                                 </VerticalStackLayout>
                                 <Button Grid.Column="2" Text="Einstellen"
                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.HireCommand}"
-                                        CommandParameter="{Binding .}"
+                                        CommandParameter="{Binding Employee}"
                                         BackgroundColor="{StaticResource RfmAccent}" TextColor="White" FontSize="18" />
                             </Grid>
                         </Border>

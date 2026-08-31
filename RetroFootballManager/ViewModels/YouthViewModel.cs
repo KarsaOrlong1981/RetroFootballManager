@@ -47,7 +47,7 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private string _currentMentorInfo = string.Empty;
         [ObservableProperty] private bool _hasMentor;
         [ObservableProperty] private string _statusText = string.Empty;
-
+        [ObservableProperty] private ObservableCollection<Employee> _coTrainers;
         [ObservableProperty] private bool _isPlayerProfileOpen;
         [ObservableProperty] private PlayerProfile? _selectedProfile;
         [ObservableProperty] private string positionShort;
@@ -57,6 +57,9 @@ namespace RetroFootballManager.ViewModels
             _team = _session.ManagerTeam;
             if (_team is null)
                 return;
+
+            var emplyoees = _team.Employees.Where(e => e.EmployeeType == EmployeeType.YouthCoach).ToList();
+            CoTrainers = new ObservableCollection<Employee>(emplyoees);
 
             RebuildYouth();
             SelectedYouth = Youth.FirstOrDefault();
@@ -130,7 +133,7 @@ namespace RetroFootballManager.ViewModels
         private void CloseProfile() => IsPlayerProfileOpen = false;
 
         [RelayCommand]
-        private void AssignMentor()
+        private async Task AssignMentor()
         {
             if (SelectedYouth is null)
                 return;
@@ -142,6 +145,7 @@ namespace RetroFootballManager.ViewModels
             SelectedYouth.MentorId = SelectedMentor.Id;
             StatusText = $"Mentor: {SelectedMentor.Display} zugewiesen.";
             UpdateCurrentMentorInfo();
+            await Confirm();
         }
 
         [RelayCommand]
@@ -173,9 +177,6 @@ namespace RetroFootballManager.ViewModels
             StatusText = $"{youth.Name} in die 1. Mannschaft hochgezogen.";
         }
 
-        // Persists only the manager's own team (not the whole league) and returns to the main
-        // menu - the navigation itself is the confirmation.
-        [RelayCommand]
         private async Task Confirm()
         {
             if (_team is null || _session.State is null)
@@ -190,7 +191,6 @@ namespace RetroFootballManager.ViewModels
             try
             {
                 await _saveGame.SaveTeamProgressAsync(_session.State, _team);
-                await _navigation.GoBackAsync();
             }
             catch (Exception ex)
             {

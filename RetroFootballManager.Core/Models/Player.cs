@@ -1,11 +1,18 @@
+using System.ComponentModel;
 using System.Text.Json;
 using RetroFootballManager.Core.Models;
 using SQLite;
 
 namespace RetroFootballManager.Models
 {
-    public class Player
+    public class Player : INotifyPropertyChanged
     {
+        // Only CurrentTrainingFocus raises this - it's the one property the UI displays
+        // live while the same Player instance stays bound (CollectionView recycling skips
+        // rebinding on reference-equal BindingContext, so without this the training-focus
+        // label never refreshes after a save).
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
 
@@ -34,10 +41,23 @@ namespace RetroFootballManager.Models
         // then reset).
         public int SeasonMinutes { get; set; }
 
+        private TrainableAttribute? _currentTrainingFocus;
+
         // Currently trained attribute - a deliberate choice (not repeatedly clickable) that
         // slowly brings progress over many weeks (see TrainingService).
         // null = no individual training focus set.
-        public TrainableAttribute? CurrentTrainingFocus { get; set; }
+        public TrainableAttribute? CurrentTrainingFocus
+        {
+            get => _currentTrainingFocus;
+            set
+            {
+                if (_currentTrainingFocus == value)
+                    return;
+                _currentTrainingFocus = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentTrainingFocus)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TrainableLabel)));
+            }
+        }
 
         // Youth player (15-19). Can mature faster via a mentor (MentorId).
         public bool IsYouthProspect { get; set; }
@@ -177,5 +197,36 @@ namespace RetroFootballManager.Models
                 age--;
             return age;
         }
+
+        [Ignore]
+        public string TrainableLabel => GetTrainableLabelString(CurrentTrainingFocus ?? TrainableAttribute.None);
+
+        private static string GetTrainableLabelString(TrainableAttribute attribute) => attribute switch
+        {
+            TrainableAttribute.Offensive => "Offensivkraft",
+            TrainableAttribute.Defensive => "Defensivkraft",
+            TrainableAttribute.GameIntelligence => "Spielintelligenz",
+            TrainableAttribute.Pressing => "Pressing",
+            TrainableAttribute.CounterSpeed => "Kontertempo",
+            TrainableAttribute.Passing => "Passgenauigkeit",
+            TrainableAttribute.DuelHardness => "Zweikampfhärte",
+            TrainableAttribute.DuelEfficiency => "Zweikampfeffizienz",
+            TrainableAttribute.Crossing => "Flanken",
+            TrainableAttribute.GkReflexes => "Reflexe",
+            TrainableAttribute.GkHandling => "Ballsicherheit",
+            TrainableAttribute.GkOneOnOne => "Eins-gegen-eins",
+            TrainableAttribute.GkDistribution => "Spieleröffnung",
+            TrainableAttribute.GkAerialControl => "Herauslaufen/Flanken",
+            TrainableAttribute.HeaderStrength => "Kopfballstärke",
+            TrainableAttribute.Jumping => "Sprungkraft",
+            TrainableAttribute.Dribbling => "Dribbling",
+            TrainableAttribute.LongShot => "Weitschuss",
+            TrainableAttribute.PenaltyKick => "Elfmeterstärke",
+            TrainableAttribute.FreeKick => "Freistoßstärke",
+            TrainableAttribute.Finishing => "Abschluss",
+            TrainableAttribute.Positioning => "Stellungsspiel",
+            TrainableAttribute.None => "Kein Fokus",
+            _ => attribute.ToString(),
+        };
     }
 }

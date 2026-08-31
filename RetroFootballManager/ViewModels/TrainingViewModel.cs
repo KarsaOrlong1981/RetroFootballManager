@@ -39,17 +39,17 @@ namespace RetroFootballManager.ViewModels
             Title = "Training";
         }
 
-        public ObservableCollection<Player> SquadPlayers { get; } = [];
+        public ObservableCollection<Player> SquadPlayers { get; private set; } = [];
         public ObservableCollection<AttributeRow> Attributes { get; } = [];
 
         [ObservableProperty] private Player? _selectedPlayer;
-        [ObservableProperty] private string _coachInfo = string.Empty;
         [ObservableProperty] private string _statusText = string.Empty;
         [ObservableProperty] private string _playerInfo = string.Empty;
-
+        [ObservableProperty] private ObservableCollection<Employee> _coTrainers;
         [ObservableProperty] private bool _isPlayerProfileOpen;
         [ObservableProperty] private PlayerProfile? _selectedProfile;
         [ObservableProperty] private string selectedPlayerPosition;
+        [ObservableProperty] private bool _showAttributeSection;
 
         [ObservableProperty] private bool _canRenewContract;
         [ObservableProperty] private string _renewStatusText = string.Empty;
@@ -66,11 +66,8 @@ namespace RetroFootballManager.ViewModels
             foreach (var p in _team.Players.OrderBy(p => p.Position).ThenByDescending(p => p.Rating))
                 SquadPlayers.Add(p);
 
-            var coach = _team.Employees.FirstOrDefault(e => e.EmployeeType == EmployeeType.AssistantCoach)
-                        ?? _team.Employees.FirstOrDefault();
-            CoachInfo = coach is null
-                ? "Kein Co-Trainer – ohne Boost."
-                : $"Co-Trainer: {coach.Name} (Off {coach.OffensiveTraining} / Def {coach.DefensiveTraining} / TW {coach.GoalkeeperTraining})";
+            var emplyoees = _team.Employees.Where(e => e.EmployeeType == EmployeeType.AssistantCoach).ToList();
+            CoTrainers = new ObservableCollection<Employee>(emplyoees);
 
             SelectedPlayer = SquadPlayers.FirstOrDefault();
             if (SelectedPlayer != null)
@@ -95,6 +92,56 @@ namespace RetroFootballManager.ViewModels
                 Attributes.Add(new AttributeRow(attr, TrainingService.Label(attr), GetValue(p, attr), factor, isFocus));
             }
             SelectedPlayerPosition = p.ShortPositionName;
+        }
+
+        private void UpdateSquadPlayers()
+        {
+            if (_session is null)
+                return;
+
+            _team = _session.ManagerTeam;
+            if (_team is null)
+                return;
+
+            var players = _team.Players.OrderBy(p => p.Position).ThenByDescending(p => p.Rating).ToList();
+            SquadPlayers.Clear();
+            foreach ( var player in players)
+               SquadPlayers.Add(player);
+            
+        }
+
+        [RelayCommand]
+        private async Task CloseAttributeSection()
+        {
+           
+            if (IsBusy) return;
+            IsBusy = true;
+            try
+            {
+                if (_team is not null && _session.State is not null)
+                {
+                    StatusText = "Trainingsstand wird gespeichert …";
+                    await _saveGame.SaveTeamProgressAsync(_session.State, _team);
+                    UpdateSquadPlayers();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Failed to save training.", ex);
+                StatusText = "Speichern fehlgeschlagen.";
+            }
+            finally
+            {
+                IsBusy = false;
+                ShowAttributeSection = false;
+            }
+        }
+
+        [RelayCommand]
+        private void OpenAttributeSection(Player player)
+        {
+            SelectedPlayer = player;
+            ShowAttributeSection = true;
         }
 
         [RelayCommand]
@@ -144,34 +191,6 @@ namespace RetroFootballManager.ViewModels
             p.CurrentTrainingFocus = row.Attribute;
             StatusText = $"Trainingsfokus: {TrainingService.Label(row.Attribute)} - wird über die Saison langsam trainiert.";
             RebuildAttributes();
-        }
-
-        [RelayCommand]
-        private async Task Confirm()
-        {
-            if (_team is null || _session.State is null)
-            {
-                StatusText = "Kein aktives Spiel - konnte nicht bestätigt werden.";
-                return;
-            }
-
-            if (IsBusy) return;
-            IsBusy = true;
-            StatusText = "Trainingsstand wird gespeichert …";
-            try
-            {
-                await _saveGame.SaveTeamProgressAsync(_session.State, _team);
-                await _navigation.GoBackAsync();
-            }
-            catch (Exception ex)
-            {
-                Log.Error("Failed to save training.", ex);
-                StatusText = "Speichern fehlgeschlagen.";
-            }
-            finally
-            {
-                IsBusy = false;
-            }
         }
 
         private static int GetValue(Player p, TrainableAttribute a) => a switch

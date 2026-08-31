@@ -5,6 +5,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:RetroFootballManager.Views"
+    xmlns:models="clr-namespace:RetroFootballManager.Models;assembly=RetroFootballManager.Core"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
     xmlns:controls="clr-namespace:RetroFootballManager.Views.Controls"
     x:DataType="vm:TrainingViewModel"
@@ -13,38 +14,174 @@
 
     <Grid>
         <Image Source="einzeltraining.png" Aspect="AspectFill"/>
-        <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Opacity="0.85" Padding="14" RowSpacing="10">
+        <Grid RowDefinitions="Auto,*,Auto" Opacity="0.85" Padding="14" RowSpacing="10">
+            <!-- Co-Trainer profiles -->
+            <CollectionView 
+                Grid.Row="0" 
+                ItemsSource="{Binding CoTrainers}"
+                HorizontalOptions="Start" 
+                WidthRequest="800"
+                MaximumHeightRequest="550">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="0" VerticalItemSpacing="8" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.EmptyView>
+                    <ContentView>
+                        <Border HorizontalOptions="Center" VerticalOptions="Center"  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+                            <Grid>
+                                <Label Grid.Column="0" Text="Aktuell sind keine Assistent Trainer Eingestellt." FontSize="22"
+                                        TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+                    </ContentView>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Employee">
+                        <Border  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                <Image Source="{Binding ImagePath}" WidthRequest="150" HeightRequest="150"/>
+                                <VerticalStackLayout Spacing="4" Grid.Column="1">
+                                    <Label FontSize="18" TextColor="{StaticResource RfmText}">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{Binding Name}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{Binding EmployeeType}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label FontSize="18">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="Fähigkeit Offensiv Training: " TextColor="{StaticResource RfmTextMuted}" />
+                                                <Span Text="{Binding OffensiveTraining}" TextColor="{StaticResource RfmAccentTeal}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label FontSize="18">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="Fähigkeit Defensiv Training: " TextColor="{StaticResource RfmTextMuted}" />
+                                                <Span Text="{Binding DefensiveTraining}" TextColor="{StaticResource RfmAccentTeal}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Label FontSize="18">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="Fähigkeit Torwart Training: " TextColor="{StaticResource RfmTextMuted}" />
+                                                <Span Text="{Binding GoalkeeperTraining}" TextColor="{StaticResource RfmAccentTeal}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            
+            <!-- Player List section -->
+            <CollectionView 
+                 Grid.Row="1" 
+                 ItemsSource="{Binding SquadPlayers}"
+                 SelectedItem="{Binding SelectedPlayer, Mode=TwoWay}"
+                 HorizontalOptions="Start" 
+                SelectionMode="Single"
+                 WidthRequest="1280"
+                 MaximumHeightRequest="800">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="0" VerticalItemSpacing="12" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Player">
+                        <Border  StrokeThickness="0" Margin="8" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+                            <Grid ColumnDefinitions="Auto,*,150" ColumnSpacing="10">
+                                <Image Source="{Binding ImagePath}" WidthRequest="50" HeightRequest="50"/>
+                                <HorizontalStackLayout Spacing="8" Grid.Column="1">
+                                    <!-- Player Position -->
+                                    <Label VerticalOptions="Center" Text="{Binding ShortPositionName}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}"/>
+                                    <!-- Player Name -->
+                                    <Label VerticalOptions="Center" Text="{Binding Name}" FontSize="16" TextColor="{StaticResource RfmText}"/>
+                                    <!-- Player Age -->
+                                    <Label VerticalOptions="Center" Text="Alter:" FontSize="16" TextColor="{StaticResource RfmAccent}"/>
+                                    <Label VerticalOptions="Center" Text="{Binding Age}" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"/>
+                                    <!-- Player Talent -->
+                                    <Label VerticalOptions="Center" Text="Talent:" FontSize="16" TextColor="{StaticResource RfmAccent}"/>
+                                    <Label VerticalOptions="Center" Text="{Binding Talent}" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"/>
+                                    <!-- Player Rating -->
+                                    <Label VerticalOptions="Center" Text="Rating:" FontSize="16" TextColor="{StaticResource RfmAccent}"/>
+                                    <Label VerticalOptions="Center" Text="{Binding Rating}" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"/>
+                                    <!-- Player current Focus  -->
+                                    <Label VerticalOptions="Center" Text="Fokus auf:" FontSize="16" TextColor="{StaticResource RfmAccent}"/>
+                                    <Label VerticalOptions="Center" Text="{Binding TrainableLabel}" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"/>
+                                </HorizontalStackLayout>
+                                <Button 
+                                    Grid.Column="2" 
+                                    Text="Fokus ändern" 
+                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.OpenAttributeSectionCommand}" 
+                                    CommandParameter="{Binding}"
+                                    BackgroundColor="{StaticResource RfmFormationGreen}"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            <VerticalStackLayout Grid.Row="4" Spacing="8">
+                <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
+            </VerticalStackLayout>
+        </Grid>
 
-            <HorizontalStackLayout  Grid.Row="0" Spacing="20">
-                <Picker Title="Spieler"
-                        ItemsSource="{Binding SquadPlayers}" ItemDisplayBinding="{Binding Name}"
-                        SelectedItem="{Binding SelectedPlayer, Mode=TwoWay}"
-                        TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
-                <Label Grid.Column="0" Text="{Binding SelectedPlayerPosition}" FontSize="22" FontAttributes="Bold"
-                        TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
-            </HorizontalStackLayout>
-            <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,*">
-                <Label Grid.Column="0" Text="{Binding PlayerInfo}" BackgroundColor="Black" HorizontalOptions="Start" FontSize="16" FontAttributes="Bold"
-                       TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
-                <Border Grid.Column="1" 
-                        Margin="8"
-                        BackgroundColor="{StaticResource RfmSurface}"
-                        WidthRequest="56"
-                        HeightRequest="56" 
-                        Padding="0"
-                        StrokeThickness="0">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="13" />
-                    </Border.StrokeShape>
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding ShowProfileCommand}" />
-                    </Border.GestureRecognizers>
-                    <Image Source="info.png" WidthRequest="40" HeightRequest="40" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
-                </Border>
-            </Grid>
-            <Label Grid.Row="2" Text="{Binding CoachInfo}" BackgroundColor="Black" HorizontalOptions="Start" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-
-            <CollectionView Grid.Row="3" ItemsSource="{Binding Attributes}" WidthRequest="800" HorizontalOptions="Start">
+        <!-- Attribute Focus selection section -->
+        <Border Grid.Row="3" Grid.RowSpan="3" 
+                IsVisible="{Binding ShowAttributeSection}"
+                StrokeThickness="1"
+                Stroke="{StaticResource RfmAccentTeal}"
+                BackgroundColor="{StaticResource RfmBackground}"
+                Margin="20" Padding="18"
+                MaximumWidthRequest="860" MaximumHeightRequest="680"
+                HorizontalOptions="Center" VerticalOptions="Center">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="16" />
+            </Border.StrokeShape>
+            <Grid RowDefinitions="50,*">
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*,50">
+                    <Border Grid.Column="0" 
+                            BackgroundColor="{StaticResource RfmSurface}"
+                            WidthRequest="28"
+                            HeightRequest="28" 
+                            Padding="0"
+                            StrokeThickness="0">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="13" />
+                        </Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ShowProfileCommand}" />
+                        </Border.GestureRecognizers>
+                        <Image Source="info.png" WidthRequest="26" HeightRequest="26" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Grid.Column="1" Padding="8" VerticalOptions="Center" Text="{Binding SelectedPlayer.Name}" FontSize="18" TextColor="{StaticResource RfmText}" />
+                    <Label Grid.Column="2" Padding="8" VerticalOptions="Center" Text="{Binding SelectedPlayer.ShortPositionName}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
+                    <Button Grid.Column="4" ImageSource="close.png" 
+                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.CloseAttributeSectionCommand}"
+                            BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}"
+                            WidthRequest="36" HeightRequest="36" Padding="8" />
+                </Grid>
+                <CollectionView Grid.Row="1" ItemsSource="{Binding Attributes}" WidthRequest="800" >
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="vm:AttributeRow">
                         <Grid Padding="3" WidthRequest="800" >
@@ -54,30 +191,24 @@
                                 </Border.StrokeShape>
                                 <Grid ColumnDefinitions="*,44,24,Auto" ColumnSpacing="8">
                                     <Label Grid.Column="0" Text="{Binding Label}" FontSize="14"
-                                           TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                         TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
                                     <Label Grid.Column="1" Text="{Binding Value}" FontSize="15" FontAttributes="Bold"
-                                           TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
+                                         TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
                                     <Label Grid.Column="2" Text="{Binding CoachHint}" FontSize="14"
-                                           TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
+                                         TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
                                     <Button Grid.Column="3" Text="{Binding FocusButtonText}"
-                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.SetFocusCommand}"
-                                            CommandParameter="{Binding .}"
-                                            BackgroundColor="{Binding FocusButtonColor}" TextColor="White"
-                                            Padding="10,2" FontSize="12" />
+                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.SetFocusCommand}"
+                                         CommandParameter="{Binding .}"
+                                         BackgroundColor="{Binding FocusButtonColor}" TextColor="White"
+                                         Padding="10,2" FontSize="12" />
                                 </Grid>
                             </Border>
                         </Grid>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-
-            <VerticalStackLayout Grid.Row="4" Spacing="8">
-                <Label Text="{Binding StatusText}" FontSize="12" TextColor="{StaticResource RfmAccentTeal}" />
-                <Button Text="Bestätigen" Command="{Binding ConfirmCommand}"
-                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
-            </VerticalStackLayout>
-        </Grid>
-
+            </Grid>
+        </Border>
         <!-- Player profile dialog -->
         <controls:PlayerProfileDialog
             IsOpen="{Binding IsPlayerProfileOpen}"

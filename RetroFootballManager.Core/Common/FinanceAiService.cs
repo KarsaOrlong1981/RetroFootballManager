@@ -58,7 +58,7 @@ namespace RetroFootballManager.Common
                 return null;
 
             double askingPrice = TransferAiService.EstimateMarketValue(candidate)
-                * TransferAiService.DirectorOfFootballPriceFactor(team, favorSeller: true);
+                * TransferAiService.SellingPriceFactor(team);
             await market.ListPlayerAsync(candidate, team, askingPrice, season, currentDate);
             return candidate;
         }

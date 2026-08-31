@@ -13,21 +13,36 @@ namespace RetroFootballManager.Common
         // never generates more than 4 of anything meant this could never fire on a fresh squad.
         private const int SurplusThreshold = 3;
 
-        // DirectorOfFootball negotiates better transfer prices - up to +/-15% depending on his
-        // Rating. Only one DoF can ever be on staff (see StaffMarketService.MaxEmployeesPerType),
-        // so there is no stacking case to consider.
+        // DirectorOfFootball negotiates better transfer prices - up to +/-15% swing, each deal
+        // stage keyed on its own skill (see Employee's DirectorOfFootball-specific fields) so a
+        // DoF can be sharp at one part of the job and weak at another. Only one DoF can ever be
+        // on staff (see StaffMarketService.MaxEmployeesPerType), so there is no stacking case.
         private const double DirectorOfFootballMaxPriceSwing = 0.15;
 
-        // Public - pure and deterministic, directly unit-testable.
-        public static double DirectorOfFootballPriceFactor(Team? team, bool favorSeller)
+        private static double PriceFactor(double skill, bool favorSeller)
         {
-            var dof = team?.Employees.FirstOrDefault(e => e.EmployeeType == EmployeeType.DirectorOfFootball);
-            if (dof is null)
-                return 1.0;
-
-            double swing = (dof.Rating / 100.0) * DirectorOfFootballMaxPriceSwing;
+            double swing = (skill / 100.0) * DirectorOfFootballMaxPriceSwing;
             return favorSeller ? 1.0 + swing : 1.0 - swing;
         }
+
+        private static Employee? DirectorOfFootballOf(Team? team) =>
+            team?.Employees.FirstOrDefault(e => e.EmployeeType == EmployeeType.DirectorOfFootball);
+
+        // Asking price when listing a player for sale (own weekly listings + emergency sales).
+        public static double SellingPriceFactor(Team? team) =>
+            DirectorOfFootballOf(team) is { } dof ? PriceFactor(dof.SellingNegotiation, favorSeller: true) : 1.0;
+
+        // Counter-fee named back at an unsolicited bidder.
+        public static double CounterOfferPriceFactor(Team? team) =>
+            DirectorOfFootballOf(team) is { } dof ? PriceFactor(dof.CounterOfferNegotiation, favorSeller: true) : 1.0;
+
+        // How firm the selling club is before accepting an incoming offer.
+        public static double AcceptanceFirmnessFactor(Team? team) =>
+            DirectorOfFootballOf(team) is { } dof ? PriceFactor(dof.AcceptanceFirmness, favorSeller: true) : 1.0;
+
+        // How much the buying club talks a fee down when making an offer.
+        public static double BuyingPriceFactor(Team? team) =>
+            DirectorOfFootballOf(team) is { } dof ? PriceFactor(dof.Rating, favorSeller: false) : 1.0;
 
         private static double ActivityChance(Difficulty difficulty) => difficulty switch
         {
@@ -76,7 +91,7 @@ namespace RetroFootballManager.Common
             var surplus = FindSurplusPlayer(team, alreadyListedIds);
             if (surplus is not null)
             {
-                double askingPrice = EstimateMarketValue(surplus) * DirectorOfFootballPriceFactor(team, favorSeller: true);
+                double askingPrice = EstimateMarketValue(surplus) * SellingPriceFactor(team);
                 await market.ListPlayerAsync(surplus, team, askingPrice, season, currentDate);
             }
 
@@ -118,11 +133,11 @@ namespace RetroFootballManager.Common
                     // value (AskingPrice is always 0 for a free agent, so it carries no signal).
                     fee = 0;
                     wage = PlayerValuationService.EstimateAnnualSalary(freeAgent) * (0.9 + rng.NextDouble() * 0.2)
-                        * DirectorOfFootballPriceFactor(team, favorSeller: false);
+                        * BuyingPriceFactor(team);
                 }
                 else
                 {
-                    fee = target.AskingPrice * (0.85 + rng.NextDouble() * 0.3) * DirectorOfFootballPriceFactor(team, favorSeller: false);
+                    fee = target.AskingPrice * (0.85 + rng.NextDouble() * 0.3) * BuyingPriceFactor(team);
                     // Rough heuristic (no access to the other team's actual player here) -
                     // ~15% of market value as annual salary, matching PlayerValuationService.EstimateAnnualSalary.
                     wage = target.AskingPrice * 0.15;
@@ -198,7 +213,7 @@ namespace RetroFootballManager.Common
                 if (listing.IsUnsolicited && (rng ?? new Random()).NextDouble() >= UnsolicitedFlatRefusalChance)
                 {
                     double counterFee = (listing.IsLoanListing ? listing.AskingPrice * 0.25 : listing.AskingPrice * 1.3)
-                        * DirectorOfFootballPriceFactor(team, favorSeller: true);
+                        * CounterOfferPriceFactor(team);
                     await market.CounterOfferAsync(bestOffer, listing, counterFee, currentDate, humanTeamId);
                     foreach (var other in evaluableOffers.Where(o => o.Id != bestOffer.Id))
                         await market.RejectOfferAsync(other, team, player, "der Verein hat einem anderen Bieter ein Gegenangebot gemacht", humanTeamId);
@@ -224,8 +239,7 @@ namespace RetroFootballManager.Common
         // human-initiated offers alike.
         private static bool ShouldAcceptOffer(TransferListing listing, TransferOffer offer, Team sellingTeam, Team? buyingTeam)
         {
-            double factor = DirectorOfFootballPriceFactor(sellingTeam, favorSeller: true)
-                * DirectorOfFootballPriceFactor(buyingTeam, favorSeller: false);
+            double factor = AcceptanceFirmnessFactor(sellingTeam) * BuyingPriceFactor(buyingTeam);
 
             if (listing.IsUnsolicited)
                 return listing.IsLoanListing
