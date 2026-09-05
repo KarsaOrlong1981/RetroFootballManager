@@ -12,10 +12,10 @@
     BackgroundColor="{StaticResource RfmBackground}">
     <Grid>
         <Image Source="meetingroom.png" Aspect="AspectFill"/>
-        <Grid RowDefinitions="Auto,*,Auto,Auto,*,Auto" Opacity="0.85" Padding="20" RowSpacing="8">
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" Opacity="0.85" Padding="20" RowSpacing="8">
             <Label Grid.Row="0" Text="Aktuelles Personal" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
 
-        <CollectionView Grid.Row="1"  ItemsSource="{Binding CurrentStaff}" WidthRequest="800" HorizontalOptions="Start">
+        <CollectionView Grid.Row="1"  ItemsSource="{Binding CurrentStaff}" WidthRequest="800" MaximumHeightRequest="680" HorizontalOptions="Start">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="vm:StaffRow">
                     <Grid Padding="3">

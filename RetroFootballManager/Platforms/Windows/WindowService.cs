@@ -61,11 +61,17 @@ namespace RetroFootballManager.WinUI
 
                 // Restoring from the taskbar re-maximizes via normal Windows semantics,
                 // which respects the work area (leaves the taskbar visible) instead of the
-                // borderless full-monitor coverage we set up initially. Re-apply it.
-                if (_wasMinimized && _appWindow?.Presenter is OverlappedPresenter { State: not OverlappedPresenterState.Minimized })
+                // borderless full-monitor coverage we set up initially. Re-apply just the
+                // maximize - NOT the border/title-bar/button style changes: those style
+                // changes fire native WM_STYLECHANGING messages that MAUI's own title-bar
+                // handling reacts to (NavigationRootManager.SetTitleBarVisibility ->
+                // AppWindow.GetFromWindowId), which throws ArgumentException on this window
+                // and crashes the process. Since the border/button styles are still applied
+                // from the first EnterFullScreen() call, only re-maximizing is needed here.
+                if (_wasMinimized && _appWindow?.Presenter is OverlappedPresenter { State: not OverlappedPresenterState.Minimized } op)
                 {
                     _wasMinimized = false;
-                    EnterFullScreen();
+                    op.Maximize();
                 }
             }
             catch (Exception ex)
