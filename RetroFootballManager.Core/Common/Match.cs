@@ -35,14 +35,20 @@ namespace RetroFootballManager.Common
         private const double ChanceBaseRate = 0.16;
         private const double ShotConversionBase = 0.72;
         private const double OnTargetBase = 0.45;
-        private const double GoalBase = 0.62;
+        // Lowered from 0.62 (see 2026-09-06 realism pass, retuned after adding the
+        // fizzled-attack offside check below): with unique player IDs assigned (a
+        // test-harness bug had been masking this behind bogus red-card spam), a full-season,
+        // 4-tier simulation averaged 3.71 goals/game against a real-world target of 3.20.
+        private const double GoalBase = 0.57;
         // FoulBase calibrated to ~10-12 fouls/team/game (realistic football average).
         // Of these fouls, only ~0.8% turn into a direct red card (rough/reckless play) and
         // ~21% into yellow - previously the red rate was 10% per foul, which at realistic
         // foul counts led to a red card in almost every game.
         private const double FoulBase = 0.06;
-        private const double RedCardShare = 0.0015;
-        private const double YellowCardShare = 0.07;
+        private const double RedCardShare = 0.002;
+        // Raised from 0.07 (see 2026-09-06 realism pass): yellow cards landed at 1.65/game
+        // against a real-world target of 3.70/game.
+        private const double YellowCardShare = 0.185;
         private const double InjuryBase = 0.0015;
         private const double SaveReboundCornerChance = 0.3;
         // A shot that misses the target often still gets deflected/blocked behind for a
@@ -50,10 +56,14 @@ namespace RetroFootballManager.Common
         // way, not from keeper-save rebounds (SaveReboundCornerChance above), which is why
         // that alone left corners near-zero.
         private const double MissedShotCornerChance = 0.35;
-        private const double PenaltyChance = 0.012;
+        // Re-tuned (see 2026-09-06 realism pass): real Bundesliga data cited for calibration
+        // is 109 penalties in 306 games (0.36/game) across a full season - a far larger,
+        // more reliable sample than a 10-game early-season stretch (0.10/game), so 0.36/game
+        // is the target here, not the smaller sample.
+        private const double PenaltyChance = 0.0108;
         private const double PenaltyConversionBase = 0.78;
         private const double PenaltySavedGivenMissChance = 0.65;
-        private const double PenaltyRedCardChance = 0.06;
+        private const double PenaltyRedCardChance = 0.07;
 
         // "Average" player attribute value for this game's rating scale - the reference every
         // league-average-relative check below (offside, free-kick taking) is normalized
@@ -526,7 +536,15 @@ namespace RetroFootballManager.Common
             }
 
             if (!Roll(ShotConversionBase * (attackShare / 0.5)))
+            {
+                // Most real offsides are flagged on the through-ball itself, before a shot is
+                // ever attempted - this attack never reaches that point below, so it would
+                // otherwise vanish with no stat at all. Hooking the check in here instead of
+                // widening the existing (shot-only) offside check leaves that one, and every
+                // other probability in this method, untouched.
+                TryRegisterFizzledAttackOffside(result, progress, minute, attacking, isHomeAttacking, attackingStats);
                 return;
+            }
 
             var lineup = TeamStrengthCalculator.GetLineup(attacking);
 
@@ -674,10 +692,16 @@ namespace RetroFootballManager.Common
                   .OrderByDescending(HeaderPower)
                   .FirstOrDefault();
 
-        // Raised from 0.05 - at the old rate, combined with the narrow set of checks that
-        // roll it (only advanced-position shot attempts), offsides landed at ~0/match, well
-        // below the realistic ~1-3/team/game this is calibrated against.
-        private const double OffsideBaseChance = 0.07;
+        // Re-tuned twice (see 2026-09-06 realism pass): first raised from 0.05 to 0.07 to
+        // 1.0 as the only lever against a real-world target of ~6/game (~3/team), since the
+        // shot-path check below only rolls for advanced-position shot attempts (headers
+        // excluded) and comparatively few chances per game reach it. Even at 1.0 (max, see the
+        // clamp in OffsideChance) that still landed at just 3.9/game - adding a second,
+        // independent roll on attacks that never became a shot at all
+        // (TryRegisterFizzledAttackOffside, a much larger eligible pool - most real offsides
+        // are flagged before a shot is even attempted) let this come back down to 0.58 while
+        // landing on target across both paths combined.
+        private const double OffsideBaseChance = 0.58;
 
         private static readonly Position[] AdvancedPositions =
         {
@@ -719,7 +743,27 @@ namespace RetroFootballManager.Common
             double passingFactor = Math.Clamp(
                 attackingLineup.Average(p => p.PassingAccuracy) / LeagueAverageReference, 0.85, 1.15);
             double positioningFactor = 1.5 - (Math.Clamp(shooter.Positioning, 1, 99) / 99.0);
-            return OffsideBaseChance * passingFactor * positioningFactor;
+            return Math.Min(1.0, OffsideBaseChance * passingFactor * positioningFactor);
+        }
+
+        // Covers the through-ball-never-became-a-shot case (see call site) - reuses the same
+        // OffsideChance formula and eligibility rule (advanced positions only) as the
+        // shot-path check above, just against a runner picked independently of any shot.
+        private void TryRegisterFizzledAttackOffside(
+            MatchResult result, IProgress<MatchEvent>? progress, int minute,
+            Team attacking, bool isHomeAttacking, MatchStats attackingStats)
+        {
+            var lineup = TeamStrengthCalculator.GetLineup(attacking);
+            var advancedPlayers = lineup.Where(p => IsAdvancedPosition(p.EffectivePosition)).ToList();
+            var runner = PickWeightedPlayer(advancedPlayers,
+                p => p.OffensivePower * (1 + PersonalityEffects.Get(p.Personality).AerialThreat - 1));
+            if (runner is null || !Roll(OffsideChance(runner, lineup)))
+                return;
+
+            attackingStats.Offsides++;
+            GetOrCreateMatchStats(result, runner).Offsides++;
+            EmitEvent(result, progress, minute, GameEventType.Offside, isHomeAttacking, runner,
+                EventTextHelper.OffsideText(runner, _random));
         }
 
         private void RegisterGoal(
@@ -962,7 +1006,7 @@ namespace RetroFootballManager.Common
                             forceRed: true,
                             redTextFactory: r => EventTextHelper.RedCardHardFoulText(fouler, r));
                     }
-                    else if (cardRoll < YellowCardShare * aggression)
+                    else if (cardRoll < YellowCardShare * aggression * BookableFoulRiskFactor(result, fouler))
                     {
                         ApplyFoulCard(result, progress, minute, fouler, isHome, matchStats,
                             forceRed: false,
@@ -1168,6 +1212,18 @@ namespace RetroFootballManager.Common
                     player.InMatchMoral = Math.Clamp(player.InMatchMoral + delta, 0, 100);
             }
         }
+
+        // A player already carrying a yellow this match consciously avoids further bookable
+        // challenges ("playing on a yellow card") - only dampens the yellow-card threshold,
+        // not the straight-red one (a moment of genuine recklessness isn't something caution
+        // prevents). Without this, the yellow/second-yellow-red split scales unrealistically:
+        // raising YellowCardShare to hit a realistic yellows/game target quadratically inflates
+        // second-yellow reds, since a repeatedly-picked fouler is exactly as likely to pick up
+        // his second card as his first.
+        private const double CautionOnYellowFactor = 0.2;
+
+        private static double BookableFoulRiskFactor(MatchResult result, Player fouler) =>
+            GetOrCreateMatchStats(result, fouler).YellowCards > 0 ? CautionOnYellowFactor : 1.0;
 
         // Extra foul-risk weighting once a player is rattled (InMatchMoral < 40) - scaled by
         // his character's LowMoraleFoulRisk (Hothead/RiskTaker feel this most, others are

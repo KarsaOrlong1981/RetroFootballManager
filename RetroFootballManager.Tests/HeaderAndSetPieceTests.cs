@@ -47,7 +47,7 @@ namespace RetroFootballManager.Tests
             var random = new Random(53);
             int goalsGoodCrosser = 0;
             int goalsPoorCrosser = 0;
-            const int matches = 80;
+            const int matches = 200;
 
             for (int i = 0; i < matches; i++)
             {
