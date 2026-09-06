@@ -8,10 +8,10 @@
     x:DataType="vm:StartViewModel"
     BackgroundColor="{StaticResource RfmBackground}">
 
-    <Grid RowDefinitions="*,Auto,*" Padding="24">
-        <Image Grid.RowSpan="3" Source="empty_table_cropped.png" Aspect="AspectFill"/>
-        <Image Grid.RowSpan="3" Source="start_transparent.png" Aspect="AspectFit"/>
-        <VerticalStackLayout Grid.Row="1" Opacity="0.8" Spacing="16" MaximumWidthRequest="420" HorizontalOptions="Center" >
+    <Grid Padding="24">
+        <Image Source="empty_table_cropped.png" Aspect="AspectFill"/>
+        <Image Source="start_transparent.png" Aspect="AspectFit"/>
+        <VerticalStackLayout Opacity="0.8" Spacing="16" MaximumWidthRequest="420" HorizontalOptions="Center" VerticalOptions="Center">
 
             <Image Aspect="AspectFit" Source="retrofootball_logo_clean.png"  WidthRequest="400"/>
 
@@ -51,7 +51,7 @@
         </VerticalStackLayout>
 
         <!-- Delete confirmation -->
-        <Grid Grid.RowSpan="3" IsVisible="{Binding IsDeleteConfirmationOpen}" BackgroundColor="#B0000000">
+        <Grid IsVisible="{Binding IsDeleteConfirmationOpen}" BackgroundColor="#B0000000">
             <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
                     BackgroundColor="{StaticResource RfmBackground}"
                     Margin="20" Padding="18"
@@ -74,7 +74,7 @@
         </Grid>
 
         <!-- Overwrite confirmation -->
-        <Grid Grid.RowSpan="3" IsVisible="{Binding IsOverwriteConfirmationOpen}" BackgroundColor="#B0000000">
+        <Grid IsVisible="{Binding IsOverwriteConfirmationOpen}" BackgroundColor="#B0000000">
             <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
                     BackgroundColor="{StaticResource RfmBackground}"
                     Margin="20" Padding="18"

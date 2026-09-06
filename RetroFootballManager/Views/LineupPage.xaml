@@ -156,7 +156,7 @@
                     </Grid>
                 </Border>
 
-                <Grid RowDefinitions="Auto,*, Auto,*">
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto">
                     <Image Grid.RowSpan="4"  Aspect="AspectFill" Source="sub.png"/>
                     <!-- Bench - BindableLayout (not CollectionView) for reliable drag&drop, same
                      hosting mechanism as the pitch (CollectionView virtualization on Windows

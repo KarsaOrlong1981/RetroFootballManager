@@ -14,7 +14,7 @@
 
     <Grid>
         <Image Source="einzeltraining.png" Aspect="AspectFill"/>
-        <Grid RowDefinitions="Auto,*,Auto" Opacity="0.85" Padding="14" RowSpacing="10">
+        <Grid RowDefinitions="Auto,Auto,Auto" Opacity="0.85" Padding="14" RowSpacing="10">
             <!-- Co-Trainer profiles -->
             <CollectionView 
                 Grid.Row="0" 
