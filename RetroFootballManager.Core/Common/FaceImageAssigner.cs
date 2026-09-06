@@ -10,7 +10,7 @@ namespace RetroFootballManager.Common
     // staff photos will look youthful until that's added later.
     public static class FaceImageAssigner
     {
-        public const int MaxFaceAge = 25;
+        public const int MaxFaceAge = 28;
 
         // Overridable so tests can point at a temp folder instead of the real app output
         // directory (Core has no MAUI reference; raw MauiAsset files just land next to the
