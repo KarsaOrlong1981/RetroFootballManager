@@ -62,16 +62,23 @@ namespace RetroFootballManager.ViewModels
             if (_team is null)
                 return;
 
-            SquadPlayers.Clear();
-            foreach (var p in _team.Players.OrderBy(p => p.Position).ThenByDescending(p => p.Rating))
-                SquadPlayers.Add(p);
+            // Deferred to the next UI tick: populating a ~20+ item CollectionView synchronously
+            // inside OnAppearing collides with Shell's native page-transition on Windows and can
+            // crash (see feedback-maui-windows-crash-gotchas memory) - letting the transition
+            // settle first avoids the collision.
+            Dispatcher.Dispatch(() =>
+            {
+                SquadPlayers.Clear();
+                foreach (var p in _team.Players.OrderBy(p => p.Position).ThenByDescending(p => p.Rating))
+                    SquadPlayers.Add(p);
 
-            var emplyoees = _team.Employees.Where(e => e.EmployeeType == EmployeeType.AssistantCoach).ToList();
-            CoTrainers = new ObservableCollection<Employee>(emplyoees);
+                var emplyoees = _team.Employees.Where(e => e.EmployeeType == EmployeeType.AssistantCoach).ToList();
+                CoTrainers = new ObservableCollection<Employee>(emplyoees);
 
-            SelectedPlayer = SquadPlayers.FirstOrDefault();
-            if (SelectedPlayer != null)
-                SelectedPlayerPosition = SelectedPlayer.ShortPositionName;
+                SelectedPlayer = SquadPlayers.FirstOrDefault();
+                if (SelectedPlayer != null)
+                    SelectedPlayerPosition = SelectedPlayer.ShortPositionName;
+            });
         }
 
         partial void OnSelectedPlayerChanged(Player? value) => RebuildAttributes();

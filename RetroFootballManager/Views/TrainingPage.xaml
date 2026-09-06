@@ -14,7 +14,7 @@
 
     <Grid>
         <Image Source="einzeltraining.png" Aspect="AspectFill"/>
-        <Grid RowDefinitions="Auto,Auto,Auto" Opacity="0.85" Padding="14" RowSpacing="10">
+        <Grid RowDefinitions="Auto,*,Auto" Opacity="0.85" Padding="14" RowSpacing="10">
             <!-- Co-Trainer profiles -->
             <CollectionView 
                 Grid.Row="0" 
@@ -92,55 +92,51 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
             
-            <!-- Player List section -->
-            <CollectionView 
-                 Grid.Row="1" 
-                 ItemsSource="{Binding SquadPlayers}"
-                 SelectedItem="{Binding SelectedPlayer, Mode=TwoWay}"
-                 HorizontalOptions="Start" 
-                SelectionMode="Single"
-                 WidthRequest="1280"
-                 MaximumHeightRequest="800">
-                <CollectionView.ItemsLayout>
-                    <GridItemsLayout Orientation="Vertical" Span="0" VerticalItemSpacing="12" />
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:Player">
-                        <Border  StrokeThickness="0" Margin="8" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="10" />
-                            </Border.StrokeShape>
-                            <Grid ColumnDefinitions="Auto,*,150" ColumnSpacing="10">
-                                <Image Source="{Binding ImagePath}" WidthRequest="50" HeightRequest="50"/>
-                                <HorizontalStackLayout Spacing="8" Grid.Column="1">
-                                    <!-- Player Position -->
-                                    <Label VerticalOptions="Center" Text="{Binding ShortPositionName}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}"/>
-                                    <!-- Player Name -->
-                                    <Label VerticalOptions="Center" Text="{Binding Name}" FontSize="16" TextColor="{StaticResource RfmText}"/>
-                                    <!-- Player Age -->
-                                    <Label VerticalOptions="Center" Text="Alter:" FontSize="16" TextColor="{StaticResource RfmAccent}"/>
-                                    <Label VerticalOptions="Center" Text="{Binding Age}" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"/>
-                                    <!-- Player Talent -->
-                                    <Label VerticalOptions="Center" Text="Talent:" FontSize="16" TextColor="{StaticResource RfmAccent}"/>
-                                    <Label VerticalOptions="Center" Text="{Binding Talent}" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"/>
-                                    <!-- Player Rating -->
-                                    <Label VerticalOptions="Center" Text="Rating:" FontSize="16" TextColor="{StaticResource RfmAccent}"/>
-                                    <Label VerticalOptions="Center" Text="{Binding Rating}" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"/>
-                                    <!-- Player current Focus  -->
-                                    <Label VerticalOptions="Center" Text="Fokus auf:" FontSize="16" TextColor="{StaticResource RfmAccent}"/>
-                                    <Label VerticalOptions="Center" Text="{Binding TrainableLabel}" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"/>
-                                </HorizontalStackLayout>
-                                <Button 
-                                    Grid.Column="2" 
-                                    Text="Fokus ändern" 
-                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.OpenAttributeSectionCommand}" 
-                                    CommandParameter="{Binding}"
-                                    BackgroundColor="{StaticResource RfmFormationGreen}"/>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+            <!-- Player List section - BindableLayout, not CollectionView: same reasoning as
+                 LineupPage's Bench/Reserves (CollectionView has known Windows reliability
+                 issues in this app), and the confirmed trigger of this page's native window-
+                 message crash. ScrollView provides the scrolling CollectionView otherwise gave
+                 us for free. -->
+            <ScrollView Grid.Row="1" HorizontalOptions="Start" WidthRequest="1280" MaximumHeightRequest="800">
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding SquadPlayers}" Spacing="12">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="models:Player">
+                            <Border  StrokeThickness="0" Margin="8" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="10" />
+                                </Border.StrokeShape>
+                                <Grid ColumnDefinitions="Auto,*,150" ColumnSpacing="10">
+                                    <Image Source="{Binding ImagePath}" WidthRequest="50" HeightRequest="50"/>
+                                    <HorizontalStackLayout Spacing="8" Grid.Column="1">
+                                        <!-- Player Position -->
+                                        <Label VerticalOptions="Center" Text="{Binding ShortPositionName}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}"/>
+                                        <!-- Player Name -->
+                                        <Label VerticalOptions="Center" Text="{Binding Name}" FontSize="16" TextColor="{StaticResource RfmText}"/>
+                                        <!-- Player Age -->
+                                        <Label VerticalOptions="Center" Text="Alter:" FontSize="16" TextColor="{StaticResource RfmAccent}"/>
+                                        <Label VerticalOptions="Center" Text="{Binding Age}" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"/>
+                                        <!-- Player Talent -->
+                                        <Label VerticalOptions="Center" Text="Talent:" FontSize="16" TextColor="{StaticResource RfmAccent}"/>
+                                        <Label VerticalOptions="Center" Text="{Binding Talent}" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"/>
+                                        <!-- Player Rating -->
+                                        <Label VerticalOptions="Center" Text="Rating:" FontSize="16" TextColor="{StaticResource RfmAccent}"/>
+                                        <Label VerticalOptions="Center" Text="{Binding Rating}" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"/>
+                                        <!-- Player current Focus  -->
+                                        <Label VerticalOptions="Center" Text="Fokus auf:" FontSize="16" TextColor="{StaticResource RfmAccent}"/>
+                                        <Label VerticalOptions="Center" Text="{Binding TrainableLabel}" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"/>
+                                    </HorizontalStackLayout>
+                                    <Button
+                                        Grid.Column="2"
+                                        Text="Fokus ändern"
+                                        Command="{Binding Source={x:Reference Page}, Path=BindingContext.OpenAttributeSectionCommand}"
+                                        CommandParameter="{Binding}"
+                                        BackgroundColor="{StaticResource RfmFormationGreen}"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </ScrollView>
             <VerticalStackLayout Grid.Row="2" Spacing="8">
                 <Label Text="{Binding StatusText}" FontSize="24" TextColor="{StaticResource RfmText}" />
             </VerticalStackLayout>
