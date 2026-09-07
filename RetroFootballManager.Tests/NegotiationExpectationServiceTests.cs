@@ -73,5 +73,50 @@ namespace RetroFootballManager.Tests
             Assert.Equal(NegotiationMoodLevel.Furious, lowBallMood);
             Assert.True(improvedMood > lowBallMood);
         }
+
+        [Fact]
+        public void EstimateLevelGapPremium_IsZero_WhenBuyerIsNotInAWeakerLeague()
+        {
+            var elitePlayer = MakePlayer(talent: 90, age: 26);
+            elitePlayer.Rating = 90;
+
+            Assert.Equal(0, NegotiationExpectationService.EstimateLevelGapPremium(elitePlayer, sellingTeamTier: 2, buyingTeamTier: 2));
+            Assert.Equal(0, NegotiationExpectationService.EstimateLevelGapPremium(elitePlayer, sellingTeamTier: 2, buyingTeamTier: 1));
+        }
+
+        [Fact]
+        public void EstimateLevelGapPremium_IsZero_ForAnAverageMoverEvenAcrossManyTiers()
+        {
+            var averagePlayer = MakePlayer(talent: 40, age: 26);
+            averagePlayer.Rating = 60;
+
+            Assert.Equal(0, NegotiationExpectationService.EstimateLevelGapPremium(averagePlayer, sellingTeamTier: 1, buyingTeamTier: 4));
+        }
+
+        [Fact]
+        public void EstimateLevelGapPremium_GrowsWithTierGapAndPlayerQuality_ForATopFlightMoveDown()
+        {
+            var elitePlayer = MakePlayer(talent: 95, age: 26);
+            elitePlayer.Rating = 90;
+
+            var oneTierDown = NegotiationExpectationService.EstimateLevelGapPremium(elitePlayer, sellingTeamTier: 1, buyingTeamTier: 2);
+            var threeTiersDown = NegotiationExpectationService.EstimateLevelGapPremium(elitePlayer, sellingTeamTier: 1, buyingTeamTier: 4);
+
+            Assert.True(oneTierDown > 0);
+            Assert.True(threeTiersDown > oneTierDown);
+        }
+
+        [Fact]
+        public void EstimateExpectedFee_IsMuchHigher_WhenBuyerIsAFarWeakerLeagueThanSeller()
+        {
+            var elitePlayer = MakePlayer(talent: 95, age: 26);
+            elitePlayer.Rating = 92;
+            double baseFee = 1_000_000;
+
+            var sameLevel = NegotiationExpectationService.EstimateExpectedFee(baseFee, elitePlayer, seasonStats: null, sellingTeamTier: 1, buyingTeamTier: 1);
+            var farWeakerBuyer = NegotiationExpectationService.EstimateExpectedFee(baseFee, elitePlayer, seasonStats: null, sellingTeamTier: 1, buyingTeamTier: 4);
+
+            Assert.True(farWeakerBuyer > sameLevel * 2);
+        }
     }
 }

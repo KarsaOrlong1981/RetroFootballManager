@@ -11,10 +11,7 @@
                 BackgroundColor="{StaticResource RfmBackground}"
                 Margin="20" Padding="18"
                 MaximumWidthRequest="520" MaximumHeightRequest="620"
-                HorizontalOptions="Center" VerticalOptions="Center">
-            <Border.StrokeShape>
-                <RoundRectangle CornerRadius="16" />
-            </Border.StrokeShape>
+                HorizontalOptions="Center" VerticalOptions="Center" StrokeShape="RoundRectangle 16">
             <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="10">
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                     <Label Grid.Column="0" Text="Statistik" FontSize="22" FontAttributes="Bold"

@@ -22,10 +22,7 @@
                        IsVisible="{Binding WantsToLeaveClub}"
                        HorizontalOptions="Center" HorizontalTextAlignment="Center" />
                 
-                <Border StrokeThickness="0" Padding="12" BackgroundColor="{StaticResource RfmSurface}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="10" />
-                    </Border.StrokeShape>
+                <Border StrokeThickness="0" Padding="12" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="8">
                         <HorizontalStackLayout Spacing="18">
                             <Label Text="{Binding Player.Name}" Grid.ColumnSpan="2" FontSize="38" FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}"

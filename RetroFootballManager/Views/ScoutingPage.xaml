@@ -35,10 +35,7 @@
                     <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Scouts}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="vm:ScoutRow">
-                                <Border StrokeThickness="0" Padding="12,8" HorizontalOptions="Start" WidthRequest="850" BackgroundColor="{StaticResource RfmSurface}">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="10" />
-                                    </Border.StrokeShape>
+                                <Border StrokeThickness="0" Padding="12,8" HorizontalOptions="Start" WidthRequest="850" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                                     <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
                                         <Image Source="{Binding ImagePath}" WidthRequest="150" HeightRequest="150"/>
                                         <VerticalStackLayout Grid.Column="1">
@@ -76,10 +73,7 @@
                     <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding ActiveScouting}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="vm:ActiveScoutingRow">
-                                <Border StrokeThickness="0" Padding="12,8" HorizontalOptions="Start"  WidthRequest="850" BackgroundColor="{StaticResource RfmSurface}">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="10" />
-                                    </Border.StrokeShape>
+                                <Border StrokeThickness="0" Padding="12,8" HorizontalOptions="Start"  WidthRequest="850" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                                     <Grid ColumnDefinitions="50,*,Auto,36" ColumnSpacing="8">
                                         <VerticalStackLayout Grid.Column="1">
                                             <Label  FontSize="18" TextColor="{StaticResource RfmText}">
@@ -96,10 +90,7 @@
                                         </VerticalStackLayout>
                                         <Label Grid.Column="2" Text="{Binding DaysRemaining, StringFormat='noch {0} Tage'}"
                                                FontSize="18" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
-                                        <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0">
-                                            <Border.StrokeShape>
-                                                <RoundRectangle CornerRadius="16" />
-                                            </Border.StrokeShape>
+                                        <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0" StrokeShape="RoundRectangle 16">
                                             <Border.GestureRecognizers>
                                                 <TapGestureRecognizer
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
@@ -117,10 +108,7 @@
                     <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Recommendations}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="vm:ScoutRecommendationRow">
-                                <Border StrokeThickness="0" Padding="12,8" HorizontalOptions="Start"  WidthRequest="850" BackgroundColor="{StaticResource RfmSurface}">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="10" />
-                                    </Border.StrokeShape>
+                                <Border StrokeThickness="0" Padding="12,8" HorizontalOptions="Start"  WidthRequest="850" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                                     <Grid ColumnDefinitions="50,*,Auto,36" ColumnSpacing="8">
                                         <VerticalStackLayout Grid.Column="1">
                                             <Label FontSize="18" TextColor="{StaticResource RfmText}">
@@ -134,10 +122,7 @@
                                             </Label>
                                             <Label Text="{Binding Reason}" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
                                         </VerticalStackLayout>
-                                        <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0">
-                                            <Border.StrokeShape>
-                                                <RoundRectangle CornerRadius="16" />
-                                            </Border.StrokeShape>
+                                        <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0" StrokeShape="RoundRectangle 16">
                                             <Border.GestureRecognizers>
                                                 <TapGestureRecognizer
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
@@ -162,10 +147,7 @@
                     <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding ScoutedPlayers}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="vm:ScoutedPlayerRow">
-                                <Border StrokeThickness="0" Padding="12,8" HorizontalOptions="Start"  WidthRequest="850" BackgroundColor="{StaticResource RfmSurface}">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="10" />
-                                    </Border.StrokeShape>
+                                <Border StrokeThickness="0" Padding="12,8" HorizontalOptions="Start"  WidthRequest="850" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                                     <Grid ColumnDefinitions="50,*,Auto,36,36" ColumnSpacing="8">
                                         <Label Grid.Column="1" FontSize="18" TextColor="{StaticResource RfmText}">
                                             <Label.FormattedText>
@@ -180,10 +162,7 @@
                                         </Label>
                                         <Label Grid.Column="2" Text="{Binding ScoutedDateText}"
                                                FontSize="16" TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
-                                        <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0">
-                                            <Border.StrokeShape>
-                                                <RoundRectangle CornerRadius="16" />
-                                            </Border.StrokeShape>
+                                        <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0" StrokeShape="RoundRectangle 16">
                                             <Border.GestureRecognizers>
                                                 <TapGestureRecognizer
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
@@ -191,10 +170,7 @@
                                             </Border.GestureRecognizers>
                                             <Image Source="info.png" WidthRequest="26" HeightRequest="26" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
                                         </Border>
-                                        <Border Grid.Column="3" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0">
-                                            <Border.StrokeShape>
-                                                <RoundRectangle CornerRadius="16" />
-                                            </Border.StrokeShape>
+                                        <Border Grid.Column="3" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0" StrokeShape="RoundRectangle 16">
                                             <Border.GestureRecognizers>
                                                 <TapGestureRecognizer
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.RemoveScoutedPlayerCommand}"
@@ -220,10 +196,7 @@
                     BackgroundColor="{StaticResource RfmBackground}"
                     Margin="16" Padding="16"
                     MaximumWidthRequest="560" MaximumHeightRequest="720"
-                    HorizontalOptions="Center" VerticalOptions="Center">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="16" />
-                </Border.StrokeShape>
+                    HorizontalOptions="Center" VerticalOptions="Center" StrokeShape="RoundRectangle 16">
                 <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
                     <Label Grid.Row="0" Text="{Binding FocusScoutName, StringFormat='Scouting-Fokus: {0}'}"
                            FontSize="20" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />

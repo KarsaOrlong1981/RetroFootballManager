@@ -29,10 +29,7 @@
                 </CollectionView.ItemsLayout>
                 <CollectionView.EmptyView>
                     <ContentView>
-                        <Border HorizontalOptions="Center" VerticalOptions="Center"  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="10" />
-                            </Border.StrokeShape>
+                        <Border HorizontalOptions="Center" VerticalOptions="Center"  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                             <Grid>
                                 <Label Grid.Column="0" Text="Aktuell sind keine Jugend Trainer Eingestellt." FontSize="22"
                             TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
@@ -42,10 +39,7 @@
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Employee">
-                        <Border  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="10" />
-                            </Border.StrokeShape>
+                        <Border  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                                 <Image Source="{Binding ImagePath}" WidthRequest="150" HeightRequest="150"/>
                                 <VerticalStackLayout Spacing="4" Grid.Column="1">
@@ -107,10 +101,7 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Player">
                         <Grid Padding="3">
-                            <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}"   StrokeThickness="0">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
+                            <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}"   StrokeThickness="0" StrokeShape="RoundRectangle 8">
                                 <Grid ColumnDefinitions="50,100,*,Auto,Auto,26" ColumnSpacing="10">
                                     <Grid Grid.Column="1" WidthRequest="100" HeightRequest="100" >
                                         <Image Source="avatar.png" Aspect="AspectFit"
@@ -128,10 +119,7 @@
                                            TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
                                     <Label Grid.Column="4" Text="{Binding Talent, StringFormat='T {0}'}" FontSize="18"
                                            FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
-                                    <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0">
-                                        <Border.StrokeShape>
-                                            <RoundRectangle CornerRadius="11" />
-                                        </Border.StrokeShape>
+                                    <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0" StrokeShape="RoundRectangle 11">
                                         <Border.GestureRecognizers>
                                             <TapGestureRecognizer
                                                 Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}" />

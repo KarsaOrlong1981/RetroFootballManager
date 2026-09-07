@@ -34,10 +34,7 @@
                       BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
                 </VerticalStackLayout>
                 <Label Text="Ticketpreise" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
-                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start"  WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="12" />
-                    </Border.StrokeShape>
+                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start"  WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" Text="Sitzplatz" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
                         <controls:SteppedIntegerInput Grid.Row="0" Grid.Column="1" Value="{Binding SeatPrice}"
@@ -52,10 +49,7 @@
                 </Border>
 
                 <Label Text="Kapazität ausbauen" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
-                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start"  WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="12" />
-                    </Border.StrokeShape>
+                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start"  WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" Text="+1.000 Sitzplätze" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
                         <Button Grid.Row="0" Grid.Column="1" Text="{Binding SeatUpgradeCostText}" Command="{Binding UpgradeSeatingCommand}"
@@ -73,10 +67,7 @@
                 </Border>
 
                 <Label Text="Ausbaustufen" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
-                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start"  WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="12" />
-                    </Border.StrokeShape>
+                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start"  WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" Text="{Binding ComfortLevelText}" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
                         <Button Grid.Row="0" Grid.Column="1" Text="{Binding ComfortUpgradeCostText}" Command="{Binding UpgradeComfortCommand}"

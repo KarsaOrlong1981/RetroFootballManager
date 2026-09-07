@@ -15,10 +15,7 @@
             <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding Trophies}">
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="vm:TrophyDisplayRow">
-                        <Border StrokeThickness="0" Padding="12" BackgroundColor="{StaticResource RfmSurface}">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="12" />
-                            </Border.StrokeShape>
+                        <Border StrokeThickness="0" Padding="12" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                             <Grid ColumnDefinitions="180,500" ColumnSpacing="14">
                                 <Image Grid.Column="0" Source="{Binding ImagePath}" Aspect="AspectFit"
                                        HeightRequest="176" WidthRequest="176"

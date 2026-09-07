@@ -11,10 +11,7 @@
             BackgroundColor="{StaticResource RfmBackground}"
             Margin="20" Padding="18"
             WidthRequest="760" HeightRequest="660"
-            HorizontalOptions="Center" VerticalOptions="Center">
-            <Border.StrokeShape>
-                <RoundRectangle CornerRadius="16" />
-            </Border.StrokeShape>
+            HorizontalOptions="Center" VerticalOptions="Center" StrokeShape="RoundRectangle 16">
             <Grid RowDefinitions="Auto,Auto,*,Auto">
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                     <Label Grid.Column="0" Text="{Binding PlayerName}" FontSize="22" FontAttributes="Bold"
@@ -31,10 +28,7 @@
                 <Grid Grid.Row="2" ColumnDefinitions="150,*" ColumnSpacing="16"
                       IsVisible="{Binding IsManagerPhaseOpen}">
                     <Border Grid.Column="0" WidthRequest="150" HeightRequest="150" StrokeThickness="3"
-                            Stroke="{StaticResource RfmAccentTeal}" VerticalOptions="Start" HorizontalOptions="Center">
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="12" />
-                        </Border.StrokeShape>
+                            Stroke="{StaticResource RfmAccentTeal}" VerticalOptions="Start" HorizontalOptions="Center" StrokeShape="RoundRectangle 12">
                         <Image Source="{Binding ManagerImageSource}" Aspect="AspectFill" />
                     </Border>
 
@@ -109,10 +103,7 @@
                       IsVisible="{Binding IsPlayerPhaseOpen}">
                     <Border Grid.Column="0" WidthRequest="150" HeightRequest="150" StrokeThickness="4"
                             Stroke="{Binding PlayerMoodBorderColor}"
-                            VerticalOptions="Start" HorizontalOptions="Center">
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="12" />
-                        </Border.StrokeShape>
+                            VerticalOptions="Start" HorizontalOptions="Center" StrokeShape="RoundRectangle 12">
                         <Grid>
                             <Image Source="avatar.png" Aspect="AspectFill"
                                    IsVisible="{Binding PlayerPortraitPath, Converter={StaticResource NoLogo}}" />

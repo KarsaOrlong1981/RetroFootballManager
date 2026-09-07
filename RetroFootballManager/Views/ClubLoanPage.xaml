@@ -24,10 +24,7 @@
                 <Picker ItemsSource="{Binding TermOptions}" FontSize="18" SelectedItem="{Binding SelectedTerm}" 
                         TextColor="{StaticResource RfmText}" BackgroundColor="{StaticResource RfmSurface}" />
 
-                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="12" />
-                    </Border.StrokeShape>
+                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                     <VerticalStackLayout Spacing="8">
                         <Label Text="{Binding InterestRateText}" Style="{StaticResource RfmLabel}"  HorizontalOptions="Start"/>
                         <Label Text="{Binding MonthlyPaymentPreviewText}" FontAttributes="Bold" HorizontalOptions="Start" TextColor="#EF4444" />

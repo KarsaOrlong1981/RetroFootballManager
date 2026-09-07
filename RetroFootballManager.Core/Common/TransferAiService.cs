@@ -188,7 +188,7 @@ namespace RetroFootballManager.Common
                 if (!teamsById.TryGetValue(bestOffer.OfferingTeamId, out var buyingTeam))
                     continue;
 
-                if (ShouldAcceptOffer(listing, bestOffer, team, buyingTeam))
+                if (ShouldAcceptOffer(listing, bestOffer, player, team, buyingTeam))
                 {
                     if (!isTransferWindowOpen)
                         continue; // deal is good, window's closed - leave it pending, retry next week
@@ -228,24 +228,38 @@ namespace RetroFootballManager.Common
             }
         }
 
-        // Transfer: offer must reach at least 80% of the asking price. Loan: only requires a
-        // salary offer at all - full market value isn't relevant for a loan anyway (see
-        // TransferMarketService.LoanOutAsync). Unsolicited offers (player never put up for
-        // transfer, see TransferMarketService.MakeUnsolicitedOfferAsync) demand a clear premium -
-        // the club wasn't looking to sell, so a fair-value bid isn't enough to change their mind.
+        // Transfer: offer must reach at least 80% of the asking price. Loan: the wage offer must
+        // cover at least NegotiationExpectationService.BaseExpectedWageSharePercentage of the
+        // player's own estimated salary - NOT a cut of listing.AskingPrice (that's the player's
+        // market value, an unrelated number several times the annual wage; comparing a wage
+        // offer against a small slice of it used to let a loan go through for almost nothing).
+        // Unsolicited offers (player never put up for transfer, see
+        // TransferMarketService.MakeUnsolicitedOfferAsync) demand a clear premium - the club
+        // wasn't looking to sell/lend, so a fair-value bid isn't enough to change their mind.
         // Both sides' DirectorOfFootball adjusts the effective threshold - a good seller-side DoF
         // raises the bar (better sale price), a good buyer-side DoF lowers it (better purchase
         // price) - applied here rather than to the raw fee so it works uniformly for AI- and
-        // human-initiated offers alike.
-        private static bool ShouldAcceptOffer(TransferListing listing, TransferOffer offer, Team sellingTeam, Team? buyingTeam)
+        // human-initiated offers alike. The level-gap premium (see
+        // NegotiationExpectationService.EstimateLevelGapPremium) further raises the bar when the
+        // bidder plays in a markedly weaker league than a genuinely good player is worth - a
+        // lower-division club shouldn't be able to casually buy or borrow a top-flight player.
+        private static bool ShouldAcceptOffer(
+            TransferListing listing, TransferOffer offer, Player player, Team sellingTeam, Team? buyingTeam)
         {
             double factor = AcceptanceFirmnessFactor(sellingTeam) * BuyingPriceFactor(buyingTeam);
+            double levelGapPremium = NegotiationExpectationService.EstimateLevelGapPremium(
+                player, sellingTeam.LeagueTier, buyingTeam?.LeagueTier ?? sellingTeam.LeagueTier);
 
-            if (listing.IsUnsolicited)
-                return listing.IsLoanListing
-                    ? offer.WageOffer >= listing.AskingPrice * 0.25 * factor
-                    : offer.OfferedFee >= listing.AskingPrice * 1.3 * factor;
-            return listing.IsLoanListing ? offer.WageOffer > 0 : offer.OfferedFee >= listing.AskingPrice * 0.8 * factor;
+            if (listing.IsLoanListing)
+            {
+                double expectedWage = PlayerValuationService.EstimateAnnualSalary(player)
+                    * (NegotiationExpectationService.BaseExpectedWageSharePercentage / 100.0) * (1 + levelGapPremium);
+                double unsolicitedMultiplier = listing.IsUnsolicited ? 1.3 : 1.0;
+                return offer.WageOffer >= expectedWage * unsolicitedMultiplier * factor;
+            }
+
+            double baseMultiplier = listing.IsUnsolicited ? 1.3 : 0.8;
+            return offer.OfferedFee >= listing.AskingPrice * baseMultiplier * (1 + levelGapPremium) * factor;
         }
 
         private static Player? FindSurplusPlayer(Team team, HashSet<int> alreadyListedIds)

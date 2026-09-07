@@ -18,10 +18,7 @@
             <!-- Avatar + Name/Geburtsdatum -->
             <Grid Grid.Row="1" ColumnDefinitions="150,*" ColumnSpacing="16">
                 <Border Grid.Column="0" WidthRequest="150" HeightRequest="150" BackgroundColor="White"
-                        StrokeThickness="1.5" Stroke="{StaticResource RfmAccentTeal}" Padding="0">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="8" />
-                    </Border.StrokeShape>
+                        StrokeThickness="1.5" Stroke="{StaticResource RfmAccentTeal}" Padding="0" StrokeShape="RoundRectangle 8">
                     <Grid>
                         <Image Source="avatar.png" Aspect="AspectFill"
                                IsVisible="{Binding AvatarPath, Converter={StaticResource NoLogo}}" />

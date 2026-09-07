@@ -12,38 +12,30 @@
     Title="Transfermarkt"
     BackgroundColor="{StaticResource RfmBackground}">
 
-    <Grid RowDefinitions="60,300,50, *">
+    <Grid RowDefinitions="60,*,50,Auto">
         <Image Source="transfermarket.png" Aspect="AspectFill" Grid.RowSpan="4"/>
         <Grid ColumnDefinitions="*,Auto" Margin="12">
             <Label Grid.Column="0" Text="Transferstatus" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-            <Border Grid.Column="1" Padding="10,4" VerticalOptions="Center" BackgroundColor="{Binding TransferWindowColor}" StrokeThickness="0">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="12" />
-                </Border.StrokeShape>
+            <Border Grid.Column="1" Padding="10,4" VerticalOptions="Center" BackgroundColor="{Binding TransferWindowColor}" StrokeThickness="0" StrokeShape="RoundRectangle 12">
                 <Label Text="{Binding TransferWindowInfo}" FontSize="13" TextColor="White" LineBreakMode="NoWrap" />
             </Border>
         </Grid>
         <ScrollView  Opacity="0.85" Grid.Row="1">
             <VerticalStackLayout  Margin="12" Spacing="14">
                 <Label Text="Eigene Angebote (Listungen)" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-            <CollectionView HorizontalOptions="Start" WidthRequest="800" ItemsSource="{Binding OwnListings}">
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="6" />
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
+            <!-- BindableLayout (not CollectionView) - large, image-heavy lists on Windows
+                 crash via a WinUI layout cycle, see LineupPage/TrainingPage/StaffPage. -->
+            <VerticalStackLayout HorizontalOptions="Start" WidthRequest="800" Spacing="6"
+                                  BindableLayout.ItemsSource="{Binding OwnListings}">
+                <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="vm:OwnListingRow">
-                        <Border StrokeThickness="0" Padding="10" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="8" />
-                            </Border.StrokeShape>
+                        <Border StrokeThickness="0" Padding="10" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}"
+                                StrokeShape="RoundRectangle 8">
                             <VerticalStackLayout Spacing="4">
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
                                     <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}"
                                         WidthRequest="26" HeightRequest="26" Padding="0" StrokeThickness="0"
-                                        VerticalOptions="Center">
-                                        <Border.StrokeShape>
-                                            <RoundRectangle CornerRadius="13" />
-                                        </Border.StrokeShape>
+                                        VerticalOptions="Center" StrokeShape="RoundRectangle 13">
                                         <Border.GestureRecognizers>
                                             <TapGestureRecognizer
                                             Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
@@ -75,11 +67,9 @@
                                     </VerticalStackLayout>
                                 </Grid>
 
-                                <CollectionView IsVisible="{Binding HasOffers}" ItemsSource="{Binding Offers}">
-                                    <CollectionView.ItemsLayout>
-                                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="4" />
-                                    </CollectionView.ItemsLayout>
-                                    <CollectionView.ItemTemplate>
+                                <VerticalStackLayout IsVisible="{Binding HasOffers}" Spacing="4"
+                                                      BindableLayout.ItemsSource="{Binding Offers}">
+                                    <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="vm:OwnOfferRow">
                                             <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="6" Padding="0,3">
                                                 <Label Grid.Column="0" TextColor="{StaticResource RfmAccentTeal}" FontSize="18">
@@ -108,25 +98,21 @@
                                             TextColor="{StaticResource RfmText}" />
                                             </Grid>
                                         </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
                             </VerticalStackLayout>
                         </Border>
                     </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
 
                 <Label Text="Eigene abgegebene Angebote" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,4,0,0" />
-                <CollectionView HorizontalOptions="Start" WidthRequest="800" ItemsSource="{Binding OutgoingOffers}">
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="6" />
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
+                <VerticalStackLayout HorizontalOptions="Start" WidthRequest="800" Spacing="6"
+                                      BindableLayout.ItemsSource="{Binding OutgoingOffers}">
+                <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="vm:OutgoingOfferRow">
-                        <Border StrokeThickness="0" Padding="10" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="8" />
-                            </Border.StrokeShape>
+                        <Border StrokeThickness="0" Padding="10" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}"
+                                StrokeShape="RoundRectangle 8">
                             <VerticalStackLayout Spacing="4">
                                 <Label FontSize="18" TextColor="{StaticResource RfmText}">
                                     <Label.FormattedText>
@@ -164,204 +150,31 @@
                             </VerticalStackLayout>
                         </Border>
                     </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
 
             <Label Text="{Binding StatusText}" FontSize="18" TextColor="{StaticResource RfmText}" />
         </VerticalStackLayout>
         </ScrollView>
         <BoxView Grid.Row="2" BackgroundColor="White"  HeightRequest="3"/>
-        <ScrollView Grid.Row="3" Opacity="0.85">
-            <VerticalStackLayout>
-            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
-                <!-- Market side -->
-                <Label Text="Markt" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="12" />
-                <CollectionView Grid.Row="1" Margin="12" ItemsSource="{Binding MarketListings}">
-                    <CollectionView.ItemsLayout>
-                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="6" />
-                    </CollectionView.ItemsLayout>
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="vm:MarketListingRow">
-                            <Border StrokeThickness="0" Padding="10"  BackgroundColor="{StaticResource RfmSurface}">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
-                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-                                    <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}"
-                                        WidthRequest="26" HeightRequest="26" Padding="0" StrokeThickness="0"
-                                        VerticalOptions="Center">
-                                        <Border.StrokeShape>
-                                            <RoundRectangle CornerRadius="13" />
-                                        </Border.StrokeShape>
-                                        <Border.GestureRecognizers>
-                                            <TapGestureRecognizer
-                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
-                                            CommandParameter="{Binding PlayerId}" />
-                                        </Border.GestureRecognizers>
-                                        <Image Source="info.png" WidthRequest="26" HeightRequest="26" Aspect="AspectFit"
-                                           HorizontalOptions="Center" VerticalOptions="Center" />
-                                    </Border>
-                                    <VerticalStackLayout Grid.Column="1">
-                                        <Label FontAttributes="Bold" FontSize="18" TextColor="{StaticResource RfmText}">
-                                            <Label.FormattedText>
-                                                <FormattedString>
-                                                    <Span Text="{Binding PlayerName}" />
-                                                    <Span Text=" · " />
-                                                    <Span Text="{Binding Position}" />
-                                                    <Span Text=" · R " />
-                                                    <Span Text="{Binding Rating}" />
-                                                </FormattedString>
-                                            </Label.FormattedText>
-                                        </Label>
-                                        <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
-                                            <Label.FormattedText>
-                                                <FormattedString>
-                                                    <Span Text="{Binding TeamName}" />
-                                                    <Span Text=" · " />
-                                                    <Span Text="{Binding AskingPrice, StringFormat='{0:N0} €'}" />
-                                                </FormattedString>
-                                            </Label.FormattedText>
-                                        </Label>
-                                        <Label Text="Leihe" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"
-                                             IsVisible="{Binding IsLoan}" />
-                                    </VerticalStackLayout>
-                                    <Button Grid.Column="2" Text="Angebot abgeben" FontSize="18"
-                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.MakeOfferCommand}"
-                                            CommandParameter="{Binding .}"
-                                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" />
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-
-
-
-                <!--Own Player side -->
-                <Label Text="Eigene Spieler" Grid.Column="1" Margin="12" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                <CollectionView Grid.Column="1" Grid.Row="1" Margin="12" ItemsSource="{Binding OwnPlayers}">
-                    <CollectionView.ItemsLayout>
-                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="6" />
-                    </CollectionView.ItemsLayout>
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="vm:OwnPlayerRow">
-                            <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
-                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-                                    <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}"
-                                        WidthRequest="26" HeightRequest="26" Padding="0" StrokeThickness="0"
-                                        VerticalOptions="Center">
-                                        <Border.StrokeShape>
-                                            <RoundRectangle CornerRadius="13" />
-                                        </Border.StrokeShape>
-                                        <Border.GestureRecognizers>
-                                            <TapGestureRecognizer
-                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
-                                            CommandParameter="{Binding PlayerId}" />
-                                        </Border.GestureRecognizers>
-                                        <Image Source="info.png" WidthRequest="26" HeightRequest="26" Aspect="AspectFit"
-                                           HorizontalOptions="Center" VerticalOptions="Center" />
-                                    </Border>
-
-                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
-                                        <Label FontAttributes="Bold" FontSize="18" TextColor="{StaticResource RfmText}">
-                                            <Label.FormattedText>
-                                                <FormattedString>
-                                                    <Span Text="{Binding PlayerName}" />
-                                                    <Span Text=" · " />
-                                                    <Span Text="{Binding Position}" />
-                                                    <Span Text=" · R " />
-                                                    <Span Text="{Binding Rating}" />
-                                                </FormattedString>
-                                            </Label.FormattedText>
-                                        </Label>
-                                        <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
-                                            <Label.FormattedText>
-                                                <FormattedString>
-                                                    <Span Text="Gehalt: " />
-                                                    <Span Text="{Binding AnnualSalary, StringFormat='{0:N0} €/Jahr'}" />
-                                                    <Span Text=" · Marktwert: " />
-                                                    <Span Text="{Binding MarketValue, StringFormat='{0:N0} €'}" />
-                                                </FormattedString>
-                                            </Label.FormattedText>
-                                        </Label>
-                                        <Label Text="Zum Transfer angeboten" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"
-                                           IsVisible="{Binding IsTransferListed}" />
-                                        <Label Text="Zur Leihe angeboten" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"
-                                           IsVisible="{Binding IsLoanListed}" />
-                                    </VerticalStackLayout>
-
-                                    <VerticalStackLayout Grid.Column="2" Spacing="4">
-                                        <VerticalStackLayout Spacing="4" IsVisible="{Binding CanOffer}">
-                                            <Button Text="Zum Transfer anbieten" FontSize="16" Padding="6,4"
-                                                Command="{Binding Source={x:Reference Page}, Path=BindingContext.OfferForTransferCommand}"
-                                                CommandParameter="{Binding .}"
-                                                BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
-                                            <Button Text="Zur Leihe anbieten" FontSize="16" Padding="6,4"
-                                                Command="{Binding Source={x:Reference Page}, Path=BindingContext.OfferForLoanCommand}"
-                                                CommandParameter="{Binding .}"
-                                                BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
-                                        </VerticalStackLayout>
-                                        <Button Text="Zurückziehen" FontSize="16" Padding="6,4"
-                                            IsVisible="{Binding IsListed}"
-                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.WithdrawListingCommand}"
-                                            CommandParameter="{Binding .}"
-                                            BackgroundColor="Transparent" BorderColor="{StaticResource RfmTextMuted}" BorderWidth="1"
-                                            TextColor="{StaticResource RfmText}" />
-                                        <Button Text="Vertrag verlängern" FontSize="16" Padding="6,4"
-                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.RenewContractCommand}"
-                                            CommandParameter="{Binding .}"
-                                            BackgroundColor="Transparent" BorderColor="{StaticResource RfmAccentTeal}" BorderWidth="1"
-                                            TextColor="{StaticResource RfmText}" />
-                                    </VerticalStackLayout>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-            </Grid>
-
-            <!-- Free agents (contract expired - see FreeAgentService): no selling club/fee,
-                 only the wage gets negotiated. -->
-            <Label Text="Ablösefrei" Margin="12" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-            <CollectionView Margin="12" ItemsSource="{Binding FreeAgents}">
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="6" />
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="vm:FreeAgentRow">
-                        <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="8" />
-                            </Border.StrokeShape>
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                <VerticalStackLayout Grid.Column="0">
-                                    <Label FontAttributes="Bold" FontSize="18" TextColor="{StaticResource RfmText}">
-                                        <Label.FormattedText>
-                                            <FormattedString>
-                                                <Span Text="{Binding PlayerName}" />
-                                                <Span Text=" · " />
-                                                <Span Text="{Binding Position}" />
-                                                <Span Text=" · R " />
-                                                <Span Text="{Binding Rating}" />
-                                            </FormattedString>
-                                        </Label.FormattedText>
-                                    </Label>
-                                    <Label Text="Ablösefrei" FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
-                                </VerticalStackLayout>
-                                <Button Grid.Column="1" Text="Verpflichten" FontSize="18"
-                                        Command="{Binding Source={x:Reference Page}, Path=BindingContext.SignFreeAgentCommand}"
-                                        CommandParameter="{Binding .}"
-                                        BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" />
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-            </VerticalStackLayout>
-        </ScrollView>
+        <!-- Market/Own-Players/Free-Agents lists moved into their own dialogs (see the
+             controls:... blocks near the bottom of this file) instead of showing them inline -
+             a Grid with two star columns placing them side by side was a confirmed WinUI
+             LayoutCycleException trigger, and stacking every list inline made for a very long
+             page. This row is now just the three buttons, so it's Auto-sized (see the root
+             Grid's RowDefinitions) and the area above the BoxView divider gets the remaining
+             space instead. -->
+        <HorizontalStackLayout Grid.Row="3" Spacing="16" Margin="12" Opacity="0.85">
+            <Button Text="Markt" FontSize="20" Padding="20,14"
+                    Command="{Binding OpenMarketDialogCommand}"
+                    BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+            <Button Text="Eigene Spieler" FontSize="20" Padding="20,14"
+                    Command="{Binding OpenOwnPlayersDialogCommand}"
+                    BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+            <Button Text="Ablösefrei" FontSize="20" Padding="20,14"
+                    Command="{Binding OpenFreeAgentsDialogCommand}"
+                    BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+        </HorizontalStackLayout>
 
     <!-- Player profile dialog -->
     <controls:PlayerProfileDialog
@@ -376,6 +189,260 @@
         UnlockCommand="{Binding ScoutPlayerCommand}" />
 
         <controls:PlayerNegotiationsDialog Grid.RowSpan="4" BindingContext="{Binding Negotiation}" />
+
+        <!-- Market list dialog -->
+        <Grid IsVisible="{Binding IsMarketDialogOpen}" BackgroundColor="#B0000000" Grid.RowSpan="4">
+            <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                    BackgroundColor="{StaticResource RfmBackground}"
+                    Margin="20" Padding="18"
+                    WidthRequest="880" HeightRequest="850"
+                    HorizontalOptions="Center" VerticalOptions="Center"
+                    StrokeShape="RoundRectangle 16">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="Markt" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                        <Button Grid.Column="1" ImageSource="close.png" Command="{Binding CloseMarketDialogCommand}"
+                                BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}"
+                                WidthRequest="36" HeightRequest="36" Padding="8" />
+                    </Grid>
+                    <ScrollView Grid.Row="1" Margin="0,12,0,0">
+                        <!-- Bound to MarketListingsPage (one page's worth, see
+                             TransferMarketViewModel), NEVER the full MarketListings - a season's
+                             market can hold 50+ listings, and realizing that many complex rows
+                             into a non-virtualizing BindableLayout in one go is what caused this
+                             dialog's LayoutCycleException crash on Windows. Also uses a plain
+                             Grid (not Border+RoundRectangle) per row - a separate, now-fixed
+                             rendering bug where most Border.StrokeShape backgrounds silently
+                             failed to paint on a large list even with a fresh Shape instance per
+                             item; square corners traded for reliability here. -->
+                        <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding MarketListingsPage}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:MarketListingRow">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Padding="10"
+                                          BackgroundColor="{StaticResource RfmSurface}">
+                                        <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}"
+                                            WidthRequest="26" HeightRequest="26" Padding="0" StrokeThickness="0"
+                                            VerticalOptions="Center" StrokeShape="RoundRectangle 13">
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
+                                                CommandParameter="{Binding PlayerId}" />
+                                            </Border.GestureRecognizers>
+                                            <Image Source="info.png" WidthRequest="26" HeightRequest="26" Aspect="AspectFit"
+                                               HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                        <VerticalStackLayout Grid.Column="1">
+                                            <Label FontAttributes="Bold" FontSize="18" TextColor="{StaticResource RfmText}">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="{Binding PlayerName}" />
+                                                        <Span Text=" · " />
+                                                        <Span Text="{Binding Position}" />
+                                                        <Span Text=" · R " />
+                                                        <Span Text="{Binding Rating}" />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                            <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="{Binding TeamName}" />
+                                                        <Span Text=" · " />
+                                                        <Span Text="{Binding AskingPrice, StringFormat='{0:N0} €'}" />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                            <Label Text="Leihe" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"
+                                                 IsVisible="{Binding IsLoan}" />
+                                        </VerticalStackLayout>
+                                        <Button Grid.Column="2" Text="Angebot abgeben" FontSize="18"
+                                                Command="{Binding Source={x:Reference Page}, Path=BindingContext.MakeOfferCommand}"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </ScrollView>
+                    <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto" Margin="0,12,0,0">
+                        <Button Grid.Column="0" Text="Zurück" FontSize="16" Padding="14,8"
+                                Command="{Binding PreviousMarketPageCommand}"
+                                IsEnabled="{Binding CanGoToPreviousMarketPage}"
+                                BackgroundColor="Transparent" BorderColor="{StaticResource RfmTextMuted}" BorderWidth="1"
+                                TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Column="1" Text="{Binding MarketPageInfo}" FontSize="16"
+                               TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" VerticalOptions="Center" />
+                        <Button Grid.Column="2" Text="Weiter" FontSize="16" Padding="14,8"
+                                Command="{Binding NextMarketPageCommand}"
+                                IsEnabled="{Binding CanGoToNextMarketPage}"
+                                BackgroundColor="Transparent" BorderColor="{StaticResource RfmTextMuted}" BorderWidth="1"
+                                TextColor="{StaticResource RfmText}" />
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Own players list dialog -->
+        <Grid IsVisible="{Binding IsOwnPlayersDialogOpen}" BackgroundColor="#B0000000" Grid.RowSpan="4">
+            <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                    BackgroundColor="{StaticResource RfmBackground}"
+                    Margin="20" Padding="18"
+                    WidthRequest="880" MaximumHeightRequest="850"
+                    HorizontalOptions="Center" VerticalOptions="Center"
+                    StrokeShape="RoundRectangle 16">
+                <Grid RowDefinitions="Auto,*">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="Eigene Spieler" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                        <Button Grid.Column="1" ImageSource="close.png" Command="{Binding CloseOwnPlayersDialogCommand}"
+                                BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}"
+                                WidthRequest="36" HeightRequest="36" Padding="8" />
+                    </Grid>
+                    <ScrollView Grid.Row="1" Margin="0,12,0,0">
+                        <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding OwnPlayers}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:OwnPlayerRow">
+                                    <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}"
+                                            StrokeShape="RoundRectangle 8">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                                            <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}"
+                                                WidthRequest="26" HeightRequest="26" Padding="0" StrokeThickness="0"
+                                                VerticalOptions="Center" StrokeShape="RoundRectangle 13">
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer
+                                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
+                                                    CommandParameter="{Binding PlayerId}" />
+                                                </Border.GestureRecognizers>
+                                                <Image Source="info.png" WidthRequest="26" HeightRequest="26" Aspect="AspectFit"
+                                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                                            </Border>
+
+                                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                                <Label FontAttributes="Bold" FontSize="18" TextColor="{StaticResource RfmText}">
+                                                    <Label.FormattedText>
+                                                        <FormattedString>
+                                                            <Span Text="{Binding PlayerName}" />
+                                                            <Span Text=" · " />
+                                                            <Span Text="{Binding Position}" />
+                                                            <Span Text=" · R " />
+                                                            <Span Text="{Binding Rating}" />
+                                                        </FormattedString>
+                                                    </Label.FormattedText>
+                                                </Label>
+                                                <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
+                                                    <Label.FormattedText>
+                                                        <FormattedString>
+                                                            <Span Text="Gehalt: " />
+                                                            <Span Text="{Binding AnnualSalary, StringFormat='{0:N0} €/Jahr'}" />
+                                                            <Span Text=" · Marktwert: " />
+                                                            <Span Text="{Binding MarketValue, StringFormat='{0:N0} €'}" />
+                                                        </FormattedString>
+                                                    </Label.FormattedText>
+                                                </Label>
+                                                <Label Text="Zum Transfer angeboten" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"
+                                                   IsVisible="{Binding IsTransferListed}" />
+                                                <Label Text="Zur Leihe angeboten" FontSize="16" TextColor="{StaticResource RfmAccentTeal}"
+                                                   IsVisible="{Binding IsLoanListed}" />
+                                            </VerticalStackLayout>
+
+                                            <VerticalStackLayout Grid.Column="2" Spacing="4">
+                                                <VerticalStackLayout Spacing="4" IsVisible="{Binding CanOffer}">
+                                                    <Button Text="Zum Transfer anbieten" FontSize="16" Padding="6,4"
+                                                        Command="{Binding Source={x:Reference Page}, Path=BindingContext.OfferForTransferCommand}"
+                                                        CommandParameter="{Binding .}"
+                                                        BackgroundColor="{StaticResource RfmAccent}" TextColor="White" />
+                                                    <Button Text="Zur Leihe anbieten" FontSize="16" Padding="6,4"
+                                                        Command="{Binding Source={x:Reference Page}, Path=BindingContext.OfferForLoanCommand}"
+                                                        CommandParameter="{Binding .}"
+                                                        BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+                                                </VerticalStackLayout>
+                                                <Button Text="Zurückziehen" FontSize="16" Padding="6,4"
+                                                    IsVisible="{Binding IsListed}"
+                                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.WithdrawListingCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    BackgroundColor="Transparent" BorderColor="{StaticResource RfmTextMuted}" BorderWidth="1"
+                                                    TextColor="{StaticResource RfmText}" />
+                                                <Button Text="Vertrag verlängern" FontSize="16" Padding="6,4"
+                                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.RenewContractCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    BackgroundColor="Transparent" BorderColor="{StaticResource RfmAccentTeal}" BorderWidth="1"
+                                                    TextColor="{StaticResource RfmText}" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Free agents dialog (contract expired - see FreeAgentService): no selling club/fee,
+             only the wage gets negotiated. -->
+        <Grid IsVisible="{Binding IsFreeAgentsDialogOpen}" BackgroundColor="#B0000000" Grid.RowSpan="4">
+            <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                    BackgroundColor="{StaticResource RfmBackground}"
+                    Margin="20" Padding="18"
+                    WidthRequest="880" HeightRequest="850"
+                    HorizontalOptions="Center" VerticalOptions="Center"
+                    StrokeShape="RoundRectangle 16">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="Ablösefrei" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                        <Button Grid.Column="1" ImageSource="close.png" Command="{Binding CloseFreeAgentsDialogCommand}"
+                                BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}"
+                                WidthRequest="36" HeightRequest="36" Padding="8" />
+                    </Grid>
+                    <ScrollView Grid.Row="1" Margin="0,12,0,0">
+                        <!-- Bound to FreeAgentsPage (one page's worth), never the full
+                             FreeAgents collection - same large-list rationale as MarketListings. -->
+                        <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding FreeAgentsPage}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:FreeAgentRow">
+                                    <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}"
+                                            StrokeShape="RoundRectangle 8">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                            <VerticalStackLayout Grid.Column="0">
+                                                <Label FontAttributes="Bold" FontSize="18" TextColor="{StaticResource RfmText}">
+                                                    <Label.FormattedText>
+                                                        <FormattedString>
+                                                            <Span Text="{Binding PlayerName}" />
+                                                            <Span Text=" · " />
+                                                            <Span Text="{Binding Position}" />
+                                                            <Span Text=" · R " />
+                                                            <Span Text="{Binding Rating}" />
+                                                        </FormattedString>
+                                                    </Label.FormattedText>
+                                                </Label>
+                                                <Label Text="Ablösefrei" FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                                            </VerticalStackLayout>
+                                            <Button Grid.Column="1" Text="Verpflichten" FontSize="18"
+                                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.SignFreeAgentCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </ScrollView>
+                    <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto" Margin="0,12,0,0">
+                        <Button Grid.Column="0" Text="Zurück" FontSize="16" Padding="14,8"
+                                Command="{Binding PreviousFreeAgentPageCommand}"
+                                IsEnabled="{Binding CanGoToPreviousFreeAgentPage}"
+                                BackgroundColor="Transparent" BorderColor="{StaticResource RfmTextMuted}" BorderWidth="1"
+                                TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Column="1" Text="{Binding FreeAgentPageInfo}" FontSize="16"
+                               TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" VerticalOptions="Center" />
+                        <Button Grid.Column="2" Text="Weiter" FontSize="16" Padding="14,8"
+                                Command="{Binding NextFreeAgentPageCommand}"
+                                IsEnabled="{Binding CanGoToNextFreeAgentPage}"
+                                BackgroundColor="Transparent" BorderColor="{StaticResource RfmTextMuted}" BorderWidth="1"
+                                TextColor="{StaticResource RfmText}" />
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
 
         <!-- Busy overlay -->
     <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000" Grid.RowSpan="4">

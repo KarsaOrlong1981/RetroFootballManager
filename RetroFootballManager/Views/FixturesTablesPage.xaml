@@ -27,10 +27,7 @@
             <VerticalStackLayout Spacing="16">
 
                 <Label Text="Tabelle" FontSize="28" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                <Border StrokeThickness="0" Padding="8" WidthRequest="980" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="12" />
-                    </Border.StrokeShape>
+                <Border StrokeThickness="0" Padding="8" WidthRequest="980" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                     <VerticalStackLayout>
                         <Grid ColumnDefinitions="26,500,36,50,50,50,38,Auto" Padding="6,4" ColumnSpacing="4">
                             <Label Grid.Column="0" Text="#" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
@@ -60,10 +57,7 @@
                                                 <BindableLayout.ItemTemplate>
                                                     <DataTemplate x:DataType="vm:FormBadge">
                                                         <Border BackgroundColor="{Binding Color}" StrokeThickness="0"
-                                                                WidthRequest="18" HeightRequest="18" Padding="0">
-                                                            <Border.StrokeShape>
-                                                                <RoundRectangle CornerRadius="3" />
-                                                            </Border.StrokeShape>
+                                                                WidthRequest="18" HeightRequest="18" Padding="0" StrokeShape="RoundRectangle 3">
                                                             <Label Text="{Binding Letter}" FontSize="14" TextColor="White"
                                                                    HorizontalOptions="Center" VerticalOptions="Center" />
                                                         </Border>
@@ -82,10 +76,7 @@
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="vm:LegendItem">
                             <HorizontalStackLayout Spacing="6">
-                                <Border BackgroundColor="{Binding Color}" WidthRequest="22" HeightRequest="22" StrokeThickness="0">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="3" />
-                                    </Border.StrokeShape>
+                                <Border BackgroundColor="{Binding Color}" WidthRequest="22" HeightRequest="22" StrokeThickness="0" StrokeShape="RoundRectangle 3">
                                 </Border>
                                 <Label Text="{Binding Label}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
                             </HorizontalStackLayout>
@@ -102,10 +93,7 @@
                         TextColor="{StaticResource RfmText}"
                         TitleColor="{StaticResource RfmTextMuted}" />
 
-                <Border StrokeThickness="0" Padding="8" BackgroundColor="{StaticResource RfmSurface}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="12" />
-                    </Border.StrokeShape>
+                <Border StrokeThickness="0" Padding="8" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                     <CollectionView ItemsSource="{Binding Fixtures}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="vm:FixtureRow">

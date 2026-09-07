@@ -10,10 +10,7 @@
                 BackgroundColor="{StaticResource RfmBackground}"
                 Margin="20" Padding="18"
                 MaximumWidthRequest="480" MaximumHeightRequest="620"
-                HorizontalOptions="Center" VerticalOptions="Center">
-            <Border.StrokeShape>
-                <RoundRectangle CornerRadius="16" />
-            </Border.StrokeShape>
+                HorizontalOptions="Center" VerticalOptions="Center" StrokeShape="RoundRectangle 16">
             <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                     
@@ -26,10 +23,7 @@
                     <VerticalStackLayout Spacing="10">
 
                         <Border WidthRequest="90" HeightRequest="90" HorizontalOptions="Center" BackgroundColor="White"
-                                StrokeThickness="1.5" Stroke="{StaticResource RfmAccentTeal}" Padding="0">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="8" />
-                            </Border.StrokeShape>
+                                StrokeThickness="1.5" Stroke="{StaticResource RfmAccentTeal}" Padding="0" StrokeShape="RoundRectangle 8">
                             <Grid >
                                 <Image Source="avatar.png" Aspect="AspectFill"
                                        IsVisible="{Binding Profile.AvatarPath, Source={x:Reference Root}, Converter={StaticResource NoLogo}}" />
@@ -46,10 +40,7 @@
                                FontSize="20" HorizontalOptions="Center" TextColor="{StaticResource RfmAccentTeal}" />
 
                         <Label Text="Fähigkeiten" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                        <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="10" />
-                            </Border.StrokeShape>
+                        <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                             <Grid ColumnDefinitions="*,32,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="6">
 
                                 <Label Grid.Row="0" Grid.Column="0" Text="Trainingsgestaltung" VerticalOptions="Center" TextColor="{StaticResource RfmText}" />

@@ -30,10 +30,7 @@
             <!-- Grouptables -->
             <VerticalStackLayout Spacing="8" IsVisible="{Binding HasGroups}" HorizontalOptions="Start" WidthRequest="880">
                 <Label Text="Gruppentabelle" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                <Border StrokeThickness="0" Padding="8" BackgroundColor="{StaticResource RfmSurface}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="12" />
-                    </Border.StrokeShape>
+                <Border StrokeThickness="0" Padding="8" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                     <VerticalStackLayout>
                         <Grid ColumnDefinitions="26,*,28,26,26,32,30" Padding="6,4" ColumnSpacing="4">
                             <Label Grid.Column="0" Text="#" FontSize="22" TextColor="{StaticResource RfmTextMuted}" />
@@ -77,10 +74,7 @@
                                 <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Ties}">
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="vm:KoTieDisplayRow">
-                                            <Border StrokeThickness="0" Padding="10,6" BackgroundColor="{StaticResource RfmSurface}">
-                                                <Border.StrokeShape>
-                                                    <RoundRectangle CornerRadius="8" />
-                                                </Border.StrokeShape>
+                                            <Border StrokeThickness="0" Padding="10,6" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 8">
                                                 <VerticalStackLayout Spacing="2">
                                                     <Label FontSize="18" TextColor="{StaticResource RfmText}">
                                                         <Label.FormattedText>
@@ -117,10 +111,7 @@
             <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding TopPlayers}" WidthRequest="880" HorizontalOptions="Start">
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="vm:StatRankRow">
-                        <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="8" />
-                            </Border.StrokeShape>
+                        <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" StrokeShape="RoundRectangle 8">
                             <Grid ColumnDefinitions="28,*,Auto,Auto" ColumnSpacing="10">
                                 <Label Grid.Column="0" Text="{Binding Rank}" FontSize="18" FontAttributes="Bold"
                                        TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />

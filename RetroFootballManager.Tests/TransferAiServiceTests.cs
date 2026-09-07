@@ -306,7 +306,9 @@ namespace RetroFootballManager.Tests
 
             var player = origin.Players.First(p => p.Position == Position.CentralDefender);
             var listing = await _service.ListPlayerAsync(player, origin, askingPrice: 1_000_000, season: 1, Today, isLoanListing: true);
-            await _service.MakeOfferAsync(listing, loanTeam, fee: 0, wageOffer: 60_000, Today);
+            // Must cover at least ~75% of the player's own estimated salary (baseRating 60 ->
+            // ~106,875/year), not just any positive number - see ShouldAcceptOffer.
+            await _service.MakeOfferAsync(listing, loanTeam, fee: 0, wageOffer: 90_000, Today);
 
             var teamsById = new Dictionary<int, Team> { [origin.Id] = origin, [loanTeam.Id] = loanTeam };
             await TransferAiService.EvaluateIncomingOffersAsync(origin, [listing], _service, teamsById, Today);
@@ -315,6 +317,54 @@ namespace RetroFootballManager.Tests
             Assert.DoesNotContain(player, origin.Players);
             var remainingListings = await _listingRepo.GetByTeamAsync(origin.Id);
             Assert.Empty(remainingListings);
+        }
+
+        [Fact]
+        public async Task EvaluateIncomingOffersAsync_RejectsLoanOffer_BelowWageShareFloor()
+        {
+            var origin = await CreateTeamWithSurplusAsync("Verleiher", 1_000_000);
+            var loanTeam = TestHelpers.CreateTeam("Leihteam", baseRating: 60);
+            loanTeam.Finances = new Finances { CurrentBalance = 5_000_000 };
+            await _teamRepo.SaveTeamAsync(loanTeam);
+
+            var player = origin.Players.First(p => p.Position == Position.CentralDefender);
+            var listing = await _service.ListPlayerAsync(player, origin, askingPrice: 1_000_000, season: 1, Today, isLoanListing: true);
+            // A token wage offer used to be accepted outright (old threshold was "> 0") - now
+            // must clear ~75% of the player's own estimated salary.
+            await _service.MakeOfferAsync(listing, loanTeam, fee: 0, wageOffer: 5_000, Today);
+
+            var teamsById = new Dictionary<int, Team> { [origin.Id] = origin, [loanTeam.Id] = loanTeam };
+            await TransferAiService.EvaluateIncomingOffersAsync(origin, [listing], _service, teamsById, Today);
+
+            Assert.Contains(player, origin.Players);
+            Assert.DoesNotContain(player, loanTeam.Players);
+        }
+
+        [Fact]
+        public async Task EvaluateIncomingOffersAsync_RejectsTransferOffer_WhenBuyerIsInAMuchWeakerLeague()
+        {
+            // A genuinely elite player (Rating 90) at a top-flight club - a bottom-tier bidder
+            // offering full asking price shouldn't be able to just take him; the level-gap
+            // premium should push the required fee well above what a fair-value bid covers.
+            var seller = TestHelpers.CreateTeam("Erstligist", baseRating: 90);
+            seller.LeagueTier = 1;
+            seller.Players[0].Rating = 90;
+            await _teamRepo.SaveTeamAsync(seller);
+
+            var buyer = TestHelpers.CreateTeam("Viertligist", baseRating: 60);
+            buyer.LeagueTier = 4;
+            buyer.Finances = new Finances { CurrentBalance = 50_000_000 };
+            await _teamRepo.SaveTeamAsync(buyer);
+
+            var player = seller.Players[0];
+            var listing = await _service.ListPlayerAsync(player, seller, askingPrice: 1_000_000, season: 1, Today);
+            await _service.MakeOfferAsync(listing, buyer, fee: 1_000_000, wageOffer: 150_000, Today);
+
+            var teamsById = new Dictionary<int, Team> { [seller.Id] = seller, [buyer.Id] = buyer };
+            await TransferAiService.EvaluateIncomingOffersAsync(seller, [listing], _service, teamsById, Today);
+
+            Assert.Contains(player, seller.Players);
+            Assert.DoesNotContain(player, buyer.Players);
         }
 
         // Ein Random, dessen erster NextDouble()-Wert garantiert unter jeder ActivityChance

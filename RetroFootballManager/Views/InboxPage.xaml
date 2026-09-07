@@ -18,10 +18,7 @@
                     <DataTemplate x:DataType="vm:InboxMessageRow">
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                             <Border Grid.Column="0" Padding="12,10" BackgroundColor="{StaticResource RfmSurface}"
-                                    StrokeThickness="0" Opacity="{Binding IsRead, Converter={StaticResource ReadOpacity}}">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
+                                    StrokeThickness="0" Opacity="{Binding IsRead, Converter={StaticResource ReadOpacity}}" StrokeShape="RoundRectangle 8">
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer
                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.MarkReadCommand}"
@@ -34,18 +31,17 @@
                                         <Label Grid.Column="1" Text="{Binding DateText}" FontSize="20"
                                                TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
                                     </Grid>
-                                    <Label Text="{Binding Body}" FontSize="18" TextColor="{StaticResource RfmTextMuted}"
-                                           IsVisible="{Binding HasFormattedBody, Converter={StaticResource InvertedBool}}" />
-                                    <Label FormattedText="{Binding BodyFormatted}" FontSize="18"
-                                           IsVisible="{Binding HasFormattedBody}" />
+                                    <Label Text="{Binding Body}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                                    <Button Text="Anzeigen" FontSize="16" Padding="14,6" HorizontalOptions="Start"
+                                            IsVisible="{Binding IsDigest}"
+                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.OpenDigestCommand}"
+                                            CommandParameter="{Binding Id}"
+                                            BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
                                 </VerticalStackLayout>
                             </Border>
                             <Border Grid.Column="1" WidthRequest="48" HeightRequest="48" Padding="0"
                                     BackgroundColor="{StaticResource RfmText}" StrokeThickness="0"
-                                    VerticalOptions="Center">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
+                                    VerticalOptions="Center" StrokeShape="RoundRectangle 8">
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer
                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.DeleteCommand}"
@@ -62,5 +58,57 @@
         <VerticalStackLayout Grid.Row="1" Spacing="8">
             <Label Text="{Binding StatusText}" FontSize="22" TextColor="{StaticResource RfmAccentTeal}" />
         </VerticalStackLayout>
+
+        <!-- Transfer-window digest dialog - a league-wide window can easily produce 100+
+             transfers; showing them all as one Label's FormattedText (the old approach) is
+             exactly the kind of "too much complex content at once" that crashes WinUI on
+             Windows elsewhere in this app (see TransferMarketPage's crash history), so the full
+             list lives here, paginated, instead of inline in the message row. -->
+        <Grid IsVisible="{Binding IsDigestDialogOpen}" BackgroundColor="#B0000000" Grid.RowSpan="2">
+            <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
+                    BackgroundColor="{StaticResource RfmBackground}"
+                    Margin="20" Padding="18"
+                    WidthRequest="880" HeightRequest="850"
+                    HorizontalOptions="Center" VerticalOptions="Center"
+                    StrokeShape="RoundRectangle 16">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="{Binding DigestDialogTitle}" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                        <Button Grid.Column="1" ImageSource="close.png" Command="{Binding CloseDigestCommand}"
+                                BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}"
+                                WidthRequest="36" HeightRequest="36" Padding="8" />
+                    </Grid>
+                    <ScrollView Grid.Row="1" Margin="0,12,0,0">
+                        <VerticalStackLayout Spacing="2" BindableLayout.ItemsSource="{Binding DigestLinesPage}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:DigestLineRow">
+                                    <Label Text="{Binding Text}" TextColor="{Binding Color}" FontSize="16">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsBold}" Value="True">
+                                                <Setter Property="FontAttributes" Value="Bold" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </ScrollView>
+                    <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto" Margin="0,12,0,0">
+                        <Button Grid.Column="0" Text="Zurück" FontSize="16" Padding="14,8"
+                                Command="{Binding PreviousDigestPageCommand}"
+                                IsEnabled="{Binding CanGoToPreviousDigestPage}"
+                                BackgroundColor="Transparent" BorderColor="{StaticResource RfmTextMuted}" BorderWidth="1"
+                                TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Column="1" Text="{Binding DigestPageInfo}" FontSize="16"
+                               TextColor="{StaticResource RfmTextMuted}" HorizontalOptions="Center" VerticalOptions="Center" />
+                        <Button Grid.Column="2" Text="Weiter" FontSize="16" Padding="14,8"
+                                Command="{Binding NextDigestPageCommand}"
+                                IsEnabled="{Binding CanGoToNextDigestPage}"
+                                BackgroundColor="Transparent" BorderColor="{StaticResource RfmTextMuted}" BorderWidth="1"
+                                TextColor="{StaticResource RfmText}" />
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </local:BaseContentPage>

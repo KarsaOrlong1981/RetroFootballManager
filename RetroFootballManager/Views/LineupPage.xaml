@@ -65,10 +65,7 @@
                     </VerticalStackLayout>
                 </Grid>
                 <!-- Pitch: goalkeeper at the bottom, forwards at the top -->
-                <Border StrokeThickness="0" BackgroundColor="{StaticResource RfmPitch}"  HeightRequest="800">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="14" />
-                    </Border.StrokeShape>
+                <Border StrokeThickness="0" BackgroundColor="{StaticResource RfmPitch}"  HeightRequest="800" StrokeShape="RoundRectangle 14">
                     <Grid>
                         <Image Source="tactic.png" Aspect="Fill" />
                         <AbsoluteLayout BindableLayout.ItemsSource="{Binding Pitch}" Padding="8">
@@ -79,10 +76,7 @@
                                         StrokeThickness="3"
                                         Stroke="{Binding Fit, Converter={StaticResource FitColor}}"
                                         BackgroundColor="{StaticResource RfmAccent}"
-                                        Padding="3">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="12" />
-                                    </Border.StrokeShape>
+                                        Padding="3" StrokeShape="RoundRectangle 12">
                                         <Grid>
                                             <Grid>
                                             <Grid.GestureRecognizers>
@@ -120,10 +114,7 @@
                                             </Grid>
                                         </Grid>
                                         <Border BackgroundColor="#40000000" WidthRequest="20" HeightRequest="20"
-                                                HorizontalOptions="End" VerticalOptions="Start" Margin="2" Padding="0" StrokeThickness="0">
-                                            <Border.StrokeShape>
-                                                <RoundRectangle CornerRadius="10" />
-                                            </Border.StrokeShape>
+                                                HorizontalOptions="End" VerticalOptions="Start" Margin="2" Padding="0" StrokeThickness="0" StrokeShape="RoundRectangle 10">
                                             <Border.GestureRecognizers>
                                                 <TapGestureRecognizer
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
@@ -136,10 +127,7 @@
                                                 BackgroundColor="{Binding IsAlternateActive, Converter={StaticResource RoleToggleColor}}"
                                                 WidthRequest="24" HeightRequest="20"
                                                 HorizontalOptions="Start" VerticalOptions="Start" Margin="2" Padding="0" StrokeThickness="1"
-                                                Stroke="{StaticResource RfmAccentTeal}">
-                                            <Border.StrokeShape>
-                                                <RoundRectangle CornerRadius="6" />
-                                            </Border.StrokeShape>
+                                                Stroke="{StaticResource RfmAccentTeal}" StrokeShape="RoundRectangle 6">
                                             <Border.GestureRecognizers>
                                                 <TapGestureRecognizer
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.ToggleSlotRoleCommand}"
@@ -165,10 +153,7 @@
                 <VerticalStackLayout Grid.Row="1" Opacity="0.85" Spacing="2" MaximumWidthRequest="1400" MinimumWidthRequest="1000" HorizontalOptions="Start" BindableLayout.ItemsSource="{Binding Bench}">
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="vm:SquadToken">
-                            <Border Padding="10,6" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
+                            <Border Padding="10,6" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" StrokeShape="RoundRectangle 8">
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer
                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.SelectPlayerCommand}"
@@ -189,10 +174,7 @@
                                             <Label Text="{Binding Fitness, StringFormat='{0}%'}" FontSize="18" TextColor="{Binding FitnessColor}" />
                                             <Image Source="yellowcard.png" WidthRequest="22" HeightRequest="26" Aspect="AspectFit" IsVisible="{Binding HasYellowCard}" />
                                         </HorizontalStackLayout>
-                                        <Border Grid.Column="0" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="22" HeightRequest="22" Padding="0" StrokeThickness="0">
-                                            <Border.StrokeShape>
-                                                <RoundRectangle CornerRadius="11" />
-                                            </Border.StrokeShape>
+                                        <Border Grid.Column="0" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="22" HeightRequest="22" Padding="0" StrokeThickness="0" StrokeShape="RoundRectangle 11">
                                             <Border.GestureRecognizers>
                                                 <TapGestureRecognizer
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
@@ -204,10 +186,7 @@
                                     <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding Attributes.Chips}" WidthRequest="800">
                                         <BindableLayout.ItemTemplate>
                                             <DataTemplate x:DataType="vm:AttributeChip">
-                                                <Border BackgroundColor="{StaticResource RfmSurfaceAlt}" Margin="2" Padding="5,2" StrokeThickness="0">
-                                                    <Border.StrokeShape>
-                                                        <RoundRectangle CornerRadius="5" />
-                                                    </Border.StrokeShape>
+                                                <Border BackgroundColor="{StaticResource RfmSurfaceAlt}" Margin="2" Padding="5,2" StrokeThickness="0" StrokeShape="RoundRectangle 5">
                                                     <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
                                                         <Label.FormattedText>
                                                             <FormattedString>
@@ -233,10 +212,7 @@
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="vm:SquadToken">
                             <Border Padding="10,6" BackgroundColor="{StaticResource RfmSurfaceAlt}" StrokeThickness="0"
-                                    Opacity="{Binding IsDisabled, Converter={StaticResource DisabledOpacity}}">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
+                                    Opacity="{Binding IsDisabled, Converter={StaticResource DisabledOpacity}}" StrokeShape="RoundRectangle 8">
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer
                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.SelectPlayerCommand}"
@@ -258,10 +234,7 @@
                                                 <Label Text="{Binding Fitness, StringFormat='{0}%'}" FontSize="18" TextColor="{Binding FitnessColor}" />
                                             <Image Source="yellowcard.png" WidthRequest="22" HeightRequest="26" Aspect="AspectFit" IsVisible="{Binding HasYellowCard}" />
                                         </HorizontalStackLayout>
-                                        <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurface}" WidthRequest="24" HeightRequest="24" Padding="0" StrokeThickness="0">
-                                            <Border.StrokeShape>
-                                                <RoundRectangle CornerRadius="11" />
-                                            </Border.StrokeShape>
+                                        <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurface}" WidthRequest="24" HeightRequest="24" Padding="0" StrokeThickness="0" StrokeShape="RoundRectangle 11">
                                             <Border.GestureRecognizers>
                                                 <TapGestureRecognizer
                                                     Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
@@ -273,10 +246,7 @@
                                         <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding Attributes.Chips}" WidthRequest="800">
                                         <BindableLayout.ItemTemplate>
                                             <DataTemplate x:DataType="vm:AttributeChip">
-                                                <Border BackgroundColor="{StaticResource RfmSurface}" Margin="2" Padding="5,2" StrokeThickness="0">
-                                                    <Border.StrokeShape>
-                                                        <RoundRectangle CornerRadius="5" />
-                                                    </Border.StrokeShape>
+                                                <Border BackgroundColor="{StaticResource RfmSurface}" Margin="2" Padding="5,2" StrokeThickness="0" StrokeShape="RoundRectangle 5">
                                                     <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
                                                         <Label.FormattedText>
                                                             <FormattedString>
@@ -305,10 +275,7 @@
                     BackgroundColor="{StaticResource RfmBackground}"
                     Margin="20" Padding="0"
                     MaximumWidthRequest="900" MaximumHeightRequest="640"
-                    HorizontalOptions="Center" VerticalOptions="Center">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="16" />
-                </Border.StrokeShape>
+                    HorizontalOptions="Center" VerticalOptions="Center" StrokeShape="RoundRectangle 16">
 
                 <Grid RowDefinitions="Auto,*" Padding="18" RowSpacing="12">
 
@@ -331,17 +298,11 @@
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="vm:FormationDialogItem">
                                     <Grid Padding="3">
-                                        <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
-                                            <Border.StrokeShape>
-                                                <RoundRectangle CornerRadius="10" />
-                                            </Border.StrokeShape>
+                                        <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" StrokeShape="RoundRectangle 10">
                                             <Grid ColumnDefinitions="46,*,Auto" ColumnSpacing="10">
                                                 <!-- Mini pitch thumbnail -->
                                                 <Border Grid.Column="0" BackgroundColor="{StaticResource RfmPitch}"
-                                                        WidthRequest="42" HeightRequest="46" StrokeThickness="0">
-                                                    <Border.StrokeShape>
-                                                        <RoundRectangle CornerRadius="6" />
-                                                    </Border.StrokeShape>
+                                                        WidthRequest="42" HeightRequest="46" StrokeThickness="0" StrokeShape="RoundRectangle 6">
                                                     <AbsoluteLayout BindableLayout.ItemsSource="{Binding Formation.Slots}">
                                                         <BindableLayout.ItemTemplate>
                                                             <DataTemplate x:DataType="core:FormationSlot">
@@ -373,10 +334,7 @@
                                    TextColor="{StaticResource RfmText}" HorizontalOptions="Center" />
 
                             <Border Grid.Row="1" StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
-                                    BackgroundColor="{StaticResource RfmPitch}">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="10" />
-                                </Border.StrokeShape>
+                                    BackgroundColor="{StaticResource RfmPitch}" StrokeShape="RoundRectangle 10">
                                 <AbsoluteLayout BindableLayout.ItemsSource="{Binding SelectedDialogItem.Formation.Slots}" Padding="10">
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="core:FormationSlot">

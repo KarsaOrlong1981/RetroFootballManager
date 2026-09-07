@@ -12,6 +12,11 @@ namespace RetroFootballManager.Common
     {
         public const double MaxPerformancePremium = 0.30;
 
+        // Floor for how much of a loan-out's wage the borrowing club is expected to cover -
+        // never realistically less than this, regardless of player quality (premiums only push
+        // it higher, see EstimateExpectedFee's loan callers).
+        public const double BaseExpectedWageSharePercentage = 75.0;
+
         // A great young talent already proving it on the pitch is worth holding out for -
         // up to +30% on top of the plain asking price/market value.
         public static double EstimatePerformancePremium(Player player, PlayerStats? seasonStats)
@@ -34,8 +39,34 @@ namespace RetroFootballManager.Common
             return Math.Min(premium, MaxPerformancePremium);
         }
 
+        // A club sitting well below the player's level has to dig deep to prise him away from a
+        // stronger one - same for pulling him down to their own level on loan. Team.LeagueTier is
+        // 1 (top) .. 4 (bottom), so a positive gap means the buyer/borrower plays in a weaker
+        // league than the seller/lender. Zero for a lateral or upward move, or for a player who
+        // isn't good enough for this to matter in the first place.
+        public const int EliteRatingThreshold = 70;
+        public const double MaxLevelGapPremiumPerTier = 0.6;
+
+        public static double EstimateLevelGapPremium(Player player, int sellingTeamTier, int buyingTeamTier)
+        {
+            int tierGap = buyingTeamTier - sellingTeamTier;
+            if (tierGap <= 0 || player.Rating < EliteRatingThreshold)
+                return 0;
+
+            double qualityFactor = Math.Clamp((player.Rating - EliteRatingThreshold) / 25.0, 0, 1);
+            return tierGap * MaxLevelGapPremiumPerTier * qualityFactor;
+        }
+
         public static double EstimateExpectedFee(double baseFee, Player player, PlayerStats? seasonStats) =>
-            Math.Round(baseFee * (1 + EstimatePerformancePremium(player, seasonStats)));
+            EstimateExpectedFee(baseFee, player, seasonStats, sellingTeamTier: 0, buyingTeamTier: 0);
+
+        public static double EstimateExpectedFee(
+            double baseFee, Player player, PlayerStats? seasonStats, int sellingTeamTier, int buyingTeamTier)
+        {
+            double premium = EstimatePerformancePremium(player, seasonStats)
+                + EstimateLevelGapPremium(player, sellingTeamTier, buyingTeamTier);
+            return Math.Round(baseFee * (1 + premium));
+        }
 
         // ratio = offered fee / secret expectation. Centered at 1.0 (offer exactly matches
         // expectation). Reaching Furious ends the negotiation immediately - no extra buffer.

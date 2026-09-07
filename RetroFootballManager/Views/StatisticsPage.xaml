@@ -28,10 +28,7 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="vm:StatRankRow">
                         <Grid Padding="3">
-                            <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}"  WidthRequest="850" HorizontalOptions="Start" StrokeThickness="0">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
+                            <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}"  WidthRequest="850" HorizontalOptions="Start" StrokeThickness="0" StrokeShape="RoundRectangle 8">
                                 <Grid ColumnDefinitions="58,36,*,50,80,26" ColumnSpacing="10">
                                     <Label Grid.Column="1" Text="{Binding Rank}" FontSize="22" FontAttributes="Bold"
                                            TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
@@ -43,10 +40,7 @@
                                            TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
                                     <Label Grid.Column="4" Text="{Binding Value}" FontSize="18" FontAttributes="Bold"
                                            TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
-                                    <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="26" HeightRequest="26" Padding="0" StrokeThickness="0">
-                                        <Border.StrokeShape>
-                                            <RoundRectangle CornerRadius="11" />
-                                        </Border.StrokeShape>
+                                    <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="26" HeightRequest="26" Padding="0" StrokeThickness="0" StrokeShape="RoundRectangle 11">
                                         <Border.GestureRecognizers>
                                             <TapGestureRecognizer
                                                 Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"

@@ -14,10 +14,7 @@
             <VerticalStackLayout Padding="20" Spacing="14">
 
                 <Label Text="Standard-Spielgeschwindigkeit" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                <Border StrokeThickness="0" Padding="14" BackgroundColor="{StaticResource RfmSurface}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="12" />
-                    </Border.StrokeShape>
+                <Border StrokeThickness="0" Padding="14" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                     <VerticalStackLayout Spacing="8">
                         <Label Text="{Binding DefaultMatchSpeedLabel}" TextColor="{StaticResource RfmText}" HorizontalOptions="Center" />
                         <Slider Minimum="0" Maximum="4" Value="{Binding DefaultMatchSpeed}" />
@@ -48,10 +45,7 @@
                     BackgroundColor="{StaticResource RfmBackground}"
                     Margin="20" Padding="18"
                     MaximumWidthRequest="420"
-                    HorizontalOptions="Center" VerticalOptions="Center">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="16" />
-                </Border.StrokeShape>
+                    HorizontalOptions="Center" VerticalOptions="Center" StrokeShape="RoundRectangle 16">
                 <VerticalStackLayout Spacing="16">
                     <Label Text="Karriere-Fortschritt wirklich zurücksetzen?" FontSize="18" FontAttributes="Bold"
                            TextColor="{StaticResource RfmText}" HorizontalOptions="Center" />

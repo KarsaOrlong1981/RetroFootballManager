@@ -16,11 +16,7 @@
             <Setter Property="BackgroundColor" Value="Transparent" />
             <Setter Property="Stroke" Value="Transparent" />
             <Setter Property="StrokeThickness" Value="2" />
-            <Setter Property="StrokeShape">
-                <Setter.Value>
-                    <RoundRectangle CornerRadius="12" />
-                </Setter.Value>
-            </Setter>
+            <Setter Property="StrokeShape" Value="RoundRectangle 12" />
         </Style>
     </local:BaseContentPage.Resources>
 
@@ -136,19 +132,13 @@
             <VerticalStackLayout Opacity="0.85" Padding="20" Spacing="16">
 
                 <!-- Verein-Kopf -->
-                <Border StrokeThickness="0" Padding="16" BackgroundColor="{StaticResource RfmSurface}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="14" />
-                    </Border.StrokeShape>
+                <Border StrokeThickness="0" Padding="16" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 14">
                     <Grid>
                         <Grid ColumnDefinitions="150,Auto,*,*,Auto,Auto" ColumnSpacing="14">
                             <Border Grid.Column="0" WidthRequest="150" HeightRequest="150"
                                     BackgroundColor="White"
                                     Stroke="{StaticResource RfmAccentTeal}" StrokeThickness="1.5" Padding="4"
-                                    VerticalOptions="Center">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="14" />
-                                </Border.StrokeShape>
+                                    VerticalOptions="Center" StrokeShape="RoundRectangle 14">
                                 <Grid>
                                     <Image Source="{Binding ClubLogoPath, Converter={StaticResource LogoSource}}"
                                    IsVisible="{Binding ClubLogoPath, Converter={StaticResource HasLogo}}"
@@ -191,10 +181,7 @@
                                 <Label Text="{Binding PreSeasonInfo}" FontSize="16" FontAttributes="Bold"
                                TextColor="{StaticResource RfmAccentTeal}" HorizontalOptions="Center"
                                IsVisible="{Binding HasPreSeasonInfo}" />
-                                <Border StrokeThickness="0" Padding="10,8" BackgroundColor="{StaticResource RfmSurface}">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="10" />
-                                    </Border.StrokeShape>
+                                <Border StrokeThickness="0" Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                                     <Label Text="{Binding TransferWindowInfo}" Style="{StaticResource RfmLabel}"
                                        TextColor="{Binding TransferWindowColor}" />
                                 </Border>
@@ -202,10 +189,7 @@
                                     IsVisible="{Binding HasStatusText}" />
                                 <!-- Tooltip toggle: pinned top-left, always available on the main menu -->
                                 <Border StrokeThickness="0" Padding="10,6"  BackgroundColor="{StaticResource RfmSurface}"
-                                    Opacity="0.9" HorizontalOptions="Start" VerticalOptions="Start">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="10" />
-                                    </Border.StrokeShape>
+                                    Opacity="0.9" HorizontalOptions="Start" VerticalOptions="Start" StrokeShape="RoundRectangle 10">
                                     <HorizontalStackLayout Spacing="6">
                                         <CheckBox IsChecked="{Binding ShowTooltips}" Margin="0,4,0,0" Color="{StaticResource RfmAccentTeal}" />
                                         <Label Text="Tooltips anzeigen" VerticalOptions="Center" TextColor="{StaticResource RfmText}" FontSize="18" />
@@ -247,10 +231,7 @@
                                 BackgroundColor="{StaticResource RfmAccentTeal}" StrokeThickness="0"
                                 WidthRequest="20" HeightRequest="20" Padding="0"
                                 HorizontalOptions="End" VerticalOptions="Start"
-                                InputTransparent="True">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="10" />
-                                    </Border.StrokeShape>
+                                InputTransparent="True" StrokeShape="RoundRectangle 10">
                                     <Label Text="{Binding UnreadMessageCount}" FontSize="11" FontAttributes="Bold"
                                    TextColor="{StaticResource RfmBackground}" HorizontalOptions="Center" VerticalOptions="Center" />
                                 </Border>
@@ -262,10 +243,7 @@
         </ScrollView>
 
         <HorizontalStackLayout Margin="20" HorizontalOptions="End" VerticalOptions="End" Spacing="20">
-            <Border StrokeThickness="0" Padding="16" BackgroundColor="{StaticResource RfmSurface}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="14" />
-                </Border.StrokeShape>
+            <Border StrokeThickness="0" Padding="16" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 14">
                 <VerticalStackLayout Spacing="6">
                     <Label Text="Vereinsstimmung" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
@@ -285,10 +263,7 @@
             <!-- Overview: upcoming friendlies + active training camp - pinned to the bottom of the screen -->
             <Border StrokeThickness="0" Padding="12,10" Margin="0" BackgroundColor="{StaticResource RfmSurface}"
                     Opacity="0.9" 
-                    IsVisible="{Binding HasOverviewContent}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="10" />
-                </Border.StrokeShape>
+                    IsVisible="{Binding HasOverviewContent}" StrokeShape="RoundRectangle 10">
                 <VerticalStackLayout Spacing="4">
                     <Label Text="{Binding ActiveTrainingCampText}" FontSize="18" FontAttributes="Bold"
                TextColor="{StaticResource RfmAccentTeal}"
@@ -314,10 +289,7 @@
                 BackgroundColor="{StaticResource RfmBackground}"
                 Margin="20" Padding="18"
                 WidthRequest="540" HeightRequest="560"
-                HorizontalOptions="Center" VerticalOptions="Center">
-            <Border.StrokeShape>
-                <RoundRectangle CornerRadius="16" />
-            </Border.StrokeShape>
+                HorizontalOptions="Center" VerticalOptions="Center" StrokeShape="RoundRectangle 16">
             <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="12">
                 <Label Grid.Row="0" Text="Freundschaftsspiel ansetzen" FontSize="18" FontAttributes="Bold"
                        TextColor="{StaticResource RfmText}" />
@@ -356,10 +328,7 @@
                 BackgroundColor="{StaticResource RfmBackground}"
                 Margin="20" Padding="18"
                 WidthRequest="540" HeightRequest="560"
-                HorizontalOptions="Center" VerticalOptions="Center">
-            <Border.StrokeShape>
-                <RoundRectangle CornerRadius="16" />
-            </Border.StrokeShape>
+                HorizontalOptions="Center" VerticalOptions="Center" StrokeShape="RoundRectangle 16">
             <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="12">
                 <Label Grid.Row="0" Text="Trainingslager buchen" FontSize="18" FontAttributes="Bold"
                        TextColor="{StaticResource RfmText}" />

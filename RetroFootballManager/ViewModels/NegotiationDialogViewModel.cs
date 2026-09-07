@@ -49,11 +49,6 @@ namespace RetroFootballManager.ViewModels
         // (matches NegotiationMoodLevel's declaration order) through index 4 = Delighted.
         private static readonly string[] MoodPhaseSuffix = ["phase_five", "phase_four", "phase_three", "phase_two", "phase_one"];
 
-        // A loan never has a transfer fee - the manager phase negotiates a wage-share
-        // percentage (how much of the player's current salary we take over) and a loan
-        // duration instead (see StartManagerNegotiation/SubmitManagerOffer).
-        private const double BaseExpectedWageSharePercentage = 50.0;
-
         private readonly GameSession _session;
         private readonly SaveGameService _saveGame;
         private readonly TransferMarketService _market;
@@ -120,7 +115,7 @@ namespace RetroFootballManager.ViewModels
         // Loan-only manager-phase fields (see StartManagerNegotiation) - shown instead of the
         // fee/sell-on fields whenever the listing is a loan.
         [ObservableProperty] private bool _showLoanWageFields;
-        [ObservableProperty] private int _negotiationWageSharePercentage = (int)BaseExpectedWageSharePercentage;
+        [ObservableProperty] private int _negotiationWageSharePercentage = (int)NegotiationExpectationService.BaseExpectedWageSharePercentage;
         [ObservableProperty] private int _negotiationLoanDurationMonths = 6;
         [ObservableProperty] private double _negotiationLoanAnnualWage;
         [ObservableProperty] private double _negotiationLoanMonthlyWage;
@@ -329,9 +324,17 @@ namespace RetroFootballManager.ViewModels
             _negotiationOriginalWage = originalWage;
             _onCompleted = onCompleted;
 
+            // Which side plays in the weaker league drives the level-gap premium (see
+            // NegotiationExpectationService.EstimateLevelGapPremium) - Sell/loan-out: we're the
+            // seller/lender, the counterpart is buying/borrowing; every other scenario is the
+            // reverse.
+            int sellingTeamTier = scenario == NegotiationScenario.Sell ? myTeam.LeagueTier : counterpartTeam.LeagueTier;
+            int buyingTeamTier = scenario == NegotiationScenario.Sell ? counterpartTeam.LeagueTier : myTeam.LeagueTier;
+
             _negotiationExpectedFee = isLoanDeal
-                ? NegotiationExpectationService.EstimateExpectedFee(BaseExpectedWageSharePercentage, player, seasonStats)
-                : NegotiationExpectationService.EstimateExpectedFee(baseFee, player, seasonStats);
+                ? NegotiationExpectationService.EstimateExpectedFee(
+                    NegotiationExpectationService.BaseExpectedWageSharePercentage, player, seasonStats, sellingTeamTier, buyingTeamTier)
+                : NegotiationExpectationService.EstimateExpectedFee(baseFee, player, seasonStats, sellingTeamTier, buyingTeamTier);
 
             ManagerCharacterIndex = _rng.Next(1, 5);
             ManagerMood = NegotiationMoodLevel.Neutral;
@@ -347,7 +350,7 @@ namespace RetroFootballManager.ViewModels
             ShowLoanWageFields = isLoanDeal;
             NegotiationFee = Math.Round(baseFee);
             NegotiationSellOnPercentage = 0;
-            NegotiationWageSharePercentage = (int)BaseExpectedWageSharePercentage;
+            NegotiationWageSharePercentage = (int)NegotiationExpectationService.BaseExpectedWageSharePercentage;
             NegotiationLoanDurationMonths = 6;
             NegotiatedWage = Math.Round(baseFee * 0.15);
             IsManagerPhaseOpen = true;
@@ -386,7 +389,18 @@ namespace RetroFootballManager.ViewModels
                 return;
 
             double offeredValue = _isLoanDeal ? NegotiationWageSharePercentage : NegotiationFee;
-            double ratio = _negotiationExpectedFee > 0 ? offeredValue / _negotiationExpectedFee : 1.0;
+
+            // Buy/loan-in: the counterpart RECEIVES the fee/wage-share - they're happier the
+            // MORE we offer relative to their expectation, so ratio = offer/expectation.
+            // Sell/loan-out: we're the seller/lender, so the counterpart is the one PAYING -
+            // they're happier the LESS we demand, i.e. the exact inverse ratio. Using the same
+            // "higher = happier" ratio for both used to let a demanded fee of any size still
+            // read as "delighted" on the Sell side, letting a listed player be sold for several
+            // times his market value with no pushback.
+            double ratio = _negotiationExpectedFee <= 0 ? 1.0
+                : _currentScenario == NegotiationScenario.Sell
+                    ? _negotiationExpectedFee / Math.Max(offeredValue, 1)
+                    : offeredValue / _negotiationExpectedFee;
             var mood = NegotiationExpectationService.EvaluateFeeMood(ratio);
             ManagerMood = mood;
             ManagerImageSource = BuildManagerImageSource(ManagerCharacterIndex, mood);
@@ -398,6 +412,15 @@ namespace RetroFootballManager.ViewModels
             if (mood == NegotiationMoodLevel.Furious)
             {
                 _negotiationConcluded = true;
+
+                // Sell/loan-out: _negotiationOffer is the counterpart's still-Pending incoming
+                // offer we were countering. Without rejecting it here, walking away from our own
+                // counter-demand left that original offer sitting in the list as if nothing had
+                // happened - the manager storms off, but the same offer could still just be
+                // accepted afterwards, making the whole blow-up pointless.
+                if (_currentScenario == NegotiationScenario.Sell && _negotiationOffer is not null)
+                    await _market.RejectOfferAsync(_negotiationOffer);
+
                 await _cooldownRepo.SaveAsync(new NegotiationCooldown
                 {
                     BuyingTeamId = _myTeam.Id, PlayerId = _negotiationPlayer.Id, Season = CurrentSeason(),
@@ -546,6 +569,18 @@ namespace RetroFootballManager.ViewModels
             }
             else
             {
+                // Mirrors the Sell-side affordability guard above - without it, a fee inflated
+                // by the level-gap premium (see StartManagerNegotiation) could be "agreed" here
+                // and only fail much later, at Bedenkzeit resolution, with no chance to lower it.
+                if (!TransferMarketService.CanAffordFee(_myTeam, NegotiationFee))
+                {
+                    ManagerMood = NegotiationMoodLevel.Impatient;
+                    ManagerImageSource = BuildManagerImageSource(ManagerCharacterIndex, ManagerMood);
+                    ManagerMoodText = "Der eigene Klub kann sich diese Ablöse schlicht nicht leisten.";
+                    NegotiationLogText += $"Der Verein kann {NegotiationFee:N0} € nicht aufbringen - versuch es mit einer niedrigeren Ablöse.\n";
+                    return;
+                }
+
                 await OpenPlayerPhaseAsync();
             }
         }
@@ -755,7 +790,11 @@ namespace RetroFootballManager.ViewModels
                 LastOutcomeMessage = $"Verhandlung um {_negotiationPlayer.Name} erfolgreich - Bedenkzeit läuft.";
             }
 
-            IsPlayerPhaseOpen = false;
+            // Deliberately NOT closing the player-phase panel here (it was set IsPlayerPhaseOpen
+            // = false before) - that panel is what shows NegotiationStatusText above, so hiding
+            // it right after setting the success message made the confirmation invisible. Stays
+            // open (with its fields now inert, since _negotiationConcluded blocks resubmission)
+            // until the user dismisses the dialog via the always-visible "Schließen" button.
             await RaiseCompletedAsync();
         }
 

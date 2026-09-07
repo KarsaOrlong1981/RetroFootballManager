@@ -14,10 +14,7 @@
         <Image Aspect="Fill" Source="clubpage.png"/>
         <Grid RowDefinitions="Auto,Auto,*,Auto" Opacity="0.85" Padding="20" RowSpacing="12">
             <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="14">
-            <Border Grid.Column="0" StrokeThickness="0" Padding="16" BackgroundColor="{StaticResource RfmSurface}">
-            <Border.StrokeShape>
-                <RoundRectangle CornerRadius="14" />
-            </Border.StrokeShape>
+            <Border Grid.Column="0" StrokeThickness="0" Padding="16" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 14">
             <VerticalStackLayout Spacing="4">
                 <Label Text="{Binding ClubName}" FontSize="28" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
                 <Label Text="{Binding LeagueTierText}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
@@ -31,10 +28,7 @@
             <!-- Analyst: mit Profil schätzt er Rating/Moral/Finanzen aller anderen Vereine
                  (siehe TeamAssessmentEstimator); ohne Analyst zeigt die ganze Seite nur "?". -->
             <Border Grid.Column="1" StrokeThickness="0" Padding="14" WidthRequest="300" BackgroundColor="{StaticResource RfmSurface}"
-                    IsVisible="{Binding HasAnalyst}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="14" />
-                </Border.StrokeShape>
+                    IsVisible="{Binding HasAnalyst}" StrokeShape="RoundRectangle 14">
                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                     <Image Source="{Binding AnalystImagePath}" WidthRequest="60" HeightRequest="60" HorizontalOptions="Center" />
                     <VerticalStackLayout Grid.Column="1" Spacing="2">
@@ -46,10 +40,7 @@
                 </Grid>
             </Border>
             <Border Grid.Column="1" StrokeThickness="0" Padding="14" WidthRequest="300" BackgroundColor="{StaticResource RfmSurface}"
-                    IsVisible="{Binding HasAnalyst, Converter={StaticResource InvertedBool}}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="14" />
-                </Border.StrokeShape>
+                    IsVisible="{Binding HasAnalyst, Converter={StaticResource InvertedBool}}" StrokeShape="RoundRectangle 14">
                 <VerticalStackLayout Spacing="6">
                     <Label Text="Kein Analyst eingestellt." FontSize="18" TextColor="{StaticResource RfmText}" />
                     <Label Text="Ohne Analyst gibt es keine Einschätzung zu Rating, Moral und Finanzen anderer Vereine."
@@ -89,10 +80,7 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="vm:TeamOverviewRow">
                         <Grid Padding="3">
-                            <Border Padding="10,6" WidthRequest="800" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
+                            <Border Padding="10,6" WidthRequest="800" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" StrokeShape="RoundRectangle 8">
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer
                                         Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowTeamDetailCommand}"

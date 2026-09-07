@@ -17,10 +17,7 @@
 
                 <!-- Übersicht (links) + Sportdirektor-Profil (oben rechts) -->
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14" WidthRequest="1280" HorizontalOptions="Start">
-                    <Border Grid.Column="0" StrokeThickness="0" Padding="16" BackgroundColor="{StaticResource RfmSurface}">
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
-                        </Border.StrokeShape>
+                    <Border Grid.Column="0" StrokeThickness="0" Padding="16" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 14">
                         <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto" ColumnSpacing="20" RowSpacing="6">
                             <Label Grid.Row="0" Grid.Column="0" Text="{Binding MemberCountText}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
                             <Label Grid.Row="0" Grid.Column="1" Text="{Binding LeaguePositionText}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
@@ -44,10 +41,7 @@
                     <!-- Sportdirektor: mit Profil kann man um eine Mengen-Einschätzung bitten;
                          ohne Direktor Link zu Mitarbeiter (wie auf der Finanzen-Seite). -->
                     <Border Grid.Column="1" StrokeThickness="0" Padding="14" WidthRequest="320" BackgroundColor="{StaticResource RfmSurface}"
-                            IsVisible="{Binding HasDirectorOfFootball}">
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
-                        </Border.StrokeShape>
+                            IsVisible="{Binding HasDirectorOfFootball}" StrokeShape="RoundRectangle 14">
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                             <Image Source="{Binding DirectorOfFootballImagePath}" WidthRequest="70" HeightRequest="70" HorizontalOptions="Center" />
                             <VerticalStackLayout Grid.Column="1" Spacing="4">
@@ -62,10 +56,7 @@
                         </Grid>
                     </Border>
                     <Border Grid.Column="1" StrokeThickness="0" Padding="14" WidthRequest="320" BackgroundColor="{StaticResource RfmSurface}"
-                            IsVisible="{Binding HasDirectorOfFootball, Converter={StaticResource InvertedBool}}">
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
-                        </Border.StrokeShape>
+                            IsVisible="{Binding HasDirectorOfFootball, Converter={StaticResource InvertedBool}}" StrokeShape="RoundRectangle 14">
                         <VerticalStackLayout Spacing="8">
                             <Label Text="Kein Sportdirektor eingestellt." FontSize="18" TextColor="{StaticResource RfmText}" />
                             <Label Text="Mengenempfehlungen sind derzeit nicht möglich, die richtige Einschätzung liegt bei Ihnen, oder Sie stellen einen Direktor ein."
@@ -77,10 +68,7 @@
                 </Grid>
 
                 <!-- Mitglieder-Werbekampagne -->
-                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="1280" BackgroundColor="{StaticResource RfmSurface}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="12" />
-                    </Border.StrokeShape>
+                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="1280" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                     <VerticalStackLayout Spacing="8">
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
                             <VerticalStackLayout Spacing="2">
@@ -102,10 +90,7 @@
                 </Border>
 
                 <!-- Schrittweite für alle Mengen/Preis-Stepper (wie im Verhandlungsdialog) -->
-                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="1280" BackgroundColor="{StaticResource RfmSurface}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="12" />
-                    </Border.StrokeShape>
+                <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="1280" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                     <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="14" RowDefinitions="Auto" VerticalOptions="Center">
                         <Label Grid.Column="0" Text="Schrittweite Einkauf" TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
                         <controls:PresetStepInput Grid.Column="1" Value="{Binding BuyStepSize}" />
@@ -122,10 +107,7 @@
                 <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding Articles}">
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="vm:MerchandiseArticleRow">
-                            <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="1280" BackgroundColor="{StaticResource RfmSurfaceAlt}">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="12" />
-                                </Border.StrokeShape>
+                            <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="1280" BackgroundColor="{StaticResource RfmSurfaceAlt}" StrokeShape="RoundRectangle 12">
                                 <Grid ColumnDefinitions="220,*,*,*,220" RowDefinitions="Auto,Auto" RowSpacing="4" ColumnSpacing="14">
                                     <VerticalStackLayout Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Spacing="2">
                                         <Label Text="{Binding DisplayName}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />

@@ -8,10 +8,12 @@ using RetroFootballManager.Services;
 
 namespace RetroFootballManager.ViewModels
 {
-    public record InboxMessageRow(int Id, string Title, string Body, string DateText, bool IsRead, FormattedString? BodyFormatted = null)
-    {
-        public bool HasFormattedBody => BodyFormatted is not null;
-    }
+    public record InboxMessageRow(int Id, string Title, string Body, string DateText, bool IsRead, bool IsDigest = false);
+
+    // One transfer line inside the digest dialog (see InboxViewModel.OpenDigest) - plain text
+    // rows only (no image/Border/button per row), so this list can safely hold far more items
+    // per page than the Market/Own-Players/Free-Agents dialogs on TransferMarketPage.
+    public record DigestLineRow(string Text, Color Color, bool IsBold);
 
     public partial class InboxViewModel : BaseViewModel
     {
@@ -41,9 +43,11 @@ namespace RetroFootballManager.ViewModels
                 var messages = await _messages.GetInboxAsync();
                 _messagesById = messages.ToDictionary(m => m.Id);
                 foreach (var m in messages)
-                    Rows.Add(new InboxMessageRow(
-                        m.Id, m.Title, m.Body, m.Date.ToString("dd.MM.yyyy"), m.IsRead,
-                        m.Type == MessageType.TransferWindowDigest ? BuildTransferDigestFormatting(m.Body) : null));
+                {
+                    bool isDigest = m.Type == MessageType.TransferWindowDigest;
+                    string body = isDigest ? BuildDigestSummary(m.Body) : m.Body;
+                    Rows.Add(new InboxMessageRow(m.Id, m.Title, body, m.Date.ToString("dd.MM.yyyy"), m.IsRead, isDigest));
+                }
 
                 StatusText = messages.Count == 0 ? "Keine Nachrichten." : string.Empty;
             }
@@ -52,6 +56,17 @@ namespace RetroFootballManager.ViewModels
                 Log.Error("Postfach konnte nicht geladen werden.", ex);
                 StatusText = "Postfach konnte nicht geladen werden.";
             }
+        }
+
+        // A transfer window can produce well over a hundred transfers league-wide - a single
+        // Label with that many FormattedText Spans (the old approach) is exactly the kind of
+        // "too much complex content realized at once" that crashes WinUI on Windows elsewhere in
+        // this app (see TransferMarketPage's crash history) - so the inbox row itself only shows
+        // a short summary, with the full list moved into its own paginated dialog (OpenDigest).
+        private static string BuildDigestSummary(string rawBody)
+        {
+            int count = rawBody.Split('\n', StringSplitOptions.RemoveEmptyEntries).Length;
+            return count == 0 ? "Keine Transfers." : $"{count} Transfer{(count == 1 ? "" : "s")} - zum Anzeigen tippen.";
         }
 
         [RelayCommand]
@@ -93,22 +108,68 @@ namespace RetroFootballManager.ViewModels
         private static readonly Color OwnTransferColor = Color.FromArgb("#14B8A6");
         private static readonly Color OtherTransferColor = Color.FromArgb("#8FA3B8");
 
-        private static FormattedString BuildTransferDigestFormatting(string body)
+        // Plain text rows (no image/Border/button), so this can safely hold far more per page
+        // than the Market/Own-Players/Free-Agents dialogs - still paginated rather than showing
+        // everything at once, since a league-wide transfer window can easily produce 100+ lines.
+        private const int DigestPageSize = 40;
+        private List<string> _digestLines = [];
+
+        [ObservableProperty] private bool _isDigestDialogOpen;
+        [ObservableProperty] private string _digestDialogTitle = string.Empty;
+        [ObservableProperty] private int _digestPageIndex;
+
+        public ObservableCollection<DigestLineRow> DigestLinesPage { get; } = [];
+
+        public int DigestPageCount => Math.Max(1, (_digestLines.Count + DigestPageSize - 1) / DigestPageSize);
+        public string DigestPageInfo => _digestLines.Count == 0
+            ? "Keine Transfers" : $"Seite {DigestPageIndex + 1} von {DigestPageCount} ({_digestLines.Count} Transfers)";
+        public bool CanGoToPreviousDigestPage => DigestPageIndex > 0;
+        public bool CanGoToNextDigestPage => DigestPageIndex + 1 < DigestPageCount;
+
+        [RelayCommand]
+        private void OpenDigest(int messageId)
         {
-            var formatted = new FormattedString();
-            var lines = body.Split('\n');
-            for (int i = 0; i < lines.Length; i++)
+            if (!_messagesById.TryGetValue(messageId, out var message))
+                return;
+
+            _digestLines = message.Body.Split('\n', StringSplitOptions.RemoveEmptyEntries).ToList();
+            DigestDialogTitle = message.Title;
+            DigestPageIndex = 0;
+            UpdateDigestPage();
+            IsDigestDialogOpen = true;
+        }
+
+        [RelayCommand]
+        private void CloseDigest() => IsDigestDialogOpen = false;
+
+        private void UpdateDigestPage()
+        {
+            DigestLinesPage.Clear();
+            foreach (var line in _digestLines.Skip(DigestPageIndex * DigestPageSize).Take(DigestPageSize))
             {
-                bool isOwn = lines[i].StartsWith('★');
-                string text = isOwn ? lines[i][1..] : lines[i];
-                formatted.Spans.Add(new Span
-                {
-                    Text = i < lines.Length - 1 ? text + "\n" : text,
-                    TextColor = isOwn ? OwnTransferColor : OtherTransferColor,
-                    FontAttributes = isOwn ? FontAttributes.Bold : FontAttributes.None,
-                });
+                bool isOwn = line.StartsWith('★');
+                DigestLinesPage.Add(new DigestLineRow(isOwn ? line[1..] : line, isOwn ? OwnTransferColor : OtherTransferColor, isOwn));
             }
-            return formatted;
+            OnPropertyChanged(nameof(DigestPageCount));
+            OnPropertyChanged(nameof(DigestPageInfo));
+            OnPropertyChanged(nameof(CanGoToPreviousDigestPage));
+            OnPropertyChanged(nameof(CanGoToNextDigestPage));
+        }
+
+        [RelayCommand]
+        private void NextDigestPage()
+        {
+            if (!CanGoToNextDigestPage) return;
+            DigestPageIndex++;
+            UpdateDigestPage();
+        }
+
+        [RelayCommand]
+        private void PreviousDigestPage()
+        {
+            if (!CanGoToPreviousDigestPage) return;
+            DigestPageIndex--;
+            UpdateDigestPage();
         }
     }
 }

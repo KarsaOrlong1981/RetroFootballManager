@@ -17,10 +17,7 @@
             <Label Text="Hauptsponsor" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
             <Label Text="{Binding CurrentMainText}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" IsVisible="{Binding IsMainSlotOpen}" />
 
-            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" IsVisible="{Binding IsMainSlotSigned}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="8" />
-                </Border.StrokeShape>
+            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" IsVisible="{Binding IsMainSlotSigned}" StrokeShape="RoundRectangle 8">
                 <Grid ColumnDefinitions="*,*,*" x:DataType="vm:SponsorsViewModel">
                     <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding SignedMainSponsor.ImagePath}"/>
                     <VerticalStackLayout Grid.Column="1" Spacing="2" HorizontalOptions="Start" VerticalOptions="Center">
@@ -52,10 +49,7 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Sponsor">
                         <Grid Padding="3">
-                            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
+                            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" StrokeShape="RoundRectangle 8">
                                 <Grid ColumnDefinitions="*,*,*,*">
                                     <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding ImagePath}"/>
                                     <VerticalStackLayout Grid.Column="1" HorizontalOptions="Start" VerticalOptions="Center">
@@ -94,10 +88,7 @@
             <Label Text="Bandenwerbung" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,8,0,0" />
             <Label Text="{Binding CurrentPerimeterText}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" IsVisible="{Binding IsPerimeterSlotOpen}" />
 
-            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" IsVisible="{Binding IsPerimeterSlotSigned}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="8" />
-                </Border.StrokeShape>
+            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" IsVisible="{Binding IsPerimeterSlotSigned}" StrokeShape="RoundRectangle 8">
                 <Grid ColumnDefinitions="*,*,*" x:DataType="vm:SponsorsViewModel">
                     <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding SignedPerimeterSponsor.ImagePath}"/>
                     <VerticalStackLayout Grid.Column="1" Spacing="2" HorizontalOptions="Start" VerticalOptions="Center">
@@ -129,10 +120,7 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Sponsor">
                         <Grid Padding="3">
-                            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
+                            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" StrokeShape="RoundRectangle 8">
                                 <Grid ColumnDefinitions="*,*,*,*">
                                     <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding ImagePath}"/>
                                     <VerticalStackLayout Grid.Column="1" HorizontalOptions="Start" VerticalOptions="Center">
@@ -173,10 +161,7 @@
             <Label Text="{Binding CurrentKitText}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}"
                    IsVisible="{Binding KitSlotAvailable}" />
 
-            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" IsVisible="{Binding ShowKitSignedCard}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="8" />
-                </Border.StrokeShape>
+            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" IsVisible="{Binding ShowKitSignedCard}" StrokeShape="RoundRectangle 8">
                 <Grid ColumnDefinitions="Auto,*" x:DataType="vm:SponsorsViewModel">
                     <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding SignedKitSponsor.ImagePath}"/>
                     <VerticalStackLayout Grid.Column="1" Spacing="2" HorizontalOptions="Start" VerticalOptions="Center">
@@ -206,10 +191,7 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Sponsor">
                         <Grid Padding="3">
-                            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
+                            <Border Padding="10,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" StrokeShape="RoundRectangle 8">
                                 <Grid ColumnDefinitions="*,*,*,*">
                                     <Image Aspect="AspectFit" WidthRequest="180" HeightRequest="180" Source="{Binding ImagePath}"/>
                                     <VerticalStackLayout Grid.Column="1" HorizontalOptions="Start" VerticalOptions="Center">

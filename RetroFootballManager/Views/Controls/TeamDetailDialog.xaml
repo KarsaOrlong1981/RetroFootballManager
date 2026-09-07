@@ -11,10 +11,7 @@
                 BackgroundColor="{StaticResource RfmBackground}"
                 Margin="20" Padding="18"
                 MaximumWidthRequest="560" MaximumHeightRequest="620"
-                HorizontalOptions="Center" VerticalOptions="Center">
-            <Border.StrokeShape>
-                <RoundRectangle CornerRadius="16" />
-            </Border.StrokeShape>
+                HorizontalOptions="Center" VerticalOptions="Center" StrokeShape="RoundRectangle 16">
             <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                     <Label Grid.Column="0" Text="{Binding Detail.Name, Source={x:Reference Root}}" FontSize="22" FontAttributes="Bold"
@@ -27,10 +24,7 @@
                 <ScrollView Grid.Row="1" BindingContext="{Binding Detail, Source={x:Reference Root}}" x:DataType="vm:TeamDetail">
                     <VerticalStackLayout Spacing="10">
 
-                        <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="10" />
-                            </Border.StrokeShape>
+                        <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="8">
                                 <Label Grid.Row="0" Grid.Column="0" Text="{Binding RatingText, StringFormat='Kaderstärke: {0}'}"
                                        FontSize="16" TextColor="{StaticResource RfmText}" />
@@ -44,10 +38,7 @@
                         </Border>
 
                         <Label Text="Saison-Statistik (Schnitt/Spiel)" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                        <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="10" />
-                            </Border.StrokeShape>
+                        <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="8">
                                 <Label Grid.Row="0" Grid.Column="0" Text="{Binding AveragePossession, StringFormat='Ballbesitz: {0}%'}"
                                        FontSize="16" TextColor="{StaticResource RfmText}" />
@@ -68,10 +59,7 @@
                                 BackgroundColor="{StaticResource RfmSurface}" TextColor="{StaticResource RfmText}" />
 
                         <Label Text="Finanzen" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                        <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="10" />
-                            </Border.StrokeShape>
+                        <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                             <VerticalStackLayout Spacing="6">
                                 <Label Text="{Binding BalanceText, StringFormat='Kontostand: {0}'}"
                                        FontSize="16" TextColor="{StaticResource RfmText}" />

@@ -16,10 +16,7 @@
     <ScrollView Grid.Column="0">
         <VerticalStackLayout Opacity="0.95" Padding="20" Spacing="14">
 
-            <Border StrokeThickness="0" Padding="16" HorizontalOptions="Start"  WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="14" />
-                </Border.StrokeShape>
+            <Border StrokeThickness="0" Padding="16" HorizontalOptions="Start"  WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 14">
                 <VerticalStackLayout Spacing="4">
                     <Label Text="Kontostand" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
                     <Label Text="{Binding BalanceText}" FontSize="30" FontAttributes="Bold"
@@ -37,10 +34,7 @@
                    FontSize="18" TextColor="{StaticResource RfmText}" />
 
             <Label Text="Kredit" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-            <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="12" />
-                </Border.StrokeShape>
+            <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                 <VerticalStackLayout Spacing="8">
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8"
                           IsVisible="{Binding HasActiveLoan}">
@@ -78,10 +72,7 @@
             </Border>
 
             <Label Text="Einnahmen" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-            <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="12" />
-                </Border.StrokeShape>
+            <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" FontSize="18" Text="Ticketeinnahmen" TextColor="{StaticResource RfmText}" />
                         <Label Grid.Row="0" Grid.Column="1" FontSize="18" Text="{Binding TicketIncomeText}" TextColor="{StaticResource RfmAccentTeal}" />
@@ -93,10 +84,7 @@
             </Border>
 
             <Label Text="Vereinsmitglieder" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-            <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="12" />
-                </Border.StrokeShape>
+            <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" FontSize="18" Text="Mitglieder" TextColor="{StaticResource RfmText}" />
                         <Label Grid.Row="0" Grid.Column="1" FontSize="18" Text="{Binding MembershipCountText}" TextColor="{StaticResource RfmText}" />
@@ -110,10 +98,7 @@
             </Border>
 
             <Label Text="Merchandise-Abteilung" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-            <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="12" />
-                </Border.StrokeShape>
+            <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" FontSize="18" Text="Einnahmen (Saison)" TextColor="{StaticResource RfmText}" />
                         <Label Grid.Row="0" Grid.Column="1" FontSize="18" Text="{Binding MerchandiseArticleIncomeText}" TextColor="{StaticResource RfmAccentTeal}" />
@@ -134,10 +119,7 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="vm:SponsorOverviewItem">
                         <Border StrokeThickness="0" Padding="14" WidthRequest="800" HorizontalOptions="Start"
-                                BackgroundColor="{StaticResource RfmSurface}" Margin="0,0,0,8">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="12" />
-                            </Border.StrokeShape>
+                                BackgroundColor="{StaticResource RfmSurface}" Margin="0,0,0,8" StrokeShape="RoundRectangle 12">
                             <VerticalStackLayout Spacing="4">
                                 <Label Text="{Binding SlotLabel}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
                                 <Label Text="{Binding SponsorName}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
@@ -165,10 +147,7 @@
 
             <Label Text="Aktuelle laufende Kosten/Einnahmen" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
             <Label Text="Wirkt sich ab dem nächsten Spieltag auf die Bilanz aus." FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
-            <Border StrokeThickness="0" Padding="14" WidthRequest="800" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="12" />
-                </Border.StrokeShape>
+            <Border StrokeThickness="0" Padding="14" WidthRequest="800" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" FontSize="18" Text="Mitarbeitergehälter" TextColor="{StaticResource RfmText}" />
                         <Label Grid.Row="0" Grid.Column="1" FontSize="18" Text="{Binding CurrentStaffWagesText}" TextColor="#EF4444" />
@@ -182,10 +161,7 @@
             </Border>
 
             <Label Text="Diese Saison bereits gebucht" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" Margin="0,6,0,0" />
-                <Border StrokeThickness="0" Padding="14" WidthRequest="800" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="12" />
-                </Border.StrokeShape>
+                <Border StrokeThickness="0" Padding="14" WidthRequest="800" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" FontSize="18" Text="Mitarbeitergehälter" TextColor="{StaticResource RfmText}" />
                         <Label Grid.Row="0" Grid.Column="1" FontSize="18" Text="{Binding StaffWagesText}" TextColor="#EF4444" />
@@ -197,10 +173,7 @@
             </Border>
 
             <Label Text="Transfers" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                <Border StrokeThickness="0" Padding="14" WidthRequest="800" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="12" />
-                </Border.StrokeShape>
+                <Border StrokeThickness="0" Padding="14" WidthRequest="800" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" FontSize="18" Text="Einnahmen" TextColor="{StaticResource RfmText}" />
                         <Label Grid.Row="0" Grid.Column="1" FontSize="18" Text="{Binding TransferIncomeText}" TextColor="{StaticResource RfmAccentTeal}" />
@@ -210,10 +183,7 @@
             </Border>
 
             <Label Text="Sonstiges" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                <Border StrokeThickness="0" Padding="14" WidthRequest="800" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="12" />
-                    </Border.StrokeShape>
+                <Border StrokeThickness="0" Padding="14" WidthRequest="800" HorizontalOptions="Start" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" FontSize="18" Text="Einnahmen (z.B. Freundschaftsspiele)" TextColor="{StaticResource RfmText}" />
                         <Label Grid.Row="0" Grid.Column="1" FontSize="18" Text="{Binding OtherIncomeText}" TextColor="{StaticResource RfmAccentTeal}" />
@@ -226,10 +196,7 @@
 
     <Border Grid.Column="1" StrokeThickness="0" Padding="12,8" Margin="10"
             MaximumHeightRequest="200"
-         BackgroundColor="{StaticResource RfmSurface}">
-        <Border.StrokeShape>
-            <RoundRectangle CornerRadius="10" />
-        </Border.StrokeShape>
+         BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
         <Grid>
                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" IsVisible="{Binding HasDirectorOfFootball}">
                 <Image Source="{Binding DirectorOfFootballImagePath}" WidthRequest="150" HeightRequest="150" HorizontalOptions="Center"/>

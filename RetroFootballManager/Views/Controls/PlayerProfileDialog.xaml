@@ -12,10 +12,7 @@
                 BackgroundColor="{StaticResource RfmBackground}"
                 Margin="20" Padding="18"
                 MaximumWidthRequest="560" MaximumHeightRequest="620"
-                HorizontalOptions="Center" VerticalOptions="Center">
-            <Border.StrokeShape>
-                <RoundRectangle CornerRadius="16" />
-            </Border.StrokeShape>
+                HorizontalOptions="Center" VerticalOptions="Center" StrokeShape="RoundRectangle 16">
             <Grid RowDefinitions="Auto,*,Auto,Auto" RowSpacing="10">
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                     <Label Grid.Column="0" Text="{Binding Title, Source={x:Reference Root}}" FontSize="22" FontAttributes="Bold"
@@ -55,10 +52,7 @@
                         </Grid>
                         <Label Text="{Binding Status}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
 
-                        <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="10" />
-                            </Border.StrokeShape>
+                        <Border StrokeThickness="0" Padding="10" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="8">
 
                                 <!-- Position -->
@@ -189,10 +183,7 @@
                         <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding Attributes}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="vm:AttributeChip">
-                                    <Border BackgroundColor="{StaticResource RfmSurface}" Margin="3" Padding="8,4" StrokeThickness="0">
-                                        <Border.StrokeShape>
-                                            <RoundRectangle CornerRadius="6" />
-                                        </Border.StrokeShape>
+                                    <Border BackgroundColor="{StaticResource RfmSurface}" Margin="3" Padding="8,4" StrokeThickness="0" StrokeShape="RoundRectangle 6">
                                         <Label FontSize="16" TextColor="{StaticResource RfmTextMuted}">
                                             <Label.FormattedText>
                                                 <FormattedString>

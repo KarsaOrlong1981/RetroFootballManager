@@ -22,10 +22,7 @@
 
             <!-- Manager and Co-Trainer profiles -->
             <Grid Grid.Row="1"  RowDefinitions="Auto,Auto" RowSpacing="18">
-                <Border  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="10" />
-                    </Border.StrokeShape>
+                <Border  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                         <Image Source="{Binding Manager.AvatarPath}" WidthRequest="150" HeightRequest="150"/>
                         <VerticalStackLayout Spacing="4" Grid.Column="1">
@@ -78,10 +75,7 @@
                 </CollectionView.ItemsLayout>
                 <CollectionView.EmptyView>
                     <ContentView>
-                        <Border HorizontalOptions="Center" VerticalOptions="Center"  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="10" />
-                            </Border.StrokeShape>
+                        <Border HorizontalOptions="Center" VerticalOptions="Center"  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                             <Grid>
                                 <Label Grid.Column="0" Text="Aktuell sind keine Assistent Trainer Eingestellt." FontSize="22"
                                       TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
@@ -91,10 +85,7 @@
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Employee">
-                        <Border  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="10" />
-                            </Border.StrokeShape>
+                        <Border  StrokeThickness="0" Padding="12,8"  BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                                 <Image Source="{Binding ImagePath}" WidthRequest="150" HeightRequest="150"/>
                                 <VerticalStackLayout Spacing="4" Grid.Column="1">
@@ -148,10 +139,7 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="vm:TeamFocusRow">
                         <Grid Padding="3">
-                            <Border Padding="12,10" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
+                            <Border Padding="12,10" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="0" StrokeShape="RoundRectangle 8">
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                                     <Label Grid.Column="0" Text="{Binding Label}" FontSize="22"
                                            TextColor="{StaticResource RfmText}" VerticalOptions="Center" />

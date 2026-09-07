@@ -92,11 +92,49 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private string _transferWindowInfo = string.Empty;
         [ObservableProperty] private Color _transferWindowColor = Colors.Gray;
 
+        // A season's market can easily hold 50+ foreign listings - realizing that many complex
+        // (image + several labels + button) rows into a non-virtualizing BindableLayout in one
+        // go is what caused this dialog's LayoutCycleException on Windows (neither CollectionView
+        // nor BindableLayout copes with that many at once here - see the crash-gotchas history).
+        // The dialog only ever binds to MarketListingsPage (one page's worth), never the full
+        // MarketListings collection directly.
+        private const int MarketPageSize = 20;
+        [ObservableProperty] private int _marketPageIndex;
+
         public ObservableCollection<OwnPlayerRow> OwnPlayers { get; } = [];
         public ObservableCollection<MarketListingRow> MarketListings { get; } = [];
+        public ObservableCollection<MarketListingRow> MarketListingsPage { get; } = [];
+
+        public int MarketPageCount => Math.Max(1, (MarketListings.Count + MarketPageSize - 1) / MarketPageSize);
+        public string MarketPageInfo => MarketListings.Count == 0
+            ? "Keine Angebote" : $"Seite {MarketPageIndex + 1} von {MarketPageCount} ({MarketListings.Count} Spieler)";
+        public bool CanGoToPreviousMarketPage => MarketPageIndex > 0;
+        public bool CanGoToNextMarketPage => MarketPageIndex + 1 < MarketPageCount;
+
+        // Free agents can also accumulate past this page size over a long season (contracts
+        // keep expiring) - paginated for the same reason as MarketListings above.
+        private const int FreeAgentPageSize = 20;
+        [ObservableProperty] private int _freeAgentPageIndex;
+
         public ObservableCollection<FreeAgentRow> FreeAgents { get; } = [];
+        public ObservableCollection<FreeAgentRow> FreeAgentsPage { get; } = [];
+
+        public int FreeAgentPageCount => Math.Max(1, (FreeAgents.Count + FreeAgentPageSize - 1) / FreeAgentPageSize);
+        public string FreeAgentPageInfo => FreeAgents.Count == 0
+            ? "Keine ablösefreien Spieler" : $"Seite {FreeAgentPageIndex + 1} von {FreeAgentPageCount} ({FreeAgents.Count} Spieler)";
+        public bool CanGoToPreviousFreeAgentPage => FreeAgentPageIndex > 0;
+        public bool CanGoToNextFreeAgentPage => FreeAgentPageIndex + 1 < FreeAgentPageCount;
+
         public ObservableCollection<OwnListingRow> OwnListings { get; } = [];
         public ObservableCollection<OutgoingOfferRow> OutgoingOffers { get; } = [];
+
+        // Market/Own-Players/Free-Agents lists moved into their own dialogs (instead of a
+        // side-by-side two-column Grid, or showing every list inline) - see
+        // TransferMarketPage.xaml comment history: a Grid with more than one star dimension is
+        // a confirmed WinUI LayoutCycleException trigger on Windows.
+        [ObservableProperty] private bool _isMarketDialogOpen;
+        [ObservableProperty] private bool _isOwnPlayersDialogOpen;
+        [ObservableProperty] private bool _isFreeAgentsDialogOpen;
 
         [ObservableProperty] private bool _isPlayerProfileOpen;
         [ObservableProperty] private PlayerProfile? _selectedProfile;
@@ -191,6 +229,8 @@ namespace RetroFootballManager.ViewModels
                     listing.Id, player.Id, player.Name, PositionDisplay.Short(player.Position), Math.Round(player.Rating, 1),
                     sellerTeam.Name, listing.AskingPrice, listing.IsLoanListing));
             }
+            MarketPageIndex = 0;
+            UpdateMarketPage();
 
             // Free agents (contract expired - see FreeAgentService) aren't on any team's roster
             // any more (TeamId 0), so they have to be looked up directly via PlayerRepository.
@@ -210,6 +250,8 @@ namespace RetroFootballManager.ViewModels
                 FreeAgents.Add(new FreeAgentRow(
                     listing.Id, player.Id, player.Name, PositionDisplay.Short(player.Position), Math.Round(player.Rating, 1)));
             }
+            FreeAgentPageIndex = 0;
+            UpdateFreeAgentPage();
 
             var ownListingsList = allListings.Where(l => l.TeamId == _team.Id).ToList();
             var offersPerOwnListing = await Task.WhenAll(ownListingsList.Select(l => _offerRepo.GetByListingAsync(l.Id)));
@@ -317,6 +359,78 @@ namespace RetroFootballManager.ViewModels
 
         [RelayCommand]
         private void CloseProfile() => IsPlayerProfileOpen = false;
+
+        [RelayCommand]
+        private void OpenMarketDialog() => IsMarketDialogOpen = true;
+
+        [RelayCommand]
+        private void CloseMarketDialog() => IsMarketDialogOpen = false;
+
+        private void UpdateMarketPage()
+        {
+            MarketListingsPage.Clear();
+            foreach (var row in MarketListings.Skip(MarketPageIndex * MarketPageSize).Take(MarketPageSize))
+                MarketListingsPage.Add(row);
+            OnPropertyChanged(nameof(MarketPageCount));
+            OnPropertyChanged(nameof(MarketPageInfo));
+            OnPropertyChanged(nameof(CanGoToPreviousMarketPage));
+            OnPropertyChanged(nameof(CanGoToNextMarketPage));
+        }
+
+        [RelayCommand]
+        private void NextMarketPage()
+        {
+            if (!CanGoToNextMarketPage) return;
+            MarketPageIndex++;
+            UpdateMarketPage();
+        }
+
+        [RelayCommand]
+        private void PreviousMarketPage()
+        {
+            if (!CanGoToPreviousMarketPage) return;
+            MarketPageIndex--;
+            UpdateMarketPage();
+        }
+
+        [RelayCommand]
+        private void OpenFreeAgentsDialog() => IsFreeAgentsDialogOpen = true;
+
+        [RelayCommand]
+        private void CloseFreeAgentsDialog() => IsFreeAgentsDialogOpen = false;
+
+        private void UpdateFreeAgentPage()
+        {
+            FreeAgentsPage.Clear();
+            foreach (var row in FreeAgents.Skip(FreeAgentPageIndex * FreeAgentPageSize).Take(FreeAgentPageSize))
+                FreeAgentsPage.Add(row);
+            OnPropertyChanged(nameof(FreeAgentPageCount));
+            OnPropertyChanged(nameof(FreeAgentPageInfo));
+            OnPropertyChanged(nameof(CanGoToPreviousFreeAgentPage));
+            OnPropertyChanged(nameof(CanGoToNextFreeAgentPage));
+        }
+
+        [RelayCommand]
+        private void NextFreeAgentPage()
+        {
+            if (!CanGoToNextFreeAgentPage) return;
+            FreeAgentPageIndex++;
+            UpdateFreeAgentPage();
+        }
+
+        [RelayCommand]
+        private void PreviousFreeAgentPage()
+        {
+            if (!CanGoToPreviousFreeAgentPage) return;
+            FreeAgentPageIndex--;
+            UpdateFreeAgentPage();
+        }
+
+        [RelayCommand]
+        private void OpenOwnPlayersDialog() => IsOwnPlayersDialogOpen = true;
+
+        [RelayCommand]
+        private void CloseOwnPlayersDialog() => IsOwnPlayersDialogOpen = false;
 
         [RelayCommand]
         private async Task OfferForTransfer(OwnPlayerRow row)
