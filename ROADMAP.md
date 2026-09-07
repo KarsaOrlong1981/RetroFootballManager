@@ -9,18 +9,6 @@ discuss design details before starting.
 
 ## English
 
-### Merchandise department (new)
-
-A new department to buy fan merchandise at wholesale cost and sell it at a markup:
-
-- At least **10 different articles** (variety to be designed - jerseys, scarves, mugs, etc.).
-- **Star-player jerseys**: a jersey featuring the team's current best player should outsell
-  the generic ones.
-- Revenue should scale with how well the season is going (results, table position) - the
-  better the team performs, the more merchandise income it generates.
-- **Membership recruitment campaign**: launchable from this department, attracts additional
-  club members. Cost scales with league tier (higher tier = more expensive).
-
 ### Universe editor (new)
 
 A new "Editor" option in the start menu:
@@ -37,19 +25,6 @@ A new "Editor" option in the start menu:
 ---
 
 ## Deutsch
-
-### Merchandise-Abteilung (neu)
-
-Eine neue Abteilung, um Fanartikel günstig einzukaufen und mit Aufschlag zu verkaufen:
-
-- Mindestens **10 verschiedene Artikel** (Auswahl noch zu gestalten - Trikots, Schals,
-  Tassen, etc.).
-- **Trikots mit dem besten Spieler**: ein Trikot mit dem aktuell besten Spieler des Teams soll
-  sich besser verkaufen als die generischen Trikots.
-- Die Einnahmen sollen mit dem Saisonverlauf skalieren (Ergebnisse, Tabellenplatz) - je besser
-  es läuft, desto mehr Merchandise-Einnahmen werden generiert.
-- **Mitglieder-Werbekampagne**: aus dieser Abteilung startbar, lockt zusätzliche Vereinsmitglieder
-  an. Kosten skalieren mit der Liga (höhere Liga = teurer).
 
 ### Universen-Editor (neu)
 
