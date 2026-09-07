@@ -51,13 +51,13 @@
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                             <Image Source="{Binding DirectorOfFootballImagePath}" WidthRequest="70" HeightRequest="70" HorizontalOptions="Center" />
                             <VerticalStackLayout Grid.Column="1" Spacing="4">
-                                <Label Text="{Binding DirectorOfFootballName}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
-                                <Label Text="Sportdirektor" FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
+                                <Label Text="{Binding DirectorOfFootballName}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                                <Label Text="Sportdirektor" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
                                 <Label Text="{Binding DirectorOfFootballFinancialManagement, StringFormat='Finanzmanagement: {0}'}"
-                                       FontSize="13" TextColor="{StaticResource RfmTextMuted}" />
+                                       FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
                                 <Button Text="Um Einschätzung bitten" Command="{Binding AskForRecommendationCommand}"
-                                        FontSize="12" Padding="8,4"
-                                        BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
+                                        FontSize="16" Padding="8,4"
+                                        BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmText}" />
                             </VerticalStackLayout>
                         </Grid>
                     </Border>
@@ -67,9 +67,9 @@
                             <RoundRectangle CornerRadius="14" />
                         </Border.StrokeShape>
                         <VerticalStackLayout Spacing="8">
-                            <Label Text="Kein Sportdirektor eingestellt." FontSize="15" TextColor="{StaticResource RfmTextMuted}" />
-                            <Label Text="Mengenempfehlungen sind derzeit nicht möglich - die richtige Einschätzung liegt bei Ihnen, oder Sie stellen einen Direktor ein."
-                                   FontSize="12" TextColor="{StaticResource RfmTextMuted}" />
+                            <Label Text="Kein Sportdirektor eingestellt." FontSize="18" TextColor="{StaticResource RfmText}" />
+                            <Label Text="Mengenempfehlungen sind derzeit nicht möglich, die richtige Einschätzung liegt bei Ihnen, oder Sie stellen einen Direktor ein."
+                                   FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
                             <Button Text="Mitarbeiter" Command="{Binding OpenStaffCommand}" FontSize="13"
                                     BackgroundColor="{StaticResource RfmAccent}" TextColor="White" HorizontalOptions="Start" />
                         </VerticalStackLayout>
@@ -87,7 +87,7 @@
                                 <Label Text="Mitglieder-Werbekampagne" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
                                 <Label Text="{Binding CampaignCostText, StringFormat='Kosten: {0}'}" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
                                 <Label Text="Ohne Sportdirektor keine Kampagne möglich - es lohnt sich, einen einzustellen."
-                                       FontSize="13" TextColor="{StaticResource RfmTextMuted}"
+                                       FontSize="16" TextColor="{StaticResource RfmAccentTeal}"
                                        IsVisible="{Binding HasDirectorOfFootball, Converter={StaticResource InvertedBool}}" />
                             </VerticalStackLayout>
                             <Button Grid.Column="1" Text="Kampagne starten" Command="{Binding LaunchCampaignCommand}"

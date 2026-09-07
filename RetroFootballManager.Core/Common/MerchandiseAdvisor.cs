@@ -8,7 +8,7 @@ namespace RetroFootballManager.Common
     // the actual weekly sales tick uses (MerchandiseSalesCalculator.CalculateRawDemand), so
     // the recommendation is genuinely "what the shop needs" rather than a separate guess.
     // Accuracy scales with Employee.FinancialManagement (0-100), same noise-scaling pattern
-    // as FinanceEstimator - a top-tier director (>=90) gets an exact figure, a weaker one only
+    // as TeamAssessmentEstimator - a top-tier director (>=90) gets an exact figure, a weaker one only
     // a wide band. No director at all = no recommendation (caller gates on HasDirectorOfFootball).
     public static class MerchandiseAdvisor
     {

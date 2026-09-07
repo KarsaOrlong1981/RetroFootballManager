@@ -29,5 +29,13 @@ namespace RetroFootballManager.Models
         // the career (manager dismissed). GameOverReason is a short label ("Vorstand"/"Fans").
         public bool IsGameOver { get; set; }
         public string? GameOverReason { get; set; }
+
+        // Tracks the transfer window's state from the previous day, so
+        // TransferWindowDigestService can detect the exact Open->Closed transition (defaults
+        // true - a new career always starts in the preseason window, which is open). Also
+        // marks how far the end-of-window digest has already covered, so the next digest only
+        // includes transfers since then.
+        public bool TransferWindowWasOpen { get; set; } = true;
+        public DateTime? LastTransferDigestDate { get; set; }
     }
 }

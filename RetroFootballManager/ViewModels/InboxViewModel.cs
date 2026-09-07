@@ -8,7 +8,10 @@ using RetroFootballManager.Services;
 
 namespace RetroFootballManager.ViewModels
 {
-    public record InboxMessageRow(int Id, string Title, string Body, string DateText, bool IsRead);
+    public record InboxMessageRow(int Id, string Title, string Body, string DateText, bool IsRead, FormattedString? BodyFormatted = null)
+    {
+        public bool HasFormattedBody => BodyFormatted is not null;
+    }
 
     public partial class InboxViewModel : BaseViewModel
     {
@@ -38,7 +41,9 @@ namespace RetroFootballManager.ViewModels
                 var messages = await _messages.GetInboxAsync();
                 _messagesById = messages.ToDictionary(m => m.Id);
                 foreach (var m in messages)
-                    Rows.Add(new InboxMessageRow(m.Id, m.Title, m.Body, m.Date.ToString("dd.MM.yyyy"), m.IsRead));
+                    Rows.Add(new InboxMessageRow(
+                        m.Id, m.Title, m.Body, m.Date.ToString("dd.MM.yyyy"), m.IsRead,
+                        m.Type == MessageType.TransferWindowDigest ? BuildTransferDigestFormatting(m.Body) : null));
 
                 StatusText = messages.Count == 0 ? "Keine Nachrichten." : string.Empty;
             }
@@ -78,5 +83,32 @@ namespace RetroFootballManager.ViewModels
 
         [RelayCommand]
         private async Task Back() => await _navigation.GoBackAsync();
+
+        // Own-team lines in a TransferWindowDigest body are prefixed with "★" (see
+        // TransferWindowDigestService) - turned into a highlighted color here since Inbox
+        // messages have no other way to carry per-line formatting. Hex values match
+        // RfmAccentTeal/RfmTextMuted (Resources/Styles/Colors.xaml) - a plain C# ViewModel
+        // can't reach XAML StaticResources, same reasoning as the match ticker's hardcoded
+        // team colors in MatchDayViewModel.
+        private static readonly Color OwnTransferColor = Color.FromArgb("#14B8A6");
+        private static readonly Color OtherTransferColor = Color.FromArgb("#8FA3B8");
+
+        private static FormattedString BuildTransferDigestFormatting(string body)
+        {
+            var formatted = new FormattedString();
+            var lines = body.Split('\n');
+            for (int i = 0; i < lines.Length; i++)
+            {
+                bool isOwn = lines[i].StartsWith('★');
+                string text = isOwn ? lines[i][1..] : lines[i];
+                formatted.Spans.Add(new Span
+                {
+                    Text = i < lines.Length - 1 ? text + "\n" : text,
+                    TextColor = isOwn ? OwnTransferColor : OtherTransferColor,
+                    FontAttributes = isOwn ? FontAttributes.Bold : FontAttributes.None,
+                });
+            }
+            return formatted;
+        }
     }
 }

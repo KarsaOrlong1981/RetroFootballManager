@@ -27,6 +27,7 @@ namespace RetroFootballManager.Common
         private readonly TransferMarketService _transferMarket;
         private readonly SaveGameService? _saveGame;
         private readonly NegotiationResolutionService? _negotiations;
+        private readonly TransferHistoryRepository? _transferHistory;
         private readonly Random _random;
 
         public CalendarAdvanceService(
@@ -34,7 +35,8 @@ namespace RetroFootballManager.Common
             ExpiryWarningService expiryWarnings, FinanceService finance, TrainingCampService trainingCamps,
             MessageService messages, ContractRepository contracts, TransferListingRepository transferListings,
             TransferOfferRepository transferOffers, PlayerRepository players, TransferMarketService transferMarket,
-            Random? random = null, SaveGameService? saveGame = null, NegotiationResolutionService? negotiations = null)
+            Random? random = null, SaveGameService? saveGame = null, NegotiationResolutionService? negotiations = null,
+            TransferHistoryRepository? transferHistory = null)
         {
             _teams = teams;
             _fixtures = fixtures;
@@ -50,6 +52,7 @@ namespace RetroFootballManager.Common
             _transferMarket = transferMarket;
             _saveGame = saveGame;
             _negotiations = negotiations;
+            _transferHistory = transferHistory;
             _random = random ?? Random.Shared;
         }
 
@@ -87,6 +90,10 @@ namespace RetroFootballManager.Common
             // only actually completing a transfer/loan between two clubs is gated on it (see
             // TransferAiService.EvaluateIncomingOffersAsync/NegotiationResolutionService).
             bool isTransferWindowOpen = phase.TransferWindow == TransferWindowState.Open;
+
+            if (_transferHistory is not null && humanTeam is not null)
+                await TransferWindowDigestService.CheckAndSendAsync(
+                    state, seasonFixtures, humanTeam.LeagueTier, _transferHistory, _messages);
 
             bool runWeeklyTick = (state.CurrentDate.Date - state.SeasonStart.Date).Days % 7 == 0;
 

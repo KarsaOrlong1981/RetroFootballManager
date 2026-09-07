@@ -30,5 +30,9 @@ namespace RetroFootballManager.Models
 
         // Club membership count changed - see ClubMembershipService.
         ClubMembershipUpdate,
+
+        // Sent once when a transfer window closes, summarizing every permanent transfer
+        // completed during it - see TransferWindowDigestService.
+        TransferWindowDigest,
     }
 }

@@ -34,7 +34,10 @@
                                         <Label Grid.Column="1" Text="{Binding DateText}" FontSize="20"
                                                TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
                                     </Grid>
-                                    <Label Text="{Binding Body}" FontSize="18" TextColor="{StaticResource RfmTextMuted}" />
+                                    <Label Text="{Binding Body}" FontSize="18" TextColor="{StaticResource RfmTextMuted}"
+                                           IsVisible="{Binding HasFormattedBody, Converter={StaticResource InvertedBool}}" />
+                                    <Label FormattedText="{Binding BodyFormatted}" FontSize="18"
+                                           IsVisible="{Binding HasFormattedBody}" />
                                 </VerticalStackLayout>
                             </Border>
                             <Border Grid.Column="1" WidthRequest="48" HeightRequest="48" Padding="0"

@@ -27,12 +27,14 @@ namespace RetroFootballManager.Common
         private readonly AiManagerService? _aiManager;
         private readonly MessageService? _messages;
         private readonly MerchandiseService? _merchandise;
+        private readonly TransferHistoryRepository? _transferHistory;
         private readonly Random _random;
 
         public MatchDayService(
             FixtureRepository fixtures, TeamRepository teams, PlayerRepository players,
             FinanceService? finance = null, AiManagerService? aiManager = null,
-            MessageService? messages = null, MerchandiseService? merchandise = null, Random? random = null)
+            MessageService? messages = null, MerchandiseService? merchandise = null,
+            TransferHistoryRepository? transferHistory = null, Random? random = null)
         {
             _fixtures = fixtures;
             _teams = teams;
@@ -41,6 +43,7 @@ namespace RetroFootballManager.Common
             _aiManager = aiManager;
             _messages = messages;
             _merchandise = merchandise;
+            _transferHistory = transferHistory;
             _random = random ?? Random.Shared;
         }
 
@@ -356,6 +359,10 @@ namespace RetroFootballManager.Common
                 bool isHuman = id == state.ManagerTeamId;
                 TrainingService.ApplyWeeklyTraining(team, isHuman, state.Difficulty, _random);
                 ConversationService.ApplyWeeklyDecay(team);
+                // MoraleBoost (training camps etc.) was previously never decayed anywhere in
+                // production - it could only ever grow, permanently pinning Morale at the 100
+                // clamp ceiling after just a couple of booked camps, regardless of match form.
+                team.Statistics?.DecayBoosts();
                 ApplyPhysioMoraleBoost(team);
                 ApplyPsychologistMoraleBoost(team);
 
@@ -380,6 +387,10 @@ namespace RetroFootballManager.Common
             await PersistPlayerStatsAsync(matchResults, state.Season);
 
             AdvanceDate(state, fixtures, matchday);
+
+            if (_transferHistory is not null && teamById.TryGetValue(state.ManagerTeamId, out var digestManagerTeam))
+                await TransferWindowDigestService.CheckAndSendAsync(
+                    state, seasonFixturesForWindow, digestManagerTeam.LeagueTier, _transferHistory, _messages);
 
             return new MatchdaySummary(matchday, games);
         }

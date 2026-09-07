@@ -13,10 +13,12 @@ namespace RetroFootballManager.Common
         private readonly TeamRepository _teams;
         private readonly ContractRepository _contracts;
         private readonly MessageService? _messages;
+        private readonly TransferHistoryRepository? _transferHistory;
 
         public TransferMarketService(
             TransferListingRepository listings, TransferOfferRepository offers, LoanAgreementRepository loans,
-            TeamRepository teams, ContractRepository contracts, MessageService? messages = null)
+            TeamRepository teams, ContractRepository contracts, MessageService? messages = null,
+            TransferHistoryRepository? transferHistory = null)
         {
             _listings = listings;
             _offers = offers;
@@ -24,6 +26,7 @@ namespace RetroFootballManager.Common
             _teams = teams;
             _contracts = contracts;
             _messages = messages;
+            _transferHistory = transferHistory;
         }
 
         // A team in the red can't take on a new transfer fee - selling players, signing
@@ -232,6 +235,27 @@ namespace RetroFootballManager.Common
 
             await _teams.SaveTeamAsync(sellingTeam, includeYouth: false);
             await _teams.SaveTeamAsync(buyingTeam, includeYouth: false);
+
+            // The offer/listing rows above are the only durable record of this deal, and they
+            // just got deleted - persist a permanent log entry now, since nothing else will
+            // remember this transfer happened (see TransferWindowDigestService).
+            if (_transferHistory is not null)
+            {
+                await _transferHistory.SaveAsync(new TransferHistoryEntry
+                {
+                    Date = date,
+                    PlayerId = player.Id,
+                    PlayerName = player.Name,
+                    PlayerRating = player.Rating,
+                    FromTeamId = sellingTeam.Id,
+                    FromTeamName = sellingTeam.Name,
+                    FromLeagueTier = sellingTeam.LeagueTier,
+                    ToTeamId = buyingTeam.Id,
+                    ToTeamName = buyingTeam.Name,
+                    ToLeagueTier = buyingTeam.LeagueTier,
+                    Fee = fee,
+                });
+            }
 
             if (_messages is not null && humanTeamId != 0 && offer.OfferingTeamId == humanTeamId)
             {

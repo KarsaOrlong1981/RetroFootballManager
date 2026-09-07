@@ -32,9 +32,9 @@
                                 <RoundRectangle CornerRadius="10" />
                             </Border.StrokeShape>
                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="8">
-                                <Label Grid.Row="0" Grid.Column="0" Text="{Binding SquadStrength, StringFormat='Kaderstärke: {0:0.0}'}"
+                                <Label Grid.Row="0" Grid.Column="0" Text="{Binding RatingText, StringFormat='Kaderstärke: {0}'}"
                                        FontSize="16" TextColor="{StaticResource RfmText}" />
-                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding Morale, StringFormat='Moral: {0}%'}"
+                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding MoraleText, StringFormat='Moral: {0}'}"
                                        FontSize="16" TextColor="{StaticResource RfmText}" />
                                 <Label Grid.Row="1" Grid.Column="0" Text="{Binding Form, StringFormat='Form: {0}'}"
                                        FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
@@ -77,9 +77,9 @@
                                        FontSize="16" TextColor="{StaticResource RfmText}" />
                                 <Label Text="{Binding TransferBudgetText, StringFormat='Transferbudget: {0}'}"
                                        FontSize="16" TextColor="{StaticResource RfmText}" />
-                                <Label Text="{Binding Finance.FinancialHealth, StringFormat='Finanzielle Gesundheit: {0}/100'}"
+                                <Label Text="{Binding FinancialHealthText, StringFormat='Finanzielle Gesundheit: {0}'}"
                                        FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
-                                <Label Text="{Binding Finance.AccuracyLabel, StringFormat='Genauigkeit: {0}'}"
+                                <Label Text="{Binding Assessment.AccuracyLabel, StringFormat='Genauigkeit: {0}'}"
                                        FontSize="14" TextColor="{StaticResource RfmTextMuted}" />
                             </VerticalStackLayout>
                         </Border>

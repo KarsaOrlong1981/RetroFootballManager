@@ -13,7 +13,8 @@
     <Grid>
         <Image Aspect="Fill" Source="clubpage.png"/>
         <Grid RowDefinitions="Auto,Auto,*,Auto" Opacity="0.85" Padding="20" RowSpacing="12">
-            <Border Grid.Row="0" StrokeThickness="0" Padding="16" BackgroundColor="{StaticResource RfmSurface}">
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="14">
+            <Border Grid.Column="0" StrokeThickness="0" Padding="16" BackgroundColor="{StaticResource RfmSurface}">
             <Border.StrokeShape>
                 <RoundRectangle CornerRadius="14" />
             </Border.StrokeShape>
@@ -26,6 +27,38 @@
                 <Label Text="{Binding MoraleComparisonText}" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />
             </VerticalStackLayout>
         </Border>
+
+            <!-- Analyst: mit Profil schätzt er Rating/Moral/Finanzen aller anderen Vereine
+                 (siehe TeamAssessmentEstimator); ohne Analyst zeigt die ganze Seite nur "?". -->
+            <Border Grid.Column="1" StrokeThickness="0" Padding="14" WidthRequest="300" BackgroundColor="{StaticResource RfmSurface}"
+                    IsVisible="{Binding HasAnalyst}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="14" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <Image Source="{Binding AnalystImagePath}" WidthRequest="60" HeightRequest="60" HorizontalOptions="Center" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                        <Label Text="{Binding AnalystName}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                        <Label Text="Analyst" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
+                        <Label Text="{Binding AnalystTeamAssessment, StringFormat='Team-Einschätzung: {0}'}"
+                               FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+            <Border Grid.Column="1" StrokeThickness="0" Padding="14" WidthRequest="300" BackgroundColor="{StaticResource RfmSurface}"
+                    IsVisible="{Binding HasAnalyst, Converter={StaticResource InvertedBool}}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="14" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Kein Analyst eingestellt." FontSize="18" TextColor="{StaticResource RfmText}" />
+                    <Label Text="Ohne Analyst gibt es keine Einschätzung zu Rating, Moral und Finanzen anderer Vereine."
+                           FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                    <Button Text="Mitarbeiter" Command="{Binding OpenStaffCommand}" FontSize="13"
+                            BackgroundColor="{StaticResource RfmAccent}" TextColor="White" HorizontalOptions="Start" />
+                </VerticalStackLayout>
+            </Border>
+            </Grid>
         <HorizontalStackLayout Grid.Row="1" Spacing="12">
             <Picker Title="Fitern nach Wettbewerb:"
                     FontSize="22"
@@ -67,9 +100,9 @@
                                 </Border.GestureRecognizers>
                                 <Grid ColumnDefinitions="*,80,120,*">
                                     <Label Grid.Column="0" Text="{Binding Name}" Style="{StaticResource RfmLabel}" HorizontalOptions="Start" />
-                                    <Label Grid.Column="1" FontSize="22" Text="{Binding AvgRating, StringFormat='Ø {0:0.0}'}"
+                                    <Label Grid.Column="1" FontSize="22" Text="{Binding RatingText}"
                                            TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
-                                    <Label Grid.Column="2" FontSize="22" Text="{Binding AvgMoral, StringFormat='Moral {0:0}'}"
+                                    <Label Grid.Column="2" FontSize="22" Text="{Binding MoraleText}"
                                            TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />
                                     <Label Grid.Column="3" Text="{Binding Status}" HorizontalOptions="Center"
                                            TextColor="{StaticResource RfmTextMuted}" VerticalOptions="Center" />

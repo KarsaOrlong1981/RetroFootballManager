@@ -11,14 +11,21 @@ using RetroFootballManager.Services;
 
 namespace RetroFootballManager.ViewModels
 {
-    public record TeamOverviewRow(int TeamId, string Name, double AvgRating, double AvgMoral, string Status = "");
+    // Rating/Morale are null (shown as "?") without an Analyst on staff - see
+    // TeamAssessmentEstimator and ClubViewModel.HasAnalyst.
+    public record TeamOverviewRow(int TeamId, string Name, double? Rating, int? Morale, string Status = "")
+    {
+        public string RatingText => Rating is { } r ? $"Ø {r:0.0}" : "Ø ?";
+        public string MoraleText => Morale is { } m ? $"Moral {m}" : "Moral ?";
+    }
 
     // Detail view for a tapped team row in the club overview (own or foreign): squad
     // strength, season stat averages (from the Phase 2 TeamStats fields), form/morale, and
-    // an estimated (or, for the own team, exact) finance snapshot.
+    // an estimated (or, for the own team, exact) rating/morale/finance snapshot - see
+    // TeamAssessmentEstimator. Every estimated field is null (shown as "?") without an
+    // Analyst on staff.
     public record TeamDetail(
         string Name,
-        double SquadStrength,
         int MatchesPlayed,
         int AveragePossession,
         int AveragePassAccuracy,
@@ -27,12 +34,14 @@ namespace RetroFootballManager.ViewModels
         double AveragePenaltys,
         double AverageOffsides,
         string Form,
-        int Morale,
-        FinanceEstimate Finance,
+        TeamAssessmentEstimate Assessment,
         ManagerProfile? ManagerProfile)
     {
-        public string BalanceText => Finance.EstimatedBalance is { } balance ? $"{balance:N0} €" : "Unbekannt";
-        public string TransferBudgetText => Finance.EstimatedTransferBudget is { } budget ? $"{budget:N0} €" : "Unbekannt";
+        public string RatingText => Assessment.Rating is { } r ? $"{r:0.0}" : "?";
+        public string MoraleText => Assessment.Morale is { } m ? $"{m}%" : "?";
+        public string BalanceText => Assessment.Balance is { } balance ? $"{balance:N0} €" : "?";
+        public string TransferBudgetText => Assessment.TransferBudget is { } budget ? $"{budget:N0} €" : "?";
+        public string FinancialHealthText => Assessment.FinancialHealth is { } health ? $"{health}/100" : "?";
     }
 
     public partial class ClubViewModel : BaseViewModel
@@ -43,6 +52,12 @@ namespace RetroFootballManager.ViewModels
         private readonly SaveGameService _saveGame;
         private readonly CupTieRepository _cupTieRepository;
         private readonly INavigationService _navigation;
+
+        // Best own Analyst's TeamAssessment skill - drives every other team's Rating/Morale/
+        // Finance estimate shown on this page (both the overview list and the detail dialog).
+        // Null when no Analyst is on staff - every estimate then shows "?" (see
+        // TeamAssessmentEstimator.Estimate).
+        private int? _teamAssessmentAbility;
 
         public ClubViewModel(IDispatcher dispatcher, GameSession session, SaveGameService saveGame, INavigationService navigation, CupTieRepository cupTieRepository)
             : base(dispatcher)
@@ -76,6 +91,12 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private bool _isManagerProfileDialogOpen;
         [ObservableProperty] private ManagerProfile? _viewedManagerProfile;
 
+        // Analyst panel - mirrors the Director of Football panel on the Merchandise page.
+        [ObservableProperty] private bool _hasAnalyst;
+        [ObservableProperty] private string _analystName = string.Empty;
+        [ObservableProperty] private string _analystImagePath = string.Empty;
+        [ObservableProperty] private int _analystTeamAssessment;
+
 
         public string DisplayCompetitionKind => GetCompetitionKindOutput();
 
@@ -108,12 +129,23 @@ namespace RetroFootballManager.ViewModels
                 LeaguePositionText = "–";
             }
 
-            OtherTeams.Clear();
-            foreach (var other in _session.Teams.Where(t => t.Id != team.Id).OrderByDescending(t => t.AverageRating))
+            var analyst = team.Employees
+                .Where(e => e.EmployeeType == EmployeeType.Analyst)
+                .OrderByDescending(e => e.TeamAssessment)
+                .FirstOrDefault();
+            HasAnalyst = analyst is not null;
+            if (analyst is not null)
             {
-                double avgMoral = other.Players.Count > 0 ? other.Players.Average(p => p.Moral) : 0;
-                OtherTeams.Add(new TeamOverviewRow(other.Id, other.Name, other.AverageRating, avgMoral));
+                AnalystName = analyst.Name;
+                AnalystImagePath = analyst.ImagePath ?? string.Empty;
+                AnalystTeamAssessment = analyst.TeamAssessment;
             }
+            _teamAssessmentAbility = analyst?.TeamAssessment;
+
+            OtherTeams.Clear();
+            foreach (var other in _session.Teams.Where(t => t.Id != team.Id)
+                         .OrderByDescending(t => TeamStrengthCalculator.Calculate(t, isHome: false).Overall))
+                OtherTeams.Add(BuildOverviewRow(other, state));
 
             var leagueTeams = _session.Teams.Where(t => t.LeagueTier == team.LeagueTier).ToList();
             double leagueAvgRating = leagueTeams.Count > 0 ? leagueTeams.Average(t => t.AverageRating) : team.AverageRating;
@@ -138,6 +170,9 @@ namespace RetroFootballManager.ViewModels
         private Task Back() => _navigation.GoBackAsync();
 
         [RelayCommand]
+        private Task OpenStaff() => _navigation.GoToAsync("staff");
+
+        [RelayCommand]
         private void ShowTeamDetail(int teamId)
         {
             var team = _session.Teams.FirstOrDefault(t => t.Id == teamId);
@@ -148,27 +183,24 @@ namespace RetroFootballManager.ViewModels
 
             var strength = TeamStrengthCalculator.Calculate(team, isHome: false);
             var stats = team.Statistics;
+            double realRating = strength.Overall;
+            int realMorale = stats?.Morale ?? 50;
 
-            FinanceEstimate finance;
-            if (team.Id == manager.Id || team.Finances is null)
+            TeamAssessmentEstimate assessment;
+            if (team.Id == manager.Id)
             {
-                finance = new FinanceEstimate(
-                    team.Finances?.CurrentBalance, team.Finances?.TransferBudget,
-                    team.Finances?.FinancialHealth ?? 0, IsExact: true, AccuracyLabel: "Exakt");
+                assessment = new TeamAssessmentEstimate(
+                    realRating, realMorale, team.Finances?.CurrentBalance, team.Finances?.TransferBudget,
+                    team.Finances?.FinancialHealth, IsExact: true, AccuracyLabel: "Exakt");
             }
             else
             {
-                int? ability = manager.Employees
-                    .Where(e => e.EmployeeType == EmployeeType.Analyst)
-                    .Select(e => (int?)e.AnalysisAbility)
-                    .Max();
                 var rng = new Random(HashCode.Combine(team.Id, state.Season, state.CurrentDate.Month));
-                finance = FinanceEstimator.Estimate(team.Finances, ability, rng);
+                assessment = TeamAssessmentEstimator.Estimate(realRating, realMorale, team.Finances, _teamAssessmentAbility, rng);
             }
 
             SelectedTeamDetail = new TeamDetail(
                 team.Name,
-                strength.Overall,
                 stats?.MatchesPlayed ?? 0,
                 stats?.AveragePossessions ?? 0,
                 stats?.AveragePassAccuracy ?? 0,
@@ -177,10 +209,26 @@ namespace RetroFootballManager.ViewModels
                 stats?.AveragePenaltys ?? 0,
                 stats?.AverageOffsides ?? 0,
                 stats is null ? string.Empty : new string(stats.Form.ToArray()),
-                stats?.Morale ?? 50,
-                finance,
+                assessment,
                 team.ManagerProfile);
             IsTeamDetailDialogOpen = true;
+        }
+
+        // Shared by InitializeAsync's default list and GroupBySettings - own team is always
+        // exact, every other team goes through TeamAssessmentEstimator (null ability = every
+        // field "?"). Deterministic per (team, season, month) so re-sorting/re-filtering within
+        // the same visit doesn't jitter the displayed numbers.
+        private TeamOverviewRow BuildOverviewRow(Team other, GameState state, string status = "")
+        {
+            double realRating = TeamStrengthCalculator.Calculate(other, isHome: false).Overall;
+            int realMorale = other.Statistics?.Morale ?? 50;
+
+            if (other.Id == state.ManagerTeamId)
+                return new TeamOverviewRow(other.Id, other.Name, realRating, realMorale, status);
+
+            var rng = new Random(HashCode.Combine(other.Id, state.Season, state.CurrentDate.Month));
+            var estimate = TeamAssessmentEstimator.Estimate(realRating, realMorale, other.Finances, _teamAssessmentAbility, rng);
+            return new TeamOverviewRow(other.Id, other.Name, estimate.Rating, estimate.Morale, status);
         }
 
         [RelayCommand]
@@ -202,6 +250,9 @@ namespace RetroFootballManager.ViewModels
         private async Task<ObservableCollection<TeamOverviewRow>> GroupBySettings()
         {
             var resultList = new ObservableCollection<TeamOverviewRow>();
+            var state = _session.State;
+            if (state is null)
+                return resultList;
 
             // group by League (Moral/Rating)
             if (SelectedKind == CompetitionKind.Tier1 || SelectedKind == CompetitionKind.Tier2 || SelectedKind == CompetitionKind.Tier3 || SelectedKind == CompetitionKind.Tier4)
@@ -217,26 +268,24 @@ namespace RetroFootballManager.ViewModels
 
                 var teamsInTier = _session.Teams.Where(t => t.LeagueTier == tierNumber);
 
+                // Sorting always uses the REAL underlying values (server-side truth), even
+                // though the displayed number itself is masked to "?" without an Analyst -
+                // matches how a manager can reasonably gauge relative strength just by
+                // following the league, without needing exact figures.
                 var ordered = SelectedGroupConditionType switch
                 {
-                    GroupConditionType.Rating => teamsInTier.OrderByDescending(t => t.AverageRating),
+                    GroupConditionType.Rating => teamsInTier.OrderByDescending(t => TeamStrengthCalculator.Calculate(t, isHome: false).Overall),
                     GroupConditionType.Moral => teamsInTier.OrderByDescending(t => t.Statistics?.Morale ?? 50),
                     _ => teamsInTier.OrderBy(t => t.Name)
                  };
 
-                foreach(var team in ordered)
-                {
-                    double avgMoral = team.Players.Count > 0 ? team.Players.Average(p => p.Moral) : 0;
-                    resultList.Add(new TeamOverviewRow(team.Id, team.Name, team.AverageRating, avgMoral));
-                }
+                foreach (var team in ordered)
+                    resultList.Add(BuildOverviewRow(team, state));
             }
             else
             {
                 // group by Cups
 
-                var state = _session.State;
-                if (state == null)
-                    return resultList;
 
                 var competitionType = MapToCompetitionType(SelectedKind);
                 var ties = await _cupTieRepository.GetBySeasonAsync(state.Season, competitionType);
@@ -246,16 +295,15 @@ namespace RetroFootballManager.ViewModels
 
                 var ordered = SelectedGroupConditionType switch
                 {
-                    GroupConditionType.Rating => participants.OrderByDescending(t => t.AverageRating),
+                    GroupConditionType.Rating => participants.OrderByDescending(t => TeamStrengthCalculator.Calculate(t, isHome: false).Overall),
                     GroupConditionType.Moral => participants.OrderByDescending(t => t.Statistics?.Morale ?? 50),
                     _ => participants.OrderBy(t => t.Name)
                 };
 
                 foreach (var team in ordered)
                 {
-                    double avgMoral = team.Players.Count > 0 ? team.Players.Average(p => p.Moral) : 0;
                     var status = CupParticipationService.GetStatus(team.Id, ties);
-                    resultList.Add(new TeamOverviewRow(team.Id, team.Name, team.AverageRating, avgMoral, GetStatusText(status)));
+                    resultList.Add(BuildOverviewRow(team, state, GetStatusText(status)));
                 }
             }
 

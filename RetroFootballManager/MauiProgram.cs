@@ -85,6 +85,7 @@ namespace RetroFootballManager
             services.AddSingleton<FinanceService>();
             services.AddSingleton<MerchandiseRepository>();
             services.AddSingleton<MerchandiseService>();
+            services.AddSingleton<TransferHistoryRepository>();
             services.AddSingleton<SponsorService>();
             services.AddSingleton<StaffMarketService>();
             services.AddSingleton<TransferMarketService>();
@@ -98,7 +99,8 @@ namespace RetroFootballManager
                 sp.GetRequiredService<FinanceService>(),
                 sp.GetRequiredService<AiManagerService>(),
                 sp.GetRequiredService<MessageService>(),
-                sp.GetRequiredService<MerchandiseService>()));
+                sp.GetRequiredService<MerchandiseService>(),
+                sp.GetRequiredService<TransferHistoryRepository>()));
             services.AddSingleton<CupMatchDayService>();
             services.AddSingleton<CalendarAdvanceService>();
             services.AddSingleton<FriendlyService>();

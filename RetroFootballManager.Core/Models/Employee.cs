@@ -32,6 +32,12 @@ namespace RetroFootballManager.Models
         public int Motivation { get; set; }
         public int AnalysisAbility { get; set; }
 
+        // Separate from AnalysisAbility (which drives pre-match opponent scouting reports,
+        // see ScoutingReportService) - this one drives the club overview's estimate of OTHER
+        // clubs' rating/morale/finances (see TeamAssessmentEstimator), a different, ongoing
+        // browsing feature rather than a per-match report.
+        public int TeamAssessment { get; set; }
+
         // DirectorOfFootball-specific skills (1-99): each stage of a transfer deal, plus
         // overall club revenue, draws on a different skill (see TransferAiService and
         // FinanceService) so a DoF can be sharp at one part of the job and weak at another.

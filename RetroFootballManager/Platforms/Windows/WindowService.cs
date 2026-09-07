@@ -218,7 +218,19 @@ namespace RetroFootballManager.WinUI
             }
         }
 
-        public void CloseApp() => _appWindow?.Destroy();
+        // AppWindow.Destroy() alone only tears down the native window - for this unpackaged
+        // WinUI app (WindowsPackageType=None) that does NOT terminate the .NET process/message
+        // loop, so the .exe kept running invisibly after "close". Environment.Exit (a hard,
+        // immediate process termination) is used deliberately instead of Application.Current.
+        // Exit()/graceful MAUI shutdown - this file's whole crash-guard history shows this
+        // window's native teardown path is fragile, so routing through it here would risk
+        // resurfacing one of those crashes right at exit.
+        public void CloseApp()
+        {
+            _appWindow?.Destroy();
+            Serilog.Log.CloseAndFlush();
+            Environment.Exit(0);
+        }
 
         public void HideCommandBarOverflow()
         {

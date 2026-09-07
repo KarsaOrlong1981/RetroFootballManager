@@ -21,7 +21,7 @@ namespace RetroFootballManager.Common
             // Base spread for all coaching ratings.
             int off = Around(quality), def = Around(quality), gk = Around(quality * 0.7),
                 fit = Around(quality), youth = Around(quality), scout = Around(quality),
-                mot = Around(quality), analysis = Around(quality),
+                mot = Around(quality), analysis = Around(quality), teamAssessment = Around(quality),
                 sell = Around(quality), counter = Around(quality), firm = Around(quality),
                 finance = Around(quality);
 
@@ -34,7 +34,7 @@ namespace RetroFootballManager.Common
                 case EmployeeType.YouthCoach: youth = Around(quality + 14); break;
                 case EmployeeType.Scout: scout = Around(quality + 14); break;
                 case EmployeeType.Psychologist: mot = Around(quality + 14); break;
-                case EmployeeType.Analyst: analysis = Around(quality + 14); break;
+                case EmployeeType.Analyst: analysis = Around(quality + 14); teamAssessment = Around(quality + 14); break;
                 // No dedicated "medical" field exists on Employee - FitnessTraining doubles as
                 // the skill both Physiotherapist/MedicalStaff bonuses key on (see Match.
                 // ApplyMedicalStaffReduction), same as FitnessCoach's own emphasis.
@@ -46,7 +46,7 @@ namespace RetroFootballManager.Common
                     break;
             }
 
-            double rating = new[] { off, def, gk, fit, youth, scout, mot, analysis, sell, counter, firm, finance }.Average();
+            double rating = new[] { off, def, gk, fit, youth, scout, mot, analysis, teamAssessment, sell, counter, firm, finance }.Average();
 
             return new Employee
             {
@@ -64,6 +64,7 @@ namespace RetroFootballManager.Common
                 ScoutingAbility = scout,
                 Motivation = mot,
                 AnalysisAbility = analysis,
+                TeamAssessment = teamAssessment,
                 SellingNegotiation = sell,
                 CounterOfferNegotiation = counter,
                 AcceptanceFirmness = firm,
