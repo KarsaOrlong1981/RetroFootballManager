@@ -34,7 +34,18 @@ namespace RetroFootballManager.Models
         // Income streams
         public int TicketIncome { get; set; }            // Matchday revenue
         public int SponsorIncome { get; set; }           // Sponsorship deals
-        public int MerchandiseIncome { get; set; }       // Shirts, scarves, retro stuff
+        public int MerchandiseIncome { get; set; }       // Shirts, scarves, retro stuff (stadium-level passive baseline)
+
+        // Season-to-date revenue from the Merchandise department's actual article shop
+        // (buy wholesale/sell at markup, 10 SKUs incl. the star-player jersey) - kept
+        // separate from MerchandiseIncome above so the old passive baseline (still fed by
+        // Stadium.MerchandiseLevel for every team) isn't touched. See MerchandiseService.
+        public int MerchandiseArticleIncome { get; set; }
+
+        // Season-to-date wholesale spend on Merchandise department stock (see
+        // MerchandiseService.TryBuyStock) - shown next to MerchandiseArticleIncome on the
+        // FinancesPage's own "Merchandise" section.
+        public int MerchandiseArticleExpense { get; set; }
         public int ClubMembershipIncome { get; set; }    // Season-to-date, see ApplyMonthlySettlementAsync
 
         public int ClubMembers { get; set; }
@@ -42,6 +53,17 @@ namespace RetroFootballManager.Models
 
         public int MembershipCheckMatchday { get; set; }
         public int MembershipCheckPoints { get; set; }
+
+        // Membership recruitment campaign (Merchandise department) - members trickle in
+        // linearly over MembershipCampaignStartDate..EndDate instead of all at once (see
+        // ClubMembershipService.TryLaunchCampaign/ApplyCampaignDrip). Null dates = no active
+        // campaign, a new one can be started. AppliedGain tracks how much of TotalGain has
+        // already been credited to ClubMembers so far, for progress display and to keep the
+        // daily drip idempotent (never double-applies if the drip runs twice on one date).
+        public DateTime? MembershipCampaignStartDate { get; set; }
+        public DateTime? MembershipCampaignEndDate { get; set; }
+        public int MembershipCampaignTotalGain { get; set; }
+        public int MembershipCampaignAppliedGain { get; set; }
 
         // Expenses
         public int PlayerWages { get; set; }             // Total weekly/monthly wages

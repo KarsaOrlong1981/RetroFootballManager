@@ -108,6 +108,11 @@
                     <TapGestureRecognizer Command="{Binding OpenStadiumCommand}" />
                 </Border.GestureRecognizers>
             </Border>
+            <Border x:Name="HsMerchandise" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Merchandise">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenMerchandiseCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
 
             <!-- Standalone (Inbox moved into the header, Options not needed for now) -->
             <Border x:Name="HsTransferMarket" Style="{StaticResource MenuHotspotStyle}" ToolTipProperties.Text="Transfermarkt">

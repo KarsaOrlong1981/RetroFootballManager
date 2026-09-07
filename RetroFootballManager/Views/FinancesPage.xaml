@@ -109,6 +109,24 @@
                 </Grid>
             </Border>
 
+            <Label Text="Merchandise-Abteilung" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+                        <Label Grid.Row="0" Grid.Column="0" FontSize="18" Text="Einnahmen (Saison)" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="0" Grid.Column="1" FontSize="18" Text="{Binding MerchandiseArticleIncomeText}" TextColor="{StaticResource RfmAccentTeal}" />
+                        <Label Grid.Row="1" Grid.Column="0" FontSize="18" Text="Wareneinkauf (Saison)" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="1" Grid.Column="1" FontSize="18" Text="{Binding MerchandiseArticleExpenseText}" TextColor="#EF4444" />
+                        <Label Grid.Row="2" Grid.Column="0" FontSize="18" Text="Netto (Saison)" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="2" Grid.Column="1" FontSize="18" Text="{Binding MerchandiseArticleNetText}" TextColor="{StaticResource RfmAccentTeal}" />
+                        <Button Grid.Row="3" Grid.ColumnSpan="2" Text="Zur Merchandise-Abteilung" FontSize="16"
+                                Command="{Binding OpenMerchandiseCommand}"
+                                BackgroundColor="{StaticResource RfmAccent}" TextColor="White" HorizontalOptions="Start" />
+                </Grid>
+            </Border>
+
             <Label Text="Sponsoren im Detail" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
             <Label Text="Die Grundzahlung läuft monatlich zum 15.; alle Bonuszahlungen (pro Sieg, Aufstieg, Platzierung) werden erst am Saisonende ausgezahlt."
                    FontSize="18" TextColor="{StaticResource RfmText}" />

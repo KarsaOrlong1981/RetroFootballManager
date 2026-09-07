@@ -83,6 +83,8 @@ namespace RetroFootballManager
             services.AddSingleton<TrainingCampRepository>();
             services.AddSingleton<TrainingCampService>();
             services.AddSingleton<FinanceService>();
+            services.AddSingleton<MerchandiseRepository>();
+            services.AddSingleton<MerchandiseService>();
             services.AddSingleton<SponsorService>();
             services.AddSingleton<StaffMarketService>();
             services.AddSingleton<TransferMarketService>();
@@ -95,7 +97,8 @@ namespace RetroFootballManager
                 sp.GetRequiredService<PlayerRepository>(),
                 sp.GetRequiredService<FinanceService>(),
                 sp.GetRequiredService<AiManagerService>(),
-                sp.GetRequiredService<MessageService>()));
+                sp.GetRequiredService<MessageService>(),
+                sp.GetRequiredService<MerchandiseService>()));
             services.AddSingleton<CupMatchDayService>();
             services.AddSingleton<CalendarAdvanceService>();
             services.AddSingleton<FriendlyService>();
@@ -143,6 +146,7 @@ namespace RetroFootballManager
             services.AddTransient<OptionsViewModel>();
             services.AddTransient<GameOverViewModel>();
             services.AddTransient<TalkToPlayerViewModel>();
+            services.AddTransient<MerchandiseViewModel>();
 
             services.AddTransient<StartPage>();
             services.AddTransient<ManagerCreationPage>();
@@ -171,6 +175,7 @@ namespace RetroFootballManager
             services.AddTransient<OptionsPage>();
             services.AddTransient<GameOverPage>();
             services.AddTransient<TalkToPlayerPage>();
+            services.AddTransient<MerchandisePage>();
         }
     }
 }

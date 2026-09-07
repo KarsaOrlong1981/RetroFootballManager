@@ -174,5 +174,134 @@ namespace RetroFootballManager.Common
                     team.Finances.ClubMembers += bonus;
             }
         }
+
+        // Membership recruitment campaign, launchable from the Merchandise department - a
+        // campaign means actually offering members something for their money, so the cost
+        // scales with BOTH league tier AND the club's current membership fee (a club charging
+        // more per member has to spend more to justify it), floored at 15,000 € per explicit
+        // user request. Runs for CampaignDurationDays and members trickle in linearly day by
+        // day via ApplyCampaignDrip - no second campaign can start while one is still running
+        // (IsCampaignActive).
+        private const int CampaignDurationDays = 75; // ~2.5 months, per user's "2 oder 3 Monate"
+        private const int MinCampaignCost = 15_000;
+
+        // Baseline cost AT the tier's reference (mid-range) membership fee - see
+        // GetCampaignCost. A club charging above that reference pays proportionally more,
+        // below it proportionally less (still floored at MinCampaignCost).
+        private static readonly int[] TierCampaignCost = [60_000, 35_000, 22_000, 15_000];
+
+        // Total members gained over the full campaign at a NEUTRAL (1.0) performance factor -
+        // scaled up/down by the club's actual table position/form at launch time (see
+        // MerchandiseSalesCalculator.PerformanceFactor, reused here so "how well is the season
+        // going" drives campaign success the same way it drives merchandise demand).
+        private static readonly int[] TierCampaignBaseGain = [4000, 1800, 700, 250];
+
+        // Hard ceiling on ClubMembers - campaigns are the only way membership can grow without
+        // any other bound (unlike ApplySeasonEndAdjustments' promotion/relegation clamp, which
+        // only fires on a tier change), so left uncapped this could run away over many seasons
+        // of repeated campaigns. ~1.4x the natural TierMemberRange ceiling still allows a
+        // well-run club real growth headroom without becoming absurd.
+        private static readonly int[] TierMemberHardCap = [200_000, 85_000, 30_000, 15_000];
+
+        public static int GetCampaignCost(int leagueTier, int membershipFeePerMember)
+        {
+            var (feeMin, feeMax) = TierFeeRange[leagueTier - 1];
+            double referenceFee = (feeMin + feeMax) / 2.0;
+            double feeFactor = membershipFeePerMember > 0 ? membershipFeePerMember / referenceFee : 1.0;
+            int cost = (int)Math.Round(TierCampaignCost[leagueTier - 1] * feeFactor);
+            return Math.Max(MinCampaignCost, cost);
+        }
+
+        public static bool IsCampaignActive(Finances finances, DateTime currentDate) =>
+            finances.MembershipCampaignEndDate is { } end && currentDate < end;
+
+        // A Director of Football is required to run a campaign at all (not just for the
+        // Merchandise page's purchase recommendations) - makes hiring one a genuinely
+        // worthwhile decision, per explicit user request. Same for AI teams (see
+        // TryRunAiCampaignTick) - full parity with the human, no special-casing.
+        public static bool HasDirectorOfFootball(Team team) =>
+            team.Employees.Any(e => e.EmployeeType == EmployeeType.DirectorOfFootball);
+
+        // performanceFactor: pass MerchandiseSalesCalculator.PerformanceFactor(standingRow,
+        // leagueSize) - evaluated ONCE at launch (a snapshot of "how attractive is the club
+        // right now"), not re-evaluated during the drip.
+        public static bool TryLaunchCampaign(Team team, DateTime currentDate, double performanceFactor, Random random)
+        {
+            var finances = team.Finances;
+            if (finances is null || !HasDirectorOfFootball(team) || IsCampaignActive(finances, currentDate))
+                return false;
+
+            int cost = GetCampaignCost(team.LeagueTier, finances.MembershipFeePerMember);
+            if (finances.CurrentBalance < cost)
+                return false;
+
+            finances.CurrentBalance -= cost;
+
+            int baseGain = TierCampaignBaseGain[team.LeagueTier - 1];
+            double jitter = 0.85 + random.NextDouble() * 0.3; // +/-15%, texture only
+            int totalGain = Math.Max(0, (int)Math.Round(baseGain * performanceFactor * jitter));
+
+            finances.MembershipCampaignStartDate = currentDate;
+            finances.MembershipCampaignEndDate = currentDate.AddDays(CampaignDurationDays);
+            finances.MembershipCampaignTotalGain = totalGain;
+            finances.MembershipCampaignAppliedGain = 0;
+            return true;
+        }
+
+        // AI counterpart to TryLaunchCampaign - same rules (needs a DoF, cost, no overlap),
+        // plus two AI-only guards: cautionFactor (pass FinanceAiService.ComputeCautionFactor -
+        // same "don't spend while in trouble" gate AiManagerService already applies to stadium
+        // upgrades/staff hires) and a difficulty-scaled weekly chance, so AI teams don't all
+        // launch a campaign the instant they can afford one. Both real DoF-gating and the
+        // caution/chance gating are what keep this from "ausarten" across many AI teams over a
+        // season (verified by MerchandiseSeasonValidationTests).
+        private static readonly double[] DifficultyCampaignChance = [0.03, 0.06, 0.10]; // Easy/Normal/Hard, per week
+
+        public static bool TryRunAiCampaignTick(
+            Team team, DateTime currentDate, double performanceFactor, Difficulty difficulty, double cautionFactor, Random random)
+        {
+            if (team.Finances is null || cautionFactor <= 0.2)
+                return false;
+
+            if (random.NextDouble() > DifficultyCampaignChance[(int)difficulty])
+                return false;
+
+            return TryLaunchCampaign(team, currentDate, performanceFactor, random);
+        }
+
+        // Daily drip - call from both CalendarAdvanceService's daily human tick AND
+        // MatchDayService.ApplyFinanceAsync (a matchday advances the date without ever going
+        // through CalendarAdvanceService, same dual-hook reasoning as FinanceService.
+        // ApplyMonthlySettlementAsync). Idempotent per date: computes how much SHOULD have
+        // been applied by elapsed-time-fraction and only adds the delta, so calling it twice
+        // on the same day never double-applies. Returns the members added this call (0 if
+        // no active campaign or nothing new due yet).
+        public static int ApplyCampaignDrip(Team team, DateTime currentDate)
+        {
+            var finances = team.Finances;
+            if (finances?.MembershipCampaignStartDate is not { } start || finances.MembershipCampaignEndDate is not { } end)
+                return 0;
+
+            double totalDays = Math.Max(1, (end - start).TotalDays);
+            double elapsedDays = Math.Clamp((currentDate - start).TotalDays, 0, totalDays);
+            int shouldHaveApplied = (int)Math.Round(finances.MembershipCampaignTotalGain * elapsedDays / totalDays);
+            int increment = shouldHaveApplied - finances.MembershipCampaignAppliedGain;
+
+            if (increment > 0)
+            {
+                finances.ClubMembers = Math.Min(finances.ClubMembers + increment, TierMemberHardCap[team.LeagueTier - 1]);
+                finances.MembershipCampaignAppliedGain += increment;
+            }
+
+            if (currentDate >= end)
+            {
+                finances.MembershipCampaignStartDate = null;
+                finances.MembershipCampaignEndDate = null;
+                finances.MembershipCampaignTotalGain = 0;
+                finances.MembershipCampaignAppliedGain = 0;
+            }
+
+            return increment;
+        }
     }
 }

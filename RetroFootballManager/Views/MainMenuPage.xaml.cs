@@ -30,6 +30,11 @@ namespace RetroFootballManager.Views
             ("HsSponsors", new Rect(1200, 575, 290, 260)),         // armchair on the right
             ("HsFinances", new Rect(440, 720, 160, 100)),          // large paper document
             ("HsStadium", new Rect(15, 165, 425, 325)),            // entire window
+            // Navy #1 jersey + white/red jersey - the two hanging jerseys right of the red #5
+            // one (HsTeamTraining), previously plain decoration with no hotspot. Estimated
+            // from the same 110px-wide jersey spacing as HsTraining/HsTeamTraining - nudge
+            // these two numbers if they don't line up exactly with the artwork.
+            ("HsMerchandise", new Rect(920, 335, 225, 145)),       // navy #1 + white/red jersey
             ("HsTransferMarket", new Rect(120, 760, 220, 100)),    // phone
             ("HsSaveGame", new Rect(115, 600, 130, 150)),          // golden trophy/orb on the desk (narrow, keeps the phone area free)
             ("HsBackToStart", new Rect(1470, 0, 66, 1024)),        // wall strip right of the tactics board, full height

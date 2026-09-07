@@ -122,7 +122,11 @@ namespace RetroFootballManager.Common
                         team, state.CurrentDate, windowEnd, state.Difficulty, _trainingCamps, _random);
                     bool applied = await _trainingCamps.ApplyDueCampsAsync(team, state.CurrentDate, sendMessage: false);
                     bool settled = await _finance.ApplyMonthlySettlementAsync(team, state.CurrentDate, sendMessage: false);
-                    if (booked || applied || settled)
+                    // Keeps AI membership campaigns (launched via MerchandiseService.
+                    // ApplyWeeklySalesAsync on matchdays, where real standings are available)
+                    // dripping in on non-matchday days too - not just weekly.
+                    int campaignGain = ClubMembershipService.ApplyCampaignDrip(team, state.CurrentDate);
+                    if (booked || applied || settled || campaignGain > 0)
                         touchedTeamIds.Add(team.Id);
                 }
                 catch (Exception ex)
@@ -150,6 +154,7 @@ namespace RetroFootballManager.Common
                 // projection into crisis on any day, and the board should react the same day, not
                 // up to a week later.
                 await _finance.CheckSeasonEndProjectionAsync(humanTeam, state, state.CurrentDate);
+                ClubMembershipService.ApplyCampaignDrip(humanTeam, state.CurrentDate);
                 bool settledHuman = await _finance.ApplyMonthlySettlementAsync(humanTeam, state.CurrentDate);
                 if (settledHuman)
                     FinanceService.ApplyFinancialHealthMoodCoupling(humanTeam);

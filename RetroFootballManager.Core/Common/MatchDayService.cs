@@ -26,12 +26,13 @@ namespace RetroFootballManager.Common
         private readonly FinanceService? _finance;
         private readonly AiManagerService? _aiManager;
         private readonly MessageService? _messages;
+        private readonly MerchandiseService? _merchandise;
         private readonly Random _random;
 
         public MatchDayService(
             FixtureRepository fixtures, TeamRepository teams, PlayerRepository players,
             FinanceService? finance = null, AiManagerService? aiManager = null,
-            MessageService? messages = null, Random? random = null)
+            MessageService? messages = null, MerchandiseService? merchandise = null, Random? random = null)
         {
             _fixtures = fixtures;
             _teams = teams;
@@ -39,6 +40,7 @@ namespace RetroFootballManager.Common
             _finance = finance;
             _aiManager = aiManager;
             _messages = messages;
+            _merchandise = merchandise;
             _random = random ?? Random.Shared;
         }
 
@@ -430,6 +432,20 @@ namespace RetroFootballManager.Common
                 _finance!.ApplyMatchdayFinance(team, isHome, standings, opponentTierRank);
                 bool isHumanTeam = id == state.ManagerTeamId;
                 await _finance.ApplyMonthlySettlementAsync(team, state.CurrentDate, sendMessage: isHumanTeam);
+
+                // Applies to every team, not just the human - AI teams can now also run
+                // membership campaigns (ClubMembershipService.TryRunAiCampaignTick below), and
+                // their members need to trickle in the same way.
+                ClubMembershipService.ApplyCampaignDrip(team, state.CurrentDate);
+
+                if (_merchandise is not null)
+                {
+                    var merchStandingRow = standings.FirstOrDefault(s => s.TeamId == id);
+                    double aiCautionFactor = isHumanTeam ? 1.0 : FinanceAiService.ComputeCautionFactor(team, state.Difficulty, matchday);
+                    await _merchandise.ApplyWeeklySalesAsync(
+                        team, isHumanTeam, merchStandingRow, standings.Count, state.CurrentDate,
+                        state.Difficulty, _random, aiCautionFactor);
+                }
 
                 if (isHumanTeam)
                 {

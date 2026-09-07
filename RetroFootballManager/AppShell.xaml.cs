@@ -37,6 +37,7 @@ namespace RetroFootballManager
             Routing.RegisterRoute("options", typeof(OptionsPage));
             Routing.RegisterRoute("gameover", typeof(GameOverPage));
             Routing.RegisterRoute("talktoplayer", typeof(TalkToPlayerPage));
+            Routing.RegisterRoute("merchandise", typeof(MerchandisePage));
         }
     }
 }

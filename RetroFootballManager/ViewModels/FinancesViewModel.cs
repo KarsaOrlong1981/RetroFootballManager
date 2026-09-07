@@ -57,6 +57,12 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private string _membershipIncomeMonthlyText = string.Empty;
         [ObservableProperty] private string _membershipIncomeYearlyText = string.Empty;
 
+        // Merchandise department (article shop, separate from the passive MerchandiseIncome
+        // baseline above) - see MerchandiseService.
+        [ObservableProperty] private string _merchandiseArticleIncomeText = string.Empty;
+        [ObservableProperty] private string _merchandiseArticleExpenseText = string.Empty;
+        [ObservableProperty] private string _merchandiseArticleNetText = string.Empty;
+
         public ObservableCollection<SponsorOverviewItem> SponsorDeals { get; } = [];
 
         [ObservableProperty] private bool _hasActiveLoan;
@@ -99,6 +105,10 @@ namespace RetroFootballManager.ViewModels
             long annualMembershipIncome = (long)finances.ClubMembers * finances.MembershipFeePerMember;
             MembershipIncomeMonthlyText = $"{annualMembershipIncome / 12:N0} € / Monat";
             MembershipIncomeYearlyText = $"{annualMembershipIncome:N0} € / Jahr";
+
+            MerchandiseArticleIncomeText = $"{finances.MerchandiseArticleIncome:N0} €";
+            MerchandiseArticleExpenseText = $"{finances.MerchandiseArticleExpense:N0} €";
+            MerchandiseArticleNetText = $"{finances.MerchandiseArticleIncome - finances.MerchandiseArticleExpense:N0} €";
 
             CurrentStaffWagesText = $"{team.Employees.Sum(e => e.Salary):N0} € / Jahr";
 
@@ -187,5 +197,8 @@ namespace RetroFootballManager.ViewModels
 
         [RelayCommand]
         private Task OpenStaff() => _navigation.GoToAsync("staff");
+
+        [RelayCommand]
+        private Task OpenMerchandise() => _navigation.GoToAsync("merchandise");
     }
 }

@@ -50,6 +50,7 @@ namespace RetroFootballManager.Data
             await Connection.CreateTableAsync<ContractBonus>();
             await Connection.CreateTableAsync<PendingNegotiation>();
             await Connection.CreateTableAsync<NegotiationCooldown>();
+            await Connection.CreateTableAsync<MerchandiseInventory>();
         }
 
         // Closes the underlying native SQLite connection (e.g. for tests that want to

@@ -274,7 +274,9 @@ namespace RetroFootballManager.Common
                        + attendance.LogeSold * stadium.LogePrice);
         }
 
-        private static double FormPoints(string form) =>
+        // Public - MerchandiseSalesCalculator reuses this exact form-points reading for its
+        // own performance factor, instead of duplicating the "WDL string -> points" logic.
+        public static double FormPoints(string form) =>
             form.Sum(c => c switch { 'W' => 3, 'D' => 1, _ => 0 });
 
         private async Task<int> CalculateMonthlySponsorIncomeAsync(Team team)
@@ -394,6 +396,8 @@ namespace RetroFootballManager.Common
             finances.TicketIncome = 0;
             finances.SponsorIncome = 0;
             finances.MerchandiseIncome = 0;
+            finances.MerchandiseArticleIncome = 0;
+            finances.MerchandiseArticleExpense = 0;
             finances.StaffWages = 0;
             finances.PlayerWages = 0;
             finances.OtherIncome = 0;

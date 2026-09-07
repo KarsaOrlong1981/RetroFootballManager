@@ -562,6 +562,9 @@ namespace RetroFootballManager.ViewModels
         private Task OpenStadium() => _navigation.GoToAsync("stadium");
 
         [RelayCommand]
+        private Task OpenMerchandise() => _navigation.GoToAsync("merchandise");
+
+        [RelayCommand]
         private Task OpenSponsors() => _navigation.GoToAsync("sponsors");
 
         [RelayCommand]
