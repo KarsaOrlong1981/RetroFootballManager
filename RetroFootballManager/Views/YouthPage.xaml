@@ -96,42 +96,58 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
             
-            <CollectionView Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Youth}"
-                            SelectionMode="Single" SelectedItem="{Binding SelectedYouth, Mode=TwoWay}">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:Player">
-                        <Grid Padding="3">
-                            <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}"   StrokeThickness="0" StrokeShape="RoundRectangle 8">
-                                <Grid ColumnDefinitions="50,100,*,Auto,Auto,26" ColumnSpacing="10">
-                                    <Grid Grid.Column="1" WidthRequest="100" HeightRequest="100" >
-                                        <Image Source="avatar.png" Aspect="AspectFit"
-                                               IsVisible="{Binding ImagePath, Converter={StaticResource NoLogo}}" />
-                                        <Image Source="{Binding ImagePath}" Aspect="AspectFit"
-                                               IsVisible="{Binding ImagePath, Converter={StaticResource HasLogo}}" />
+            <!-- Youth prospect list - BindableLayout, not CollectionView: this list grows
+                 unbounded over a save's lifetime, and a large per-item-complex CollectionView
+                 crashes WinUI natively on Windows (see TrainingPage's SquadPlayers list). -->
+            <ScrollView Grid.Row="1" Grid.Column="1">
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Youth}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="models:Player">
+                            <Grid Padding="3">
+                                <Border Padding="12,8" BackgroundColor="{StaticResource RfmSurface}" StrokeThickness="2" StrokeShape="RoundRectangle 8">
+                                    <Border.Stroke>
+                                        <MultiBinding Converter="{StaticResource SelectedRowStroke}">
+                                            <Binding Path="." />
+                                            <Binding Source="{x:Reference Page}" Path="BindingContext.SelectedYouth" />
+                                        </MultiBinding>
+                                    </Border.Stroke>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={x:Reference Page}, Path=BindingContext.SelectYouthCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <Grid ColumnDefinitions="50,100,*,Auto,Auto,26" ColumnSpacing="10">
+                                        <Grid Grid.Column="1" WidthRequest="100" HeightRequest="100" >
+                                            <Image Source="avatar.png" Aspect="AspectFit"
+                                                   IsVisible="{Binding ImagePath, Converter={StaticResource NoLogo}}" />
+                                            <Image Source="{Binding ImagePath}" Aspect="AspectFit"
+                                                   IsVisible="{Binding ImagePath, Converter={StaticResource HasLogo}}" />
+                                        </Grid>
+                                        <VerticalStackLayout Grid.Column="2">
+                                            <Label Text="{Binding Name}" FontSize="18" TextColor="{StaticResource RfmText}" />
+                                            <Label Text="{Binding ShortPositionName}" FontSize="18" TextColor="{StaticResource RfmText}" />
+                                            <Label Text="{Binding Age, StringFormat='{0} Jahre'}" FontSize="16"
+                                                   TextColor="{StaticResource RfmTextMuted}" />
+                                        </VerticalStackLayout>
+                                        <Label Grid.Column="3" Text="{Binding Rating, StringFormat='R {0:0}'}" FontSize="18"
+                                               TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                        <Label Grid.Column="4" Text="{Binding Talent, StringFormat='T {0}'}" FontSize="18"
+                                               FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
+                                        <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0" StrokeShape="RoundRectangle 11">
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                            </Border.GestureRecognizers>
+                                            <Image Source="info.png" WidthRequest="26" HeightRequest="26" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
                                     </Grid>
-                                    <VerticalStackLayout Grid.Column="2">
-                                        <Label Text="{Binding Name}" FontSize="18" TextColor="{StaticResource RfmText}" />
-                                        <Label Text="{Binding ShortPositionName}" FontSize="18" TextColor="{StaticResource RfmText}" />
-                                        <Label Text="{Binding Age, StringFormat='{0} Jahre'}" FontSize="16"
-                                               TextColor="{StaticResource RfmTextMuted}" />
-                                    </VerticalStackLayout>
-                                    <Label Grid.Column="3" Text="{Binding Rating, StringFormat='R {0:0}'}" FontSize="18"
-                                           TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
-                                    <Label Grid.Column="4" Text="{Binding Talent, StringFormat='T {0}'}" FontSize="18"
-                                           FontAttributes="Bold" TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
-                                    <Border Grid.Column="0" BackgroundColor="{StaticResource RfmSurfaceAlt}" WidthRequest="32" HeightRequest="32" Padding="0" StrokeThickness="0" StrokeShape="RoundRectangle 11">
-                                        <Border.GestureRecognizers>
-                                            <TapGestureRecognizer
-                                                Command="{Binding Source={x:Reference Page}, Path=BindingContext.ShowProfileCommand}" />
-                                        </Border.GestureRecognizers>
-                                        <Image Source="info.png" WidthRequest="26" HeightRequest="26" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
-                                    </Border>
-                                </Grid>
-                            </Border>
-                        </Grid>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                                </Border>
+                            </Grid>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </ScrollView>
 
             <VerticalStackLayout Grid.Row="2" Grid.Column="1" Spacing="8">
                 <Label Text="{Binding YouthInfo}" FontSize="18" TextColor="{StaticResource RfmText}" />

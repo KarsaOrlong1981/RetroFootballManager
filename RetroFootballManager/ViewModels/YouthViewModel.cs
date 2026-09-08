@@ -116,21 +116,30 @@ namespace RetroFootballManager.ViewModels
         }
 
         [RelayCommand]
-        private async Task ShowProfile()
+        private async Task ShowProfile(Player? player)
         {
-            if (SelectedYouth is null)
+            player ??= SelectedYouth;
+            if (player is null)
                 return;
+            SelectedYouth = player;
             var seasonStats = _session.State is null
                 ? null
-                : await _saveGame.GetPlayerSeasonStatsAsync(SelectedYouth.Id, _session.State.Season);
-            var careerStats = await _saveGame.GetPlayerCareerStatsAsync(SelectedYouth.Id);
-            var competitionStats = await _saveGame.GetPlayerCompetitionBreakdownAsync(SelectedYouth.Id);
-            SelectedProfile = PlayerProfile.From(SelectedYouth, seasonStats: seasonStats, careerStats: careerStats, competitionStats: competitionStats);
+                : await _saveGame.GetPlayerSeasonStatsAsync(player.Id, _session.State.Season);
+            var careerStats = await _saveGame.GetPlayerCareerStatsAsync(player.Id);
+            var competitionStats = await _saveGame.GetPlayerCompetitionBreakdownAsync(player.Id);
+            SelectedProfile = PlayerProfile.From(player, seasonStats: seasonStats, careerStats: careerStats, competitionStats: competitionStats);
             IsPlayerProfileOpen = true;
         }
 
         [RelayCommand]
         private void CloseProfile() => IsPlayerProfileOpen = false;
+
+        [RelayCommand]
+        private void SelectYouth(Player? player)
+        {
+            if (player is not null)
+                SelectedYouth = player;
+        }
 
         [RelayCommand]
         private async Task AssignMentor()

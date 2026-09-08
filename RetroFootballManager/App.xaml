@@ -19,6 +19,7 @@
             <conv:PositionFitColorConverter x:Key="FitColor" />
             <conv:BoolToColorConverter x:Key="RoleToggleColor" TrueColor="{StaticResource RfmAccentTeal}" FalseColor="#40000000" />
             <conv:BoolToColorConverter x:Key="SelectedGreen" TrueColor="#22C55E" FalseColor="{StaticResource RfmSurface}" />
+            <conv:EqualsToColorConverter x:Key="SelectedRowStroke" TrueColor="{StaticResource RfmAccentTeal}" FalseColor="Transparent" />
             <conv:FormationSlotBoundsConverter x:Key="ThumbDot" DotSize="7" />
             <conv:FormationSlotBoundsConverter x:Key="PreviewDot" DotSize="22" />
             <conv:LogoPathToImageSourceConverter x:Key="LogoSource" />
