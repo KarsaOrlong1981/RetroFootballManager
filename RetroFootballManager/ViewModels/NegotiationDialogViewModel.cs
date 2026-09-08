@@ -254,8 +254,25 @@ namespace RetroFootballManager.ViewModels
             double originalWage = (await _saveGame.GetActivePlayerContractAsync(player.Id, currentDate))?.AnnualSalary
                 ?? PlayerValuationService.EstimateAnnualSalary(player);
 
+            // Base the expectation on the highest signal of what this player is actually worth
+            // right now: the listed asking price, this buyer's own offer, or any OTHER still-
+            // live offer on the same listing - a rival club bidding higher proves the market
+            // already supports a higher price, even if THIS buyer started lower. Without this,
+            // a buyer whose own offer already sat close to (or above) the asking price left
+            // almost no room to negotiate any higher - the performance/level-gap premiums below
+            // were applied on top of a baseline that ignored both their own generosity and any
+            // competing bid, so almost any demand above their offer immediately dropped below
+            // the Happy ratio threshold.
+            var otherOffers = await _offerRepo.GetByListingAsync(listing.Id);
+            double marketCeiling = otherOffers
+                .Where(o => o.Status is TransferOfferStatus.Pending or TransferOfferStatus.Countered)
+                .Select(o => o.OfferedFee)
+                .DefaultIfEmpty(0)
+                .Max();
+            double baseFee = Math.Max(Math.Max(listing.AskingPrice, offer.OfferedFee), marketCeiling);
+
             StartManagerNegotiation(
-                NegotiationScenario.Sell, myTeam, player, seasonStats, buyingTeam, listing, listing.AskingPrice,
+                NegotiationScenario.Sell, myTeam, player, seasonStats, buyingTeam, listing, baseFee,
                 listing.IsLoanListing, originalWage, offer, onCompleted);
 
             PlayerName = player.Name;
@@ -389,6 +406,7 @@ namespace RetroFootballManager.ViewModels
                 return;
 
             double offeredValue = _isLoanDeal ? NegotiationWageSharePercentage : NegotiationFee;
+            bool matchesOrBeatsExistingOffer = DemandMatchesOrBeatsExistingOffer(offeredValue);
 
             // Buy/loan-in: the counterpart RECEIVES the fee/wage-share - they're happier the
             // MORE we offer relative to their expectation, so ratio = offer/expectation.
@@ -397,7 +415,8 @@ namespace RetroFootballManager.ViewModels
             // "higher = happier" ratio for both used to let a demanded fee of any size still
             // read as "delighted" on the Sell side, letting a listed player be sold for several
             // times his market value with no pushback.
-            double ratio = _negotiationExpectedFee <= 0 ? 1.0
+            double ratio = matchesOrBeatsExistingOffer ? double.PositiveInfinity
+                : _negotiationExpectedFee <= 0 ? 1.0
                 : _currentScenario == NegotiationScenario.Sell
                     ? _negotiationExpectedFee / Math.Max(offeredValue, 1)
                     : offeredValue / _negotiationExpectedFee;
@@ -448,6 +467,27 @@ namespace RetroFootballManager.ViewModels
                     IsBusy = false;
                 }
             }
+        }
+
+        // Sell/loan-out: a demand at or below what the counterpart already tabled in
+        // _negotiationOffer can never be a worse deal for them than their own offer - it must
+        // always succeed, both for the mood check (SubmitManagerOffer) and the affordability
+        // re-check (CompleteManagerPhaseAsync): they already committed to paying this amount,
+        // so re-litigating either one against a resubmitted-unchanged (or lower) demand used to
+        // come back Neutral/Impatient or "can't afford it" instead of an automatic accept -
+        // exactly like the unconditional "Annehmen" button already behaves for the same offer.
+        private bool DemandMatchesOrBeatsExistingOffer(double offeredValue)
+        {
+            if (_currentScenario != NegotiationScenario.Sell || _negotiationOffer is null)
+                return false;
+
+            // AI-generated offers (TransferAiService) store the raw, unrounded fee/wage-share
+            // (e.g. 515217.64), while NegotiationFee/NegotiationWageSharePercentage are always
+            // whole numbers (prefilled via Math.Round, edited in whole-euro/percent steps) - an
+            // unrounded comparison made "resubmit unchanged" fail even on the very first
+            // submission, since the rounded prefill could land fractionally ABOVE the raw offer.
+            double alreadyOffered = Math.Round(_isLoanDeal ? _negotiationOffer.WageOffer : _negotiationOffer.OfferedFee);
+            return offeredValue <= alreadyOffered;
         }
 
         private int CurrentSeason() => _session.State?.Season ?? 0;
@@ -505,8 +545,12 @@ namespace RetroFootballManager.ViewModels
                     // negotiated up to the performance-premium ceiling regardless of the
                     // buying club's real balance (see TransferMarketService.CanAffordFee, used
                     // the same way on the buying side elsewhere). Doesn't conclude the
-                    // negotiation - the user can lower the fee and resubmit.
-                    if (!TransferMarketService.CanAffordFee(_negotiationCounterpartTeam, NegotiationFee))
+                    // negotiation - the user can lower the fee and resubmit. Skipped for a
+                    // demand at or below their own already-tabled offer - they already
+                    // committed to paying that much, so re-checking it here would make
+                    // resubmitting their own offer less reliable than just clicking "Annehmen".
+                    if (!DemandMatchesOrBeatsExistingOffer(NegotiationFee)
+                        && !TransferMarketService.CanAffordFee(_negotiationCounterpartTeam, NegotiationFee))
                     {
                         ManagerMood = NegotiationMoodLevel.Impatient;
                         ManagerImageSource = BuildManagerImageSource(ManagerCharacterIndex, ManagerMood);
