@@ -59,6 +59,40 @@ namespace RetroFootballManager.ViewModels
         public ObservableCollection<ScoutedPlayerRow> ScoutedPlayers { get; } = [];
         public ObservableCollection<ScoutRow> Scouts { get; } = [];
 
+        // Active-scouting/recommendations/scouted-players lists moved into their own dialogs
+        // (same pattern as TransferMarketViewModel's Market/Free-Agents dialogs) - each can
+        // grow large over a long career, and each dialog only ever binds to its "...Page" slice,
+        // never the full backing collection, for the same reliability reason documented there.
+        // "Scouts" stays inline/unpaginated - bounded by how many Scout-type staff a team has.
+        private const int DialogPageSize = 20;
+
+        [ObservableProperty] private bool _isActiveScoutingDialogOpen;
+        [ObservableProperty] private int _activeScoutingPageIndex;
+        public ObservableCollection<ActiveScoutingRow> ActiveScoutingPage { get; } = [];
+        public int ActiveScoutingPageCount => Math.Max(1, (ActiveScouting.Count + DialogPageSize - 1) / DialogPageSize);
+        public string ActiveScoutingPageInfo => ActiveScouting.Count == 0
+            ? "Keine laufenden Aufträge" : $"Seite {ActiveScoutingPageIndex + 1} von {ActiveScoutingPageCount} ({ActiveScouting.Count})";
+        public bool CanGoToPreviousActiveScoutingPage => ActiveScoutingPageIndex > 0;
+        public bool CanGoToNextActiveScoutingPage => ActiveScoutingPageIndex + 1 < ActiveScoutingPageCount;
+
+        [ObservableProperty] private bool _isRecommendationsDialogOpen;
+        [ObservableProperty] private int _recommendationsPageIndex;
+        public ObservableCollection<ScoutRecommendationRow> RecommendationsPage { get; } = [];
+        public int RecommendationsPageCount => Math.Max(1, (Recommendations.Count + DialogPageSize - 1) / DialogPageSize);
+        public string RecommendationsPageInfo => Recommendations.Count == 0
+            ? "Keine Empfehlungen" : $"Seite {RecommendationsPageIndex + 1} von {RecommendationsPageCount} ({Recommendations.Count})";
+        public bool CanGoToPreviousRecommendationsPage => RecommendationsPageIndex > 0;
+        public bool CanGoToNextRecommendationsPage => RecommendationsPageIndex + 1 < RecommendationsPageCount;
+
+        [ObservableProperty] private bool _isScoutedPlayersDialogOpen;
+        [ObservableProperty] private int _scoutedPlayersPageIndex;
+        public ObservableCollection<ScoutedPlayerRow> ScoutedPlayersPage { get; } = [];
+        public int ScoutedPlayersPageCount => Math.Max(1, (ScoutedPlayers.Count + DialogPageSize - 1) / DialogPageSize);
+        public string ScoutedPlayersPageInfo => ScoutedPlayers.Count == 0
+            ? "Noch keine Spieler gescoutet" : $"Seite {ScoutedPlayersPageIndex + 1} von {ScoutedPlayersPageCount} ({ScoutedPlayers.Count})";
+        public bool CanGoToPreviousScoutedPlayersPage => ScoutedPlayersPageIndex > 0;
+        public bool CanGoToNextScoutedPlayersPage => ScoutedPlayersPageIndex + 1 < ScoutedPlayersPageCount;
+
         [ObservableProperty] private bool _hasScout;
         [ObservableProperty] private string _statusText = string.Empty;
 
@@ -156,12 +190,118 @@ namespace RetroFootballManager.ViewModels
                     ScoutedPlayers.Add(new ScoutedPlayerRow(
                         player.Id, player.Name, names.GetValueOrDefault(player.TeamId, "?"), row.ScoutedDate.ToString("dd.MM.yyyy"), player.ShortPositionName));
                 }
+
+                ActiveScoutingPageIndex = 0;
+                UpdateActiveScoutingPage();
+                RecommendationsPageIndex = 0;
+                UpdateRecommendationsPage();
+                ScoutedPlayersPageIndex = 0;
+                UpdateScoutedPlayersPage();
             }
             catch (Exception ex)
             {
                 Log.Error("Failed to load scouting overview.", ex);
                 StatusText = "Daten konnten nicht geladen werden.";
             }
+        }
+
+        [RelayCommand]
+        private void OpenActiveScoutingDialog() => IsActiveScoutingDialogOpen = true;
+
+        [RelayCommand]
+        private void CloseActiveScoutingDialog() => IsActiveScoutingDialogOpen = false;
+
+        private void UpdateActiveScoutingPage()
+        {
+            ActiveScoutingPage.Clear();
+            foreach (var row in ActiveScouting.Skip(ActiveScoutingPageIndex * DialogPageSize).Take(DialogPageSize))
+                ActiveScoutingPage.Add(row);
+            OnPropertyChanged(nameof(ActiveScoutingPageCount));
+            OnPropertyChanged(nameof(ActiveScoutingPageInfo));
+            OnPropertyChanged(nameof(CanGoToPreviousActiveScoutingPage));
+            OnPropertyChanged(nameof(CanGoToNextActiveScoutingPage));
+        }
+
+        [RelayCommand]
+        private void NextActiveScoutingPage()
+        {
+            if (!CanGoToNextActiveScoutingPage) return;
+            ActiveScoutingPageIndex++;
+            UpdateActiveScoutingPage();
+        }
+
+        [RelayCommand]
+        private void PreviousActiveScoutingPage()
+        {
+            if (!CanGoToPreviousActiveScoutingPage) return;
+            ActiveScoutingPageIndex--;
+            UpdateActiveScoutingPage();
+        }
+
+        [RelayCommand]
+        private void OpenRecommendationsDialog() => IsRecommendationsDialogOpen = true;
+
+        [RelayCommand]
+        private void CloseRecommendationsDialog() => IsRecommendationsDialogOpen = false;
+
+        private void UpdateRecommendationsPage()
+        {
+            RecommendationsPage.Clear();
+            foreach (var row in Recommendations.Skip(RecommendationsPageIndex * DialogPageSize).Take(DialogPageSize))
+                RecommendationsPage.Add(row);
+            OnPropertyChanged(nameof(RecommendationsPageCount));
+            OnPropertyChanged(nameof(RecommendationsPageInfo));
+            OnPropertyChanged(nameof(CanGoToPreviousRecommendationsPage));
+            OnPropertyChanged(nameof(CanGoToNextRecommendationsPage));
+        }
+
+        [RelayCommand]
+        private void NextRecommendationsPage()
+        {
+            if (!CanGoToNextRecommendationsPage) return;
+            RecommendationsPageIndex++;
+            UpdateRecommendationsPage();
+        }
+
+        [RelayCommand]
+        private void PreviousRecommendationsPage()
+        {
+            if (!CanGoToPreviousRecommendationsPage) return;
+            RecommendationsPageIndex--;
+            UpdateRecommendationsPage();
+        }
+
+        [RelayCommand]
+        private void OpenScoutedPlayersDialog() => IsScoutedPlayersDialogOpen = true;
+
+        [RelayCommand]
+        private void CloseScoutedPlayersDialog() => IsScoutedPlayersDialogOpen = false;
+
+        private void UpdateScoutedPlayersPage()
+        {
+            ScoutedPlayersPage.Clear();
+            foreach (var row in ScoutedPlayers.Skip(ScoutedPlayersPageIndex * DialogPageSize).Take(DialogPageSize))
+                ScoutedPlayersPage.Add(row);
+            OnPropertyChanged(nameof(ScoutedPlayersPageCount));
+            OnPropertyChanged(nameof(ScoutedPlayersPageInfo));
+            OnPropertyChanged(nameof(CanGoToPreviousScoutedPlayersPage));
+            OnPropertyChanged(nameof(CanGoToNextScoutedPlayersPage));
+        }
+
+        [RelayCommand]
+        private void NextScoutedPlayersPage()
+        {
+            if (!CanGoToNextScoutedPlayersPage) return;
+            ScoutedPlayersPageIndex++;
+            UpdateScoutedPlayersPage();
+        }
+
+        [RelayCommand]
+        private void PreviousScoutedPlayersPage()
+        {
+            if (!CanGoToPreviousScoutedPlayersPage) return;
+            ScoutedPlayersPageIndex--;
+            UpdateScoutedPlayersPage();
         }
 
         [RelayCommand]
@@ -280,6 +420,9 @@ namespace RetroFootballManager.ViewModels
                 var row = ScoutedPlayers.FirstOrDefault(r => r.PlayerId == playerId);
                 if (row is not null)
                     ScoutedPlayers.Remove(row);
+
+                ScoutedPlayersPageIndex = Math.Clamp(ScoutedPlayersPageIndex, 0, ScoutedPlayersPageCount - 1);
+                UpdateScoutedPlayersPage();
             }
             catch (Exception ex)
             {
