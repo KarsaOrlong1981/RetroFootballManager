@@ -176,20 +176,6 @@
                     BackgroundColor="{StaticResource RfmAccentTeal}" TextColor="{StaticResource RfmBackground}" />
         </HorizontalStackLayout>
 
-    <!-- Player profile dialog -->
-    <controls:PlayerProfileDialog
-        Grid.RowSpan="4"
-        IsOpen="{Binding IsPlayerProfileOpen}"
-        Title="{Binding SelectedPlayerName}"
-        Profile="{Binding SelectedProfile}"
-        CloseCommand="{Binding CloseProfileCommand}"
-        IsLocked="{Binding IsSelectedPlayerNotScouted}"
-        LockedStatusText="{Binding ScoutingStatusText}"
-        IsLockedBusy="{Binding IsBeingScouted}"
-        UnlockCommand="{Binding ScoutPlayerCommand}" />
-
-        <controls:PlayerNegotiationsDialog Grid.RowSpan="4" BindingContext="{Binding Negotiation}" />
-
         <!-- Market list dialog -->
         <Grid IsVisible="{Binding IsMarketDialogOpen}" BackgroundColor="#B0000000" Grid.RowSpan="4">
             <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
@@ -444,6 +430,20 @@
             </Border>
         </Grid>
 
+        <!-- Player profile dialog -->
+        <controls:PlayerProfileDialog
+             Grid.RowSpan="4"
+             IsOpen="{Binding IsPlayerProfileOpen}"
+             Title="{Binding SelectedPlayerName}"
+             Profile="{Binding SelectedProfile}"
+             CloseCommand="{Binding CloseProfileCommand}"
+             IsLocked="{Binding IsSelectedPlayerNotScouted}"
+             LockedStatusText="{Binding ScoutingStatusText}"
+             IsLockedBusy="{Binding IsBeingScouted}"
+             UnlockCommand="{Binding ScoutPlayerCommand}" />
+
+        <controls:PlayerNegotiationsDialog Grid.RowSpan="4" BindingContext="{Binding Negotiation}" />
+        
         <!-- Busy overlay -->
     <Grid IsVisible="{Binding IsBusy}" BackgroundColor="#C0000000" Grid.RowSpan="4">
         <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="12">
