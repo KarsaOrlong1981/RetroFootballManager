@@ -10,7 +10,7 @@
     Title="Stadion"
     BackgroundColor="{StaticResource RfmBackground}">
 
-    <Grid ColumnDefinitions="*,Auto">
+    <Grid ColumnDefinitions="*,600">
         <Image Grid.Column="1" Source="{Binding BackgroundImageSource}" Aspect="AspectFit" WidthRequest="500" HeightRequest="500"/>
         <ScrollView>
             <VerticalStackLayout  Opacity="0.85" Padding="40" Spacing="14">
