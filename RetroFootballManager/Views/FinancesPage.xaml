@@ -83,6 +83,22 @@
                 </Grid>
             </Border>
 
+            <Label Text="Ticketeinnahmen" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+            <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
+                <VerticalStackLayout Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                        <Label Grid.Row="0" Grid.Column="0" FontSize="18" Text="Gesamt (Saison)" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="0" Grid.Column="1" FontSize="18" Text="{Binding TicketIncomeText}" TextColor="{StaticResource RfmAccentTeal}" />
+                        <Label Grid.Row="1" Grid.Column="0" FontSize="18" Text="Gespielte Heimspiele" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="1" Grid.Column="1" FontSize="18" Text="{Binding TicketIncomeHomeMatchesText}" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="2" Grid.Column="0" FontSize="18" Text="Durchschnitt" TextColor="{StaticResource RfmText}" />
+                        <Label Grid.Row="2" Grid.Column="1" FontSize="18" Text="{Binding TicketIncomeAverageText}" TextColor="{StaticResource RfmAccentTeal}" />
+                    </Grid>
+                    <Label Text="Nur Heimspiele der Liga zählen hier - Freundschaftsspiele laufen separat unter &quot;Sonstige Einnahmen&quot;, Pokalspiele bringen aktuell keine Ticketeinnahmen."
+                           FontSize="14" TextColor="{StaticResource RfmTextMuted}" />
+                </VerticalStackLayout>
+            </Border>
+
             <Label Text="Vereinsmitglieder" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
             <Border StrokeThickness="0" Padding="14" HorizontalOptions="Start" WidthRequest="800" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 12">
                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">

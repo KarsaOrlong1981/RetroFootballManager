@@ -38,6 +38,7 @@ namespace RetroFootballManager.ViewModels
         private MatchdaySummary? _summary;
         private List<Fixture> _seasonFixtures = [];
         private Dictionary<int, string> _teamNames = new();
+        private List<StandingRow> _leagueStandings = [];
 
         private bool _isPaused;
         private bool _halfTimeShown;
@@ -106,6 +107,8 @@ namespace RetroFootballManager.ViewModels
         // Scouting report (M6a), shown on the pre-match panel.
         [ObservableProperty] private string _opponentTableText = string.Empty;
         [ObservableProperty] private string _opponentFormText = string.Empty;
+        [ObservableProperty] private string _competitionText = "Liga";
+        [ObservableProperty] private string _attendanceText = string.Empty;
         [ObservableProperty] private bool _hasAnalyst;
         [ObservableProperty] private string _weaknessText = string.Empty;
         [ObservableProperty] private string _strengthText = string.Empty;
@@ -219,6 +222,7 @@ namespace RetroFootballManager.ViewModels
 
                 BuildTactics();
                 BuildScoutingReport(humanTeam, aiTeam);
+                BuildAttendanceEstimate();
 
                 HeaderText = $"Spieltag {_matchday} · {_homeTeam.Name} – {_awayTeam.Name}";
                 HomeTeamShortName = _homeTeam.ShortName;
@@ -270,6 +274,8 @@ namespace RetroFootballManager.ViewModels
                 .Select(e => (int?)e.AnalysisAbility)
                 .Max();
 
+            _leagueStandings = standings;
+
             var report = ScoutingReportService.BuildReport(ownTeam, opponent, standings, leagueTeams, analysisAbility);
 
             OpponentTableText = $"Tabellenplatz {report.OpponentPosition} · Ø-Rating {report.OpponentAverageRating:0.0}";
@@ -301,6 +307,18 @@ namespace RetroFootballManager.ViewModels
                     $"{OrientationOption.LabelFor(suggestion.Orientation)} - nutzt die Gegner-Schwäche " +
                     $"im Bereich {suggestion.ExploitedCategory}.";
             }
+        }
+
+        // Whoever hosts this fixture draws the crowd - same formula FinanceService uses to
+        // actually book ticket income later, just computed early for the pre-match display.
+        private void BuildAttendanceEstimate()
+        {
+            if (_homeTeam?.Stadium is null || _awayTeam is null)
+                return;
+
+            var estimate = AttendanceModel.EstimateForFixture(
+                _homeTeam.Stadium, _homeTeam.Id, _homeTeam.LeagueTier, _awayTeam.LeagueTier, _leagueStandings);
+            AttendanceText = $"Erwartete Zuschauerzahl: {estimate.TotalAttendance:N0} ({estimate.AvgFillRate:P0} Auslastung)";
         }
 
         [RelayCommand]

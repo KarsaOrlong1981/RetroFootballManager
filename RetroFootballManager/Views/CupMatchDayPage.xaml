@@ -118,6 +118,8 @@
                         BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 14">
                     <VerticalStackLayout Spacing="6">
                         <Label Text="{Binding RoundName}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource RfmText}" />
+                        <Label Text="{Binding OpponentTableText}" FontSize="13" TextColor="{StaticResource RfmText}" />
+                        <Label Text="{Binding AttendanceText}" FontSize="13" TextColor="{StaticResource RfmAccentTeal}" />
                     </VerticalStackLayout>
                 </Border>
 

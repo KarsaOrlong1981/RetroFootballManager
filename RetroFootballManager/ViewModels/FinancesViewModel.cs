@@ -16,11 +16,13 @@ namespace RetroFootballManager.ViewModels
         private readonly SponsorRepository _sponsorRepository;
         private readonly ContractRepository _contractRepository;
         private readonly FinanceService _financeService;
+        private readonly FixtureRepository _fixtureRepository;
 
         public FinancesViewModel(
             IDispatcher dispatcher, GameSession session, INavigationService navigation,
             SponsorshipRepository sponsorshipRepository, SponsorRepository sponsorRepository,
-            ContractRepository contractRepository, FinanceService financeService)
+            ContractRepository contractRepository, FinanceService financeService,
+            FixtureRepository fixtureRepository)
             : base(dispatcher)
         {
             _session = session;
@@ -29,11 +31,14 @@ namespace RetroFootballManager.ViewModels
             _sponsorRepository = sponsorRepository;
             _contractRepository = contractRepository;
             _financeService = financeService;
+            _fixtureRepository = fixtureRepository;
             Title = "Finanzen";
         }
 
         [ObservableProperty] private string _balanceText = string.Empty;
         [ObservableProperty] private string _ticketIncomeText = string.Empty;
+        [ObservableProperty] private string _ticketIncomeAverageText = string.Empty;
+        [ObservableProperty] private string _ticketIncomeHomeMatchesText = string.Empty;
         [ObservableProperty] private string _sponsorIncomeText = string.Empty;
         [ObservableProperty] private string _merchandiseIncomeText = string.Empty;
         [ObservableProperty] private string _staffWagesText = string.Empty;
@@ -89,6 +94,21 @@ namespace RetroFootballManager.ViewModels
 
             BalanceText = $"{finances.CurrentBalance:N0} €";
             TicketIncomeText = $"{finances.TicketIncome:N0} €";
+
+            // Only league home games generate TicketIncome (see FinanceService.
+            // ApplyMatchdayFinance) - friendlies book their gate money separately into
+            // OtherIncome, and cup ties currently generate no gate income at all, so the
+            // breakdown below is explicit about what this figure does and doesn't cover.
+            int homeMatchesPlayed = 0;
+            if (state is not null)
+            {
+                var seasonFixtures = await _fixtureRepository.GetBySeasonAsync(state.Season);
+                homeMatchesPlayed = seasonFixtures.Count(f => f.HomeTeamId == team.Id && f.Played);
+            }
+            TicketIncomeHomeMatchesText = $"{homeMatchesPlayed} Heimspiele (Liga)";
+            TicketIncomeAverageText = homeMatchesPlayed > 0
+                ? $"{finances.TicketIncome / homeMatchesPlayed:N0} € Ø je Heimspiel"
+                : "– (noch keine Heimspiele gespielt)";
             SponsorIncomeText = $"{finances.SponsorIncome:N0} €";
             MerchandiseIncomeText = $"{finances.MerchandiseIncome:N0} €";
             StaffWagesText = $"{finances.StaffWages:N0} €";

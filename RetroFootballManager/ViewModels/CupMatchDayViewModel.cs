@@ -94,6 +94,8 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private string _trophyTitleText = string.Empty;
 
         [ObservableProperty] private string _roundName = string.Empty;
+        [ObservableProperty] private string _opponentTableText = string.Empty;
+        [ObservableProperty] private string _attendanceText = string.Empty;
         [ObservableProperty] private string _headerText = string.Empty;
         [ObservableProperty] private string _homeTeamShortName = string.Empty;
         [ObservableProperty] private string _awayTeamShortName = string.Empty;
@@ -194,6 +196,10 @@ namespace RetroFootballManager.ViewModels
 
                 BuildTactics();
 
+                var seasonFixtures = await _saveGame.GetFixturesAsync(state.Season);
+                var teamNames = _session.Teams.ToDictionary(t => t.Id, t => t.Name);
+                BuildMatchContext(seasonFixtures, teamNames);
+
                 RoundName = $"{CompetitionLabel(_competition)} · {RoundDisplayName(_tie.Round, _tie.Group, _tie.LegNumber)}";
                 HeaderText = $"{RoundName} · {_homeTeam.Name} – {_awayTeam.Name}";
                 HomeTeamShortName = _homeTeam.ShortName;
@@ -214,6 +220,34 @@ namespace RetroFootballManager.ViewModels
                 Log.Error("Failed to prepare cup match.", ex);
                 StatusText = "Fehler beim Laden des Pokalspiels.";
             }
+        }
+
+        // Opponent's league table position + expected spectator count for the venue hosting
+        // this tie (own stadium for a home game, opponent's for an away game). Foreign
+        // opponents (LeagueTier 0, no German league fixtures) fall back to "unbekannt" for
+        // the table position - AttendanceModel.EstimateForFixture degrades gracefully (empty
+        // standings just skips the position-based demand term).
+        private void BuildMatchContext(List<Fixture> seasonFixtures, Dictionary<int, string> teamNames)
+        {
+            if (_homeTeam is null || _awayTeam is null)
+                return;
+
+            var opponent = _isHumanHome ? _awayTeam : _homeTeam;
+            var opponentStandings = StandingsCalculator.Calculate(
+                seasonFixtures.Where(f => f.LeagueTier == opponent.LeagueTier).ToList(), teamNames);
+            var opponentRow = opponentStandings.FirstOrDefault(r => r.TeamId == opponent.Id);
+            OpponentTableText = opponentRow is null
+                ? "Tabellenplatz: unbekannt"
+                : $"Tabellenplatz {opponentRow.Position} von {opponentStandings.Count}";
+
+            if (_homeTeam.Stadium is null)
+                return;
+
+            var homeStandings = StandingsCalculator.Calculate(
+                seasonFixtures.Where(f => f.LeagueTier == _homeTeam.LeagueTier).ToList(), teamNames);
+            var estimate = AttendanceModel.EstimateForFixture(
+                _homeTeam.Stadium, _homeTeam.Id, _homeTeam.LeagueTier, _awayTeam.LeagueTier, homeStandings);
+            AttendanceText = $"Erwartete Zuschauerzahl: {estimate.TotalAttendance:N0} ({estimate.AvgFillRate:P0} Auslastung)";
         }
 
         public static string RoundDisplayName(int round, string? group = null, int legNumber = CupTie.LegNone)
