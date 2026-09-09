@@ -49,7 +49,9 @@
                                             <Label.FormattedText>
                                                 <FormattedString>
                                                     <Span Text="{Binding PlayerName}" />
-                                                    <Span Text=" - " />
+                                                    <Span Text=" (" />
+                                                    <Span Text="{Binding Position}" />
+                                                    <Span Text=") - " />
                                                     <Span Text="{Binding AskingPrice, StringFormat='{0:N0} €'}" />
                                                 </FormattedString>
                                             </Label.FormattedText>
@@ -119,6 +121,8 @@
                                         <FormattedString>
                                             <Span Text="{Binding PlayerName}" FontAttributes="Bold" />
                                             <Span Text=" (" />
+                                            <Span Text="{Binding Position}" />
+                                            <Span Text=", " />
                                             <Span Text="{Binding SellingTeamName}" />
                                             <Span Text="): " />
                                             <Span Text="{Binding Fee, StringFormat='{0:N0} €'}" />

@@ -54,13 +54,15 @@ namespace RetroFootballManager.Common
             if (analysisAbility >= TacticSuggestionThreshold && weakness is not null)
                 suggestion = BuildTacticSuggestion(ownTeam, opponentProfile, weakness);
 
-            string? formationName = null;
+            // Formation shape is basic, publicly-observable info (unlike the exact starting XI
+            // or tactical nuance below) - any analyst on staff reports it, not just a top one.
+            string? formationName = FormationCatalog.GetByName(opponent.FormationName, opponent.TacticalOrientation).Name;
+
             PlayingStyle? playingStyle = null;
             TacticalOrientation? tacticalOrientation = null;
             List<string>? startingXINames = null;
             if (analysisAbility >= TopAnalystThreshold)
             {
-                formationName = opponent.FormationName;
                 playingStyle = opponent.PlayingStyle;
                 tacticalOrientation = opponent.TacticalOrientation;
                 startingXINames = opponent.Players

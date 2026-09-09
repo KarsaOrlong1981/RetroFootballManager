@@ -94,8 +94,13 @@ namespace RetroFootballManager.Common
                 new(pivot, 0.38, 0.55),
                 new(pivot, 0.62, 0.55),
 
-                new(Position.LeftOffenseMidfielder, 0.20, 0.32),
-                new(Position.RightOffenseMidfielder, 0.80, 0.32),
+                // Both wide slots are attacking-mid (ZOM) roles played left/right of centre, not
+                // wingers - LeftOffenseMidfielder/RightOffenseMidfielder would wrongly make them
+                // WidePositions-eligible for crosses and treat them as out-of-position for a
+                // player whose actual specialty is CentralOffenseMidfielder. They still render as
+                // "ZOM" on the pitch (PositionDisplay.Short), just twice, left and right.
+                new(Position.CentralOffenseMidfielder, 0.20, 0.32),
+                new(Position.CentralOffenseMidfielder, 0.80, 0.32),
 
                 new(Position.Forward, 0.38, 0.12),
                 new(Position.Forward, 0.62, 0.12),

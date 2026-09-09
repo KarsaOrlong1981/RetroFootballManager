@@ -63,7 +63,12 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty] private TacklingOption? _selectedTackling;
         [ObservableProperty] private string _statusText = string.Empty;
         [ObservableProperty] private string _currentFormationName = string.Empty;
+        [NotifyPropertyChangedFor(nameof(HasCoTrainer))]
+        [ObservableProperty] private Employee? _coTrainer;
 
+        // Gates the co-trainer profile card in the UI - no AssistantCoach on staff means no
+        // lineup recommendation (AskCoTrainer needs a co-trainer to "ask").
+        public bool HasCoTrainer => CoTrainer is not null;
         [ObservableProperty] private bool _isFormationDialogOpen;
         [ObservableProperty] private FormationDialogItem? _selectedDialogItem;
 
@@ -110,7 +115,7 @@ namespace RetroFootballManager.ViewModels
             // the bench, so without this a short bench could never be filled back up from the UI.
             if (_team.Players.Count(p => p.Status == PlayerStatus.OnBench) < BenchCap)
                 LineupSelector.RefillBench(_team);
-
+            CoTrainer = _team.Employees.FirstOrDefault(emp => emp.EmployeeType == EmployeeType.AssistantCoach);
             BuildInitialLineup();
             RebuildViews();
         }
@@ -197,18 +202,42 @@ namespace RetroFootballManager.ViewModels
         [RelayCommand]
         private void CancelFormation() => IsFormationDialogOpen = false;
 
+        [RelayCommand]
+        private Task OpenStaff() => _navigation.GoToAsync("staff");
+
         // The only place a full best-XI/bench re-pick (LineupSelector.SelectLineup) runs from
         // this page - everything else (formation change, swaps) only repositions what's already
-        // there, per the manager's explicit choice.
+        // there, per the manager's explicit choice. Also recommends the formation, tactical
+        // orientation and playing style that best fit the squad's own attributes, same idea as
+        // OpenFormationDialog's "best fit" formation score, just applied end-to-end here.
         [RelayCommand]
         private void AskCoTrainer()
         {
             if (_team is null)
                 return;
+
+            var formations = FormationCatalog.All
+                .Select(f => FormationCatalog.GetByName(f.Name, _team.TacticalOrientation))
+                .ToList();
+            var bestFormation = formations.OrderByDescending(f => LineupSelector.ScoreFormation(_team, f)).First();
+            var bestOrientation = LineupSelector.RecommendOrientation(_team, bestFormation);
+            // Re-resolve with the recommended orientation - 4-2-2-2's deepest pair's shape (DM vs
+            // CM pivot) depends on it, same as OnSelectedOrientationChanged/OpenFormationDialog.
+            _formation = FormationCatalog.GetByName(bestFormation.Name, bestOrientation);
+            var bestStyle = LineupSelector.RecommendPlayingStyle(_team, _formation);
+
+            _team.FormationName = _formation.Name;
+            _team.TacticalOrientation = bestOrientation;
+            _team.PlayingStyle = bestStyle;
+            CurrentFormationName = _formation.Name;
+            SelectedOrientation = Orientations.FirstOrDefault(o => o.Orientation == bestOrientation);
+            SelectedPlayingStyle = PlayingStyles.FirstOrDefault(s => s.Style == bestStyle);
+
             LineupSelector.SelectLineup(_team, _formation);
             BuildInitialLineup();
             RebuildViews();
-            StatusText = "Co-Trainer hat eine Aufstellung vorgeschlagen.";
+            StatusText = $"Co-Trainer empfiehlt {_formation.Name} / {OrientationOption.LabelFor(bestOrientation)} / " +
+                         $"{PlayingStyleOption.LabelFor(bestStyle)} und hat die Aufstellung entsprechend vorgeschlagen.";
         }
 
         // --- Player profile ---

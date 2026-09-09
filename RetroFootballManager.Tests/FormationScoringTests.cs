@@ -46,5 +46,26 @@ namespace RetroFootballManager.Tests
 
             Assert.True(f442Score > f4231Score);
         }
+
+        // Regression: a freshly generated squad (PlayerGenerator.GenerateSquad, used at universe
+        // generation before the team/players are ever saved to the DB) has every Player.Id at
+        // its uninitialized default 0 - sqlite-net's [AutoIncrement] only assigns the real Id on
+        // insert. ChooseStarters used to track "already picked" players by Id in a HashSet<int>,
+        // so with every Id equal to 0, the very first player picked (the goalkeeper) made every
+        // other player look "already used" - only 1 starter was ever selected, and every
+        // formation scored identically (just the keeper's own score), so a formation recommendation
+        // always fell back to the first entry in the catalog (4-4-2) regardless of the squad.
+        [Fact]
+        public void SelectLineup_PicksAFullXI_EvenWhenEveryPlayerIdIsZero()
+        {
+            var players = PlayerGenerator.GenerateSquad(
+                Nationality.Germany, 65, squadSize: PlayerGenerator.DefaultPositionPlanSize, random: new Random(1));
+            Assert.All(players, p => Assert.Equal(0, p.Id));
+
+            var team = new Team { Players = players };
+            LineupSelector.SelectLineup(team, FormationCatalog.F4231);
+
+            Assert.Equal(11, team.Players.Count(p => p.Status == PlayerStatus.InStartingXI));
+        }
     }
 }

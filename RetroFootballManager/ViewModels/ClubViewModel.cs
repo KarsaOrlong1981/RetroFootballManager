@@ -26,6 +26,7 @@ namespace RetroFootballManager.ViewModels
     // Analyst on staff.
     public record TeamDetail(
         string Name,
+        string FormationName,
         int MatchesPlayed,
         int AveragePossession,
         int AveragePassAccuracy,
@@ -201,6 +202,7 @@ namespace RetroFootballManager.ViewModels
 
             SelectedTeamDetail = new TeamDetail(
                 team.Name,
+                FormationCatalog.GetByName(team.FormationName, team.TacticalOrientation).Name,
                 stats?.MatchesPlayed ?? 0,
                 stats?.AveragePossessions ?? 0,
                 stats?.AveragePassAccuracy ?? 0,

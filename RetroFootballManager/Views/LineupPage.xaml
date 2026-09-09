@@ -21,11 +21,56 @@
                         Command="{Binding OpenFormationDialogCommand}"
                         BackgroundColor="{StaticResource RfmFormationGreen}" TextColor="{StaticResource RfmText}" FontSize="22" />
 
-                <!-- Co-Trainer: only place that auto-picks a whole new best XI/bench -->
-                <Button Text="Co-Trainer fragen"
-                        FontSize="18"
-                        Command="{Binding AskCoTrainerCommand}"
-                        BackgroundColor="{StaticResource RfmFormationGreen}" TextColor="{StaticResource RfmText}" />
+                <!-- Co-Trainer profile - "Co-Trainer fragen" (the only place that auto-picks a
+                     whole new best XI/bench, plus a formation/orientation/style recommendation)
+                     only appears once an AssistantCoach is actually on staff. -->
+                <Border StrokeThickness="0" Padding="12,8" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
+                    <Grid>
+                        <VerticalStackLayout Spacing="6" IsVisible="{Binding HasCoTrainer, Converter={StaticResource InvertedBool}}">
+                            <Label Text="Aktuell ist kein Co-Trainer angestellt." FontSize="18" TextColor="{StaticResource RfmText}" />
+                            <Label Text="Ohne Co-Trainer ist keine Aufstellungsempfehlung möglich."
+                                   FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
+                            <Button Text="Mitarbeiter" Command="{Binding OpenStaffCommand}" FontSize="13"
+                                    BackgroundColor="{StaticResource RfmAccent}" TextColor="White" HorizontalOptions="Start" />
+                        </VerticalStackLayout>
+
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" IsVisible="{Binding HasCoTrainer}">
+                            <Image Source="{Binding CoTrainer.ImagePath}" WidthRequest="150" HeightRequest="150"/>
+                            <VerticalStackLayout Spacing="4" Grid.Column="1">
+                                <Label Text="{Binding CoTrainer.Name}" FontSize="18" TextColor="{StaticResource RfmText}" />
+                                <Label Text="{Binding CoTrainer.EmployeeType}" FontSize="16" TextColor="{StaticResource RfmTextMuted}" />
+                                <Label FontSize="18">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Fähigkeit Offensiv Training: " TextColor="{StaticResource RfmTextMuted}" />
+                                            <Span Text="{Binding CoTrainer.OffensiveTraining}" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                                <Label FontSize="18">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Fähigkeit Defensiv Training: " TextColor="{StaticResource RfmTextMuted}" />
+                                            <Span Text="{Binding CoTrainer.DefensiveTraining}" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                                <Label FontSize="18">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Fähigkeit Torwart Training: " TextColor="{StaticResource RfmTextMuted}" />
+                                            <Span Text="{Binding CoTrainer.GoalkeeperTraining}" TextColor="{StaticResource RfmAccentTeal}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                                <Button Text="Co-Trainer fragen" FontSize="18"
+                                        Command="{Binding AskCoTrainerCommand}"
+                                        BackgroundColor="{StaticResource RfmFormationGreen}" TextColor="{StaticResource RfmText}"
+                                        HorizontalOptions="Start" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Grid>
+                </Border>
                 <Grid>
                     <VerticalStackLayout Spacing="8" Grid.Column="1">
                         <Label Text="{Binding StatusText}" HorizontalOptions="Center" FontSize="18" TextColor="{StaticResource RfmAccentTeal}" />

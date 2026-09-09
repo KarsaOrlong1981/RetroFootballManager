@@ -64,6 +64,26 @@ namespace RetroFootballManager.Tests
         }
 
         [Fact]
+        public async Task SendIfAnalystEmployedAsync_LowAbilityAnalyst_StillRevealsFormation()
+        {
+            // Formation shape is basic, publicly-observable info - shown for any analyst tier,
+            // unlike the exact starting XI (top-analyst-only, see the other test below).
+            var human = TestHelpers.CreateTeam("Human", baseRating: 60);
+            human.Employees.Add(new Employee { EmployeeType = EmployeeType.Analyst, AnalysisAbility = 30 });
+            var opponent = TestHelpers.CreateTeam("Opponent", baseRating: 60);
+            opponent.Id = 2;
+            opponent.FormationName = "4-2-3-1";
+
+            await PreMatchAnalysisService.SendIfAnalystEmployedAsync(
+                _messages, human, opponent, [], [opponent], DateTime.Today, "Spieltag 1");
+
+            var messages = await _messageRepo.GetAllAsync();
+            var message = Assert.Single(messages);
+            Assert.Contains("4-2-3-1", message.Body);
+            Assert.DoesNotContain("Aufstellung", message.Body);
+        }
+
+        [Fact]
         public async Task SendIfAnalystEmployedAsync_TopAnalyst_RevealsFormationInBody()
         {
             var human = TestHelpers.CreateTeam("Human", baseRating: 60);

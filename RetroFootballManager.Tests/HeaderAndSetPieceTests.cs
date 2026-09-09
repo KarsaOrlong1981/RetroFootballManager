@@ -7,38 +7,23 @@ namespace RetroFootballManager.Tests
     public class HeaderAndSetPieceTests
     {
         [Fact]
-        public void Simulate_BigJumpyForwards_ScoreMoreThanSmallWeakJumpers()
+        public void HeaderGoalProbability_StrongAerialShooter_BeatsWeakAerialShooter()
         {
-            var random = new Random(51);
-            int goalsStrongAerial = 0;
-            int goalsWeakAerial = 0;
-            const int matches = 400;
+            // A full match simulation drowns this signal in open-play noise (see
+            // Match.HeaderGoalProbability's own comment) - test the header duel math directly
+            // and deterministically instead, same pattern as
+            // PenaltyConversionProbability_StrongTaker_BeatsWeakTaker_AgainstTheSameKeeper below.
+            const double crossQuality = 0.85;
+            const double defenderHeaderPower = 65;
+            const double keeperAerialControl = 65;
+            const double buildUpRatio = 0.5;
 
-            for (int i = 0; i < matches; i++)
-            {
-                var strongTeam = TestHelpers.CreateTeam("Kopfballstark", baseRating: 65);
-                foreach (var p in strongTeam.Players.Where(p => p.Position == Position.Forward))
-                {
-                    p.HeaderStrength = 95;
-                    p.Jumping = 95;
-                    p.Size = 1.95;
-                }
-                var defenders1 = TestHelpers.CreateTeam("Abwehr1", baseRating: 65);
-                goalsStrongAerial += new Match(strongTeam, defenders1, random).Simulate().HomeGoals;
+            double strongProb = Match.HeaderGoalProbability(
+                shooterHeaderPower: 95, crossQuality, defenderHeaderPower, keeperAerialControl, buildUpRatio);
+            double weakProb = Match.HeaderGoalProbability(
+                shooterHeaderPower: 20, crossQuality, defenderHeaderPower, keeperAerialControl, buildUpRatio);
 
-                var weakTeam = TestHelpers.CreateTeam("Kopfballschwach", baseRating: 65);
-                foreach (var p in weakTeam.Players.Where(p => p.Position == Position.Forward))
-                {
-                    p.HeaderStrength = 20;
-                    p.Jumping = 20;
-                    p.Size = 1.68;
-                }
-                var defenders2 = TestHelpers.CreateTeam("Abwehr2", baseRating: 65);
-                goalsWeakAerial += new Match(weakTeam, defenders2, random).Simulate().HomeGoals;
-            }
-
-            Assert.True(goalsStrongAerial > goalsWeakAerial,
-                $"strong={goalsStrongAerial}, weak={goalsWeakAerial}");
+            Assert.True(strongProb > weakProb, $"strong={strongProb}, weak={weakProb}");
         }
 
         [Fact]

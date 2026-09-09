@@ -111,10 +111,15 @@ namespace RetroFootballManager.Common
             // "scout and recruit when actually needed" idea FindSurplusPlayer already applies to
             // selling. Falls back to the old random pick when no player could be resolved (tests
             // that don't pass teamsById/freeAgentsById) or no listing happens to fill a gap.
+            // Restricted to the club's own favorite formation (Team.FormationName) - a team
+            // playing 4-2-3-1 needs LA/RA/ZOM depth, not DM depth it never fields, and vice versa
+            // for a 4-1-4-1 side. Without this every club chased depth in every one of the 14
+            // Position values regardless of whether its own formation ever uses them.
+            var formationPositions = FormationPositions(team);
             var shortagePositions = team.Players.GroupBy(p => p.Position)
-                .Where(g => g.Count() < MinDepthPerPosition)
+                .Where(g => formationPositions.Contains(g.Key) && g.Count() < MinDepthPerPosition)
                 .Select(g => g.Key)
-                .Concat(Enum.GetValues<Position>().Except(team.Players.Select(p => p.Position)))
+                .Concat(formationPositions.Except(team.Players.Select(p => p.Position)))
                 .ToHashSet();
 
             var target = affordableListings
@@ -262,14 +267,28 @@ namespace RetroFootballManager.Common
             return offer.OfferedFee >= listing.AskingPrice * baseMultiplier * (1 + levelGapPremium) * factor;
         }
 
+        // Positions the team's own favorite formation (Team.FormationName) actually fields,
+        // including a WingBack alternate role - mirrors LineupSelector.RefillBench's
+        // formationPositions computation.
+        private static HashSet<Position> FormationPositions(Team team) =>
+            FormationCatalog.GetByName(team.FormationName, team.TacticalOrientation).Slots
+                .SelectMany(s => s.AlternateRole is Position alt ? new[] { s.Position, alt } : new[] { s.Position })
+                .ToHashSet();
+
         private static Player? FindSurplusPlayer(Team team, HashSet<int> alreadyListedIds)
         {
-            foreach (var group in team.Players.Where(p => !alreadyListedIds.Contains(p.Id)).GroupBy(p => p.Position))
-            {
-                if (group.Count() >= SurplusThreshold)
-                    return group.OrderBy(p => p.Rating).First();
-            }
-            return null;
+            var formationPositions = FormationPositions(team);
+
+            // Same >=3 threshold as before, just preferring to sell overstocked depth in a
+            // position the team's formation doesn't even use (e.g. spare DMs on a 4-2-3-1 side)
+            // over overstocked depth in a position it does - so a club actively reshapes its
+            // squad toward its own formation over time instead of hoarding irrelevant players.
+            return team.Players.Where(p => !alreadyListedIds.Contains(p.Id))
+                .GroupBy(p => p.Position)
+                .Where(g => g.Count() >= SurplusThreshold)
+                .OrderBy(g => formationPositions.Contains(g.Key) ? 1 : 0)
+                .Select(g => g.OrderBy(p => p.Rating).First())
+                .FirstOrDefault();
         }
 
         private static bool CanAfford(Team team, TransferListing listing, Difficulty difficulty, double cautionFactor)

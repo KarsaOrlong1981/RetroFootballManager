@@ -30,14 +30,14 @@ namespace RetroFootballManager.ViewModels
     public record OwnOfferRow(int OfferId, int ListingId, string OfferingTeamName, double Fee, double Wage);
 
     public record OwnListingRow(
-        int ListingId, int PlayerId, string PlayerName, double AskingPrice, bool IsLoan, List<OwnOfferRow> Offers)
+        int ListingId, int PlayerId, string PlayerName, string Position, double AskingPrice, bool IsLoan, List<OwnOfferRow> Offers)
     {
         public bool HasOffers => Offers.Count > 0;
     }
 
     public record OutgoingOfferRow(
-        int OfferId, string PlayerName, string SellingTeamName, double Fee, double Wage, bool IsLoan, bool IsCountered,
-        double CounterFee);
+        int OfferId, string PlayerName, string Position, string SellingTeamName, double Fee, double Wage, bool IsLoan,
+        bool IsCountered, double CounterFee);
 
     public partial class TransferMarketViewModel : BaseViewModel
     {
@@ -272,7 +272,9 @@ namespace RetroFootballManager.ViewModels
                 }
 
                 OwnListings.Add(new OwnListingRow(
-                    listing.Id, listing.PlayerId, player?.Name ?? "?", listing.AskingPrice, listing.IsLoanListing, pendingRows));
+                    listing.Id, listing.PlayerId, player?.Name ?? "?",
+                    player is not null ? PositionDisplay.Short(player.Position) : "?",
+                    listing.AskingPrice, listing.IsLoanListing, pendingRows));
             }
 
             OutgoingOffers.Clear();
@@ -287,7 +289,8 @@ namespace RetroFootballManager.ViewModels
                 _offersById[offer.Id] = offer;
                 bool isCountered = offer.Status == TransferOfferStatus.Countered;
                 OutgoingOffers.Add(new OutgoingOfferRow(
-                    offer.Id, player?.Name ?? "?", sellerTeam.Name, offer.OfferedFee, offer.WageOffer, listing.IsLoanListing,
+                    offer.Id, player?.Name ?? "?", player is not null ? PositionDisplay.Short(player.Position) : "?",
+                    sellerTeam.Name, offer.OfferedFee, offer.WageOffer, listing.IsLoanListing,
                     isCountered, offer.CounterFee));
             }
         }

@@ -46,9 +46,9 @@ namespace RetroFootballManager.Common
                 player.UsedAsWingBack = slot is Position.LeftWingBack or Position.RightWingBack;
             }
 
-            var starterIds = starters.Select(s => s.Player.Id).ToHashSet();
+            var starterPlayers = new HashSet<Player>(starters.Select(s => s.Player));
             var bench = eligible
-                .Where(p => !starterIds.Contains(p.Id))
+                .Where(p => !starterPlayers.Contains(p))
                 .OrderByDescending(p => p.Rating)
                 .Take(BenchSize)
                 .ToList();
@@ -62,12 +62,16 @@ namespace RetroFootballManager.Common
         private static List<(Player Player, Position Slot)> ChooseStarters(List<Player> eligible, Formation form)
         {
             var chosen = new List<(Player Player, Position Slot)>();
-            var used = new HashSet<int>();
+            // Keyed by Player reference, not Id - a freshly generated squad (e.g. at universe
+            // generation, before the players are ever saved to the DB) has every Player.Id at
+            // its default 0 (sqlite-net AutoIncrement only assigns the real Id on insert), which
+            // would otherwise make every player after the first look "already used".
+            var used = new HashSet<Player>();
 
             // Keeper first: a real goalkeeper if there is one, else the best available fit.
             int gkSlotIndex = form.Slots.ToList().FindIndex(s => s.Position == Position.Goalkeeper);
             var keeper = eligible
-                .Where(p => !used.Contains(p.Id))
+                .Where(p => !used.Contains(p))
                 .OrderByDescending(p => p.Position == Position.Goalkeeper ? 1 : 0)
                 .ThenByDescending(p => PlayerRoleRating.For(p, Position.Goalkeeper))
                 .FirstOrDefault();
@@ -75,7 +79,7 @@ namespace RetroFootballManager.Common
             if (keeper is not null)
             {
                 chosen.Add((keeper, Position.Goalkeeper));
-                used.Add(keeper.Id);
+                used.Add(keeper);
             }
 
             // Outfield slots: greedy best-fit assignment. Slots with a WingBack alternate role
@@ -92,7 +96,7 @@ namespace RetroFootballManager.Common
 
             var candidates =
                 from p in eligible
-                where !used.Contains(p.Id)
+                where !used.Contains(p)
                 from slot in outfieldSlots
                 from candidatePos in slot.AlternatePos is Position alt ? [slot.Pos, alt] : new[] { slot.Pos }
                 select (Score: PlayerRoleRating.For(p, candidatePos), Player: p, slot.Index, Pos: candidatePos);
@@ -100,11 +104,11 @@ namespace RetroFootballManager.Common
             var filledSlots = new HashSet<int>();
             foreach (var c in candidates.OrderByDescending(c => c.Score))
             {
-                if (used.Contains(c.Player.Id) || filledSlots.Contains(c.Index))
+                if (used.Contains(c.Player) || filledSlots.Contains(c.Index))
                     continue;
 
                 chosen.Add((c.Player, c.Pos));
-                used.Add(c.Player.Id);
+                used.Add(c.Player);
                 filledSlots.Add(c.Index);
 
                 if (filledSlots.Count == outfieldSlots.Count)
@@ -323,5 +327,75 @@ namespace RetroFootballManager.Common
                 .Where(p => p.Status is not (PlayerStatus.Injured or PlayerStatus.Suspended))
                 .OrderByDescending(p => PlayerRoleRating.For(p, position))
                 .FirstOrDefault();
+
+        // "Co-Trainer" tactical advice: given the squad picked for a formation, is it built more
+        // for attacking or defending? Compares the best XI's own average Offense/Defense - a
+        // squad that's clearly stronger going forward than at the back plays better offensively
+        // (and vice versa), rather than sitting at the always-safe Balanced default.
+        public static TacticalOrientation RecommendOrientation(Team team, Formation formation)
+        {
+            var outfielders = BestOutfieldXI(team, formation);
+            if (outfielders.Count == 0)
+                return TacticalOrientation.Balanced;
+
+            double offenseDefenseGap = outfielders.Average(p => p.OffensivePower) - outfielders.Average(p => p.DefensivePower);
+            return offenseDefenseGap switch
+            {
+                > 12 => TacticalOrientation.VeryOffensive,
+                > 5 => TacticalOrientation.Offensive,
+                < -12 => TacticalOrientation.VeryDefensive,
+                < -5 => TacticalOrientation.Defensive,
+                _ => TacticalOrientation.Balanced,
+            };
+        }
+
+        // "Co-Trainer" tactical advice: which PlayingStyle best matches the squad's own
+        // attributes - a simple argmax over one representative attribute pair/attribute per
+        // style, averaged across the best XI's outfield players.
+        public static PlayingStyle RecommendPlayingStyle(Team team, Formation formation)
+        {
+            var outfielders = BestOutfieldXI(team, formation);
+            if (outfielders.Count == 0)
+                return PlayingStyle.CounterAttack;
+
+            var scores = new (PlayingStyle Style, double Score)[]
+            {
+                (PlayingStyle.CounterAttack, outfielders.Average(p => p.CounterSpeed)),
+                (PlayingStyle.TikiTaka, outfielders.Average(p => (p.PassingAccuracy + p.GameIntelligence) / 2.0)),
+                (PlayingStyle.Pressing, outfielders.Average(p => (p.PressingIntensity + p.DuelEfficiency) / 2.0)),
+                (PlayingStyle.WingPlay, outfielders.Average(p => p.CrossingAccuracy)),
+                (PlayingStyle.CrossesToStriker, outfielders.Average(p => (p.HeaderStrength + p.Jumping) / 2.0)),
+            };
+            return scores.OrderByDescending(s => s.Score).First().Style;
+        }
+
+        // What an AI trainer's own co-trainer would recommend for a freshly generated squad -
+        // used at universe generation so every club builds around a formation/orientation/style
+        // that actually fits its own players, computed autonomously (no UI, no human involved),
+        // same underlying logic as the human-facing "Co-Trainer fragen" button.
+        public static (Formation Formation, TacticalOrientation Orientation, PlayingStyle Style) RecommendTactics(
+            List<Player> players)
+        {
+            var scoringTeam = new Team { Players = players };
+            var bestShape = FormationCatalog.All
+                .Select(f => FormationCatalog.GetByName(f.Name, TacticalOrientation.Balanced))
+                .OrderByDescending(f => ScoreFormation(scoringTeam, f))
+                .First();
+            var orientation = RecommendOrientation(scoringTeam, bestShape);
+            var formation = FormationCatalog.GetByName(bestShape.Name, orientation);
+            var style = RecommendPlayingStyle(scoringTeam, formation);
+            return (formation, orientation, style);
+        }
+
+        private static List<Player> BestOutfieldXI(Team team, Formation formation)
+        {
+            var eligible = team.Players
+                .Where(p => p.Status is not (PlayerStatus.Injured or PlayerStatus.Suspended))
+                .ToList();
+            return ChooseStarters(eligible, formation)
+                .Where(c => c.Slot != Position.Goalkeeper)
+                .Select(c => c.Player)
+                .ToList();
+        }
     }
 }

@@ -100,16 +100,20 @@ namespace RetroFootballManager.Tests
         }
 
         [Fact]
-        public void AnalysisAbility89_DoesNotRevealFormationOrLineup()
+        public void AnalysisAbility89_RevealsFormation_ButNotStyleOrientationOrLineup()
         {
+            // Formation shape is basic, publicly-observable info - any analyst reports it.
+            // Playing style/orientation and the exact starting XI stay reserved for a top
+            // (>=90) analyst below.
             var own = TestHelpers.CreateTeam("Own", baseRating: 60);
             var opponent = WeakDefenseOpponent(id: 2);
+            opponent.FormationName = "4-4-2";
             var standings = new List<StandingRow> { OpponentRow(2) };
             var leagueTeams = new List<Team> { opponent, TestHelpers.CreateTeam("Avg", baseRating: 60) };
 
             var report = ScoutingReportService.BuildReport(own, opponent, standings, leagueTeams, analysisAbility: 89);
 
-            Assert.Null(report.OpponentFormationName);
+            Assert.Equal("4-4-2", report.OpponentFormationName);
             Assert.Null(report.OpponentPlayingStyle);
             Assert.Null(report.OpponentTacticalOrientation);
             Assert.Null(report.OpponentStartingXINames);

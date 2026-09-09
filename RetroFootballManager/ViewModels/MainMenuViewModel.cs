@@ -183,7 +183,7 @@ namespace RetroFootballManager.ViewModels
         private bool _isFriendlyPickerOpen;
 
         [ObservableProperty]
-        private FriendlyOpponentOption? _selectedFriendlyOpponent;
+        private Team? _selectedFriendlyOpponent;
 
         [ObservableProperty]
         private DateTime? _selectedFriendlyDate;
@@ -191,9 +191,27 @@ namespace RetroFootballManager.ViewModels
         [ObservableProperty]
         private string _friendlyValidationText = string.Empty;
 
-        public ObservableCollection<FriendlyOpponentOption> FriendlyOpponents { get; } = [];
         public ObservableCollection<DateTime> SuggestedFriendlyDates { get; } = [];
 
+        // Full candidate list (all other teams) - FriendlyOpponentsPage below is the current
+        // page's slice of this that the picker section actually binds/renders, so the list
+        // never gets long enough to risk the CollectionView/large-list Windows native crash
+        // (see CLAUDE.md) regardless of how many teams exist.
+        public ObservableCollection<Team> FriendlyOpponents { get; } = [];
+
+        private const int FriendlyOpponentsPerPage = 5;
+
+        [ObservableProperty]
+        private int _friendlyOpponentPageIndex;
+
+        public ObservableCollection<FriendlyOpponentRow> FriendlyOpponentsPage { get; } = [];
+
+        public int FriendlyOpponentTotalPages =>
+            Math.Max(1, (int)Math.Ceiling(FriendlyOpponents.Count / (double)FriendlyOpponentsPerPage));
+
+        public string FriendlyOpponentPageLabel => $"Seite {FriendlyOpponentPageIndex + 1} von {FriendlyOpponentTotalPages}";
+        public bool CanGoToPreviousFriendlyOpponentPage => FriendlyOpponentPageIndex > 0;
+        public bool CanGoToNextFriendlyOpponentPage => FriendlyOpponentPageIndex < FriendlyOpponentTotalPages - 1;
         [ObservableProperty]
         private bool _isTrainingCampDialogOpen;
 
@@ -771,8 +789,10 @@ namespace RetroFootballManager.ViewModels
 
             FriendlyOpponents.Clear();
             foreach (var opponent in _session.Teams.Where(t => t.Id != team.Id).OrderBy(t => t.Name))
-                FriendlyOpponents.Add(new FriendlyOpponentOption(opponent.Id, opponent.Name, opponent.AverageRating));
+                FriendlyOpponents.Add(opponent);
             SelectedFriendlyOpponent = FriendlyOpponents.FirstOrDefault();
+            FriendlyOpponentPageIndex = 0;
+            RefreshFriendlyOpponentsPage();
 
             SuggestedFriendlyDates.Clear();
             FriendlyValidationText = string.Empty;
@@ -797,6 +817,50 @@ namespace RetroFootballManager.ViewModels
         private void CloseFriendlyPicker() => IsFriendlyPickerOpen = false;
 
         [RelayCommand]
+        private void SelectFriendlyOpponent(int teamId)
+        {
+            SelectedFriendlyOpponent = FriendlyOpponents.FirstOrDefault(t => t.Id == teamId);
+            RefreshFriendlyOpponentsPage(); // rebuilds rows so the new selection's highlight shows
+        }
+
+        [RelayCommand]
+        private void PreviousFriendlyOpponentPage()
+        {
+            if (!CanGoToPreviousFriendlyOpponentPage)
+                return;
+            FriendlyOpponentPageIndex--;
+            RefreshFriendlyOpponentsPage();
+        }
+
+        [RelayCommand]
+        private void NextFriendlyOpponentPage()
+        {
+            if (!CanGoToNextFriendlyOpponentPage)
+                return;
+            FriendlyOpponentPageIndex++;
+            RefreshFriendlyOpponentsPage();
+        }
+
+        private void RefreshFriendlyOpponentsPage()
+        {
+            FriendlyOpponentsPage.Clear();
+            foreach (var t in FriendlyOpponents.Skip(FriendlyOpponentPageIndex * FriendlyOpponentsPerPage).Take(FriendlyOpponentsPerPage))
+            {
+                FriendlyOpponentsPage.Add(new FriendlyOpponentRow(
+                    t.Id, t.Name, t.ShortName, t.LogoPath,
+                    $"Ø {t.AverageRating:0.0}",
+                    FormationCatalog.GetByName(t.FormationName, t.TacticalOrientation).Name,
+                    t.LeagueTier > 0 ? $"Liga {t.LeagueTier}" : t.Nationality.ToString(),
+                    SelectedFriendlyOpponent?.Id == t.Id));
+            }
+
+            OnPropertyChanged(nameof(FriendlyOpponentTotalPages));
+            OnPropertyChanged(nameof(FriendlyOpponentPageLabel));
+            OnPropertyChanged(nameof(CanGoToPreviousFriendlyOpponentPage));
+            OnPropertyChanged(nameof(CanGoToNextFriendlyOpponentPage));
+        }
+
+        [RelayCommand]
         private async Task ConfirmFriendly()
         {
             var team = _session.ManagerTeam;
@@ -804,7 +868,7 @@ namespace RetroFootballManager.ViewModels
             if (team is null || state is null || SelectedFriendlyOpponent is null || SelectedFriendlyDate is null)
                 return;
 
-            var opponent = _session.Teams.FirstOrDefault(t => t.Id == SelectedFriendlyOpponent.TeamId);
+            var opponent = _session.Teams.FirstOrDefault(t => t.Id == SelectedFriendlyOpponent.Id);
             if (opponent is null)
                 return;
 
@@ -862,8 +926,9 @@ namespace RetroFootballManager.ViewModels
         private Task BackToStart() => _navigation.GoToRootAsync("start");
     }
 
-    public record FriendlyOpponentOption(int TeamId, string Name, double Rating)
-    {
-        public string DisplayText => $"{Name} (Ø {Rating:0.0})";
-    }
+    // One paginated row in the friendly-opponent picker - German teams show their league tier,
+    // foreign teams (LeagueTier 0, see ForeignClubGenerator) show their country instead.
+    public record FriendlyOpponentRow(
+        int TeamId, string Name, string ShortName, string? LogoPath,
+        string RatingText, string FormationText, string LeagueOrCountryText, bool IsSelected);
 }

@@ -30,10 +30,20 @@ namespace RetroFootballManager.Common
             _random = random ?? Random.Shared;
         }
 
-        // Per-league hiring caps: DirectorOfFootball is always unique (max 1) regardless of
-        // league; every other type scales with league tier (Tier4=3, Tier3=4, Tier2=5, Tier1=6).
+        // Only types whose effect actually stacks across multiple hires (Count/Sum-based - see
+        // ScoutingService.BestScoutingAbility's per-scout assignments, MatchDayService.
+        // ApplyPhysioMoraleBoost/ApplyPsychologistMoraleBoost, Match.ApplyMedicalStaffReduction,
+        // DevelopmentService's per-YouthCoach Sum) may be hired more than once; every other type
+        // (AssistantCoach, FitnessCoach, GoalkeeperCoach, Analyst, DirectorOfFootball) only ever
+        // uses its single best hire, so a second one would just be wasted salary.
+        private static readonly EmployeeType[] StackableTypes =
+        [
+            EmployeeType.Scout, EmployeeType.Physiotherapist, EmployeeType.MedicalStaff,
+            EmployeeType.Psychologist, EmployeeType.YouthCoach,
+        ];
+
         public static int MaxEmployeesPerType(int leagueTier, EmployeeType type) =>
-            type == EmployeeType.DirectorOfFootball ? 1 : Math.Clamp(7 - leagueTier, 3, 6);
+            StackableTypes.Contains(type) ? Math.Clamp(7 - leagueTier, 3, 6) : 1;
 
         public static bool CanHire(Team team, EmployeeType type, out string? error)
         {
@@ -47,9 +57,9 @@ namespace RetroFootballManager.Common
             int current = team.Employees.Count(e => e.EmployeeType == type);
             if (current >= max)
             {
-                error = type == EmployeeType.DirectorOfFootball
-                    ? "Es kann immer nur ein Sportdirektor gleichzeitig angestellt sein."
-                    : $"Es können maximal {max} Mitarbeiter vom Typ {type} gleichzeitig angestellt sein (Liga {team.LeagueTier}).";
+                error = max == 1
+                    ? $"Es kann immer nur ein {type} gleichzeitig angestellt sein."
+                    : $"Es können maximal {max} {type} gleichzeitig angestellt sein (Liga {team.LeagueTier}).";
                 return false;
             }
             error = null;

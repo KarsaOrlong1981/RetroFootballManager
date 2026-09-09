@@ -350,8 +350,11 @@ namespace RetroFootballManager.Common
             Position.LeftMidfielder => new PositionWeights(1.0, 0.7, 1.1, 1.0, 1.2, 1.2, 0.8, 0.9, 1.3, 0.6, 0.7, 1.3, 1.1, 0.8, 1.0, 0.7, 0.8),
             Position.RightMidfielder => new PositionWeights(1.0, 0.7, 1.1, 1.0, 1.2, 1.2, 0.8, 0.9, 1.3, 0.6, 0.7, 1.3, 1.1, 0.8, 1.0, 0.7, 0.8),
             Position.CentralOffenseMidfielder => new PositionWeights(1.2, 0.4, 1.4, 0.7, 1.0, 1.3, 0.6, 0.8, 0.9, 0.7, 0.7, 1.4, 1.3, 1.1, 1.3, 1.1, 0.6),
-            Position.LeftOffenseMidfielder => new PositionWeights(1.3, 0.5, 1.3, 0.8, 1.2, 1.2, 0.6, 0.8, 1.2, 0.6, 0.6, 1.4, 1.1, 0.9, 1.1, 1.0, 0.5),
-            Position.RightOffenseMidfielder => new PositionWeights(1.3, 0.5, 1.3, 0.8, 1.2, 1.2, 0.6, 0.8, 1.2, 0.6, 0.6, 1.4, 1.1, 0.9, 1.1, 1.0, 0.5),
+            // LA/RA are wide forwards (auxiliary strikers out wide), not deep playmakers - unlike
+            // ZOM they lean on Finishing/Counter/Header like Forward, with Crossing/Dribbling kept
+            // high for their wide delivery, and Intelligence/Passing/set-pieces pulled down.
+            Position.LeftOffenseMidfielder => new PositionWeights(1.5, 0.3, 1.0, 0.7, 1.4, 0.9, 0.5, 0.8, 1.3, 0.9, 0.8, 1.5, 1.0, 1.0, 0.8, 1.5, 0.5),
+            Position.RightOffenseMidfielder => new PositionWeights(1.5, 0.3, 1.0, 0.7, 1.4, 0.9, 0.5, 0.8, 1.3, 0.9, 0.8, 1.5, 1.0, 1.0, 0.8, 1.5, 0.5),
             Position.Forward => new PositionWeights(1.6, 0.3, 0.9, 0.7, 1.3, 0.8, 0.8, 0.8, 0.9, 1.5, 1.4, 1.2, 1.1, 1.3, 1.0, 1.7, 0.6),
             _ => new PositionWeights(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
         };

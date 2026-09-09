@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <local:BaseContentPage
     x:Class="RetroFootballManager.Views.MainMenuPage"
+    x:Name="Page"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:vm="clr-namespace:RetroFootballManager.ViewModels"
@@ -288,18 +289,77 @@
         <Border StrokeThickness="1" Stroke="{StaticResource RfmAccentTeal}"
                 BackgroundColor="{StaticResource RfmBackground}"
                 Margin="20" Padding="18"
-                WidthRequest="540" HeightRequest="560"
+                WidthRequest="880" HeightRequest="900"
                 HorizontalOptions="Center" VerticalOptions="Center" StrokeShape="RoundRectangle 16">
             <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="12">
                 <Label Grid.Row="0" Text="Freundschaftsspiel ansetzen" FontSize="18" FontAttributes="Bold"
                        TextColor="{StaticResource RfmText}" />
 
-                <Picker Grid.Row="1" Title="Gegner"
-                        BackgroundColor="Blue"
-                        WidthRequest="400"
-                        ItemsSource="{Binding FriendlyOpponents}" ItemDisplayBinding="{Binding DisplayText}"
-                        SelectedItem="{Binding SelectedFriendlyOpponent, Mode=TwoWay}"
-                        TextColor="{StaticResource RfmText}" TitleColor="{StaticResource RfmTextMuted}" />
+                <!-- Gegner-Auswahl: paginierte Liste statt eines langen Pickers - immer nur eine
+                     Seite (BindableLayout, kleine Anzahl Items) gerendert. -->
+                <VerticalStackLayout Grid.Row="1" Spacing="6">
+                    <Label Text="Gegner" FontSize="14" TextColor="{StaticResource RfmTextMuted}" />
+                    <Border StrokeThickness="1" Stroke="{StaticResource RfmSurfaceAlt}" Padding="8"
+                            HeightRequest="500" BackgroundColor="{StaticResource RfmSurface}" StrokeShape="RoundRectangle 10">
+                        <Grid RowDefinitions="*,Auto" RowSpacing="8">
+                            <ScrollView Grid.Row="0">
+                                <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding FriendlyOpponentsPage}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:FriendlyOpponentRow">
+                                            <Border Padding="8,6" StrokeThickness="0"
+                                                    BackgroundColor="{Binding IsSelected, Converter={StaticResource SelectedGreen}}"
+                                                    StrokeShape="RoundRectangle 8">
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer
+                                                        Command="{Binding Source={x:Reference Page}, Path=BindingContext.SelectFriendlyOpponentCommand}"
+                                                        CommandParameter="{Binding TeamId}" />
+                                                </Border.GestureRecognizers>
+                                                <Grid ColumnDefinitions="60,*,90,110,110" ColumnSpacing="10">
+                                                    <Border WidthRequest="60" HeightRequest="60" Padding="3"
+                                                            BackgroundColor="White" Stroke="{StaticResource RfmAccentTeal}"
+                                                            StrokeThickness="1" StrokeShape="RoundRectangle 8">
+                                                        <Grid>
+                                                            <Image Source="{Binding LogoPath, Converter={StaticResource LogoSource}}"
+                                                                   IsVisible="{Binding LogoPath, Converter={StaticResource HasLogo}}" Aspect="AspectFit" />
+                                                            <Label Text="{Binding ShortName}" FontSize="12" FontAttributes="Bold"
+                                                                   TextColor="{StaticResource RfmAccentTeal}"
+                                                                   IsVisible="{Binding LogoPath, Converter={StaticResource NoLogo}}"
+                                                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                                                        </Grid>
+                                                    </Border>
+                                                    <Label Grid.Column="1" Text="{Binding Name}" FontSize="16" FontAttributes="Bold"
+                                                           TextColor="{StaticResource RfmText}" VerticalOptions="Center"
+                                                           LineBreakMode="TailTruncation" />
+                                                    <Label Grid.Column="2" Text="{Binding RatingText}" FontSize="15"
+                                                           TextColor="{StaticResource RfmAccentTeal}" VerticalOptions="Center" />
+                                                    <Label Grid.Column="3" Text="{Binding FormationText}" FontSize="15"
+                                                           TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                                    <Label Grid.Column="4" Text="{Binding LeagueOrCountryText}" FontSize="15"
+                                                           TextColor="{StaticResource RfmText}" VerticalOptions="Center" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </ScrollView>
+
+                            <!-- Paginierung -->
+                            <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                <Button Grid.Column="0" Text="◀" WidthRequest="44"
+                                        Command="{Binding PreviousFriendlyOpponentPageCommand}"
+                                        IsEnabled="{Binding CanGoToPreviousFriendlyOpponentPage}"
+                                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Column="1" Text="{Binding FriendlyOpponentPageLabel}" FontSize="14"
+                                       TextColor="{StaticResource RfmTextMuted}"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                                <Button Grid.Column="2" Text="▶" WidthRequest="44"
+                                        Command="{Binding NextFriendlyOpponentPageCommand}"
+                                        IsEnabled="{Binding CanGoToNextFriendlyOpponentPage}"
+                                        BackgroundColor="{StaticResource RfmSurfaceAlt}" TextColor="{StaticResource RfmText}" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </VerticalStackLayout>
 
                 <Picker Grid.Row="2" Title="Termin (Vorschläge)"
                         BackgroundColor="Blue"

@@ -84,15 +84,19 @@ namespace RetroFootballManager.Common
                 referenceDate: new DateTime(2026, 8, 1));
             FaceImageAssigner.AssignPlayerFaces(players, rng);
 
+            // Every AI trainer decides its own formation/orientation/style on day one, same
+            // recommendation logic as the human-facing "Co-Trainer fragen" button.
+            var (formation, orientation, style) = LineupSelector.RecommendTactics(players);
+
             var team = new Team
             {
                 Name = name,
                 ShortName = shortName,
                 Nationality = nationality,
                 LeagueTier = 0, // not a German league team
-                FormationName = "4-4-2",
-                PlayingStyle = RandomPlayingStyle(rng),
-                TacticalOrientation = TacticalOrientation.Balanced,
+                FormationName = formation.Name,
+                PlayingStyle = style,
+                TacticalOrientation = orientation,
                 TacklingIntensity = TacklingIntensity.Normal,
                 Players = players,
                 Statistics = new TeamStats(),
@@ -128,12 +132,6 @@ namespace RetroFootballManager.Common
             string fallback = $"{stems[0]} FC {usedNames.Count}";
             usedNames.Add(fallback);
             return fallback;
-        }
-
-        private static PlayingStyle RandomPlayingStyle(Random rng)
-        {
-            var values = Enum.GetValues<PlayingStyle>();
-            return values[rng.Next(values.Length)];
         }
     }
 }

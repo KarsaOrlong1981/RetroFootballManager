@@ -147,8 +147,9 @@ namespace RetroFootballManager.Common
             Position.DefensiveMidfielder => new RoleWeights(0.6, 1.2, 1.2),
             Position.CentralMidfielder => new RoleWeights(0.9, 0.8, 1.3),
             Position.LeftMidfielder or Position.RightMidfielder => new RoleWeights(1.1, 0.7, 1.1),
-            Position.CentralOffenseMidfielder or Position.LeftOffenseMidfielder or Position.RightOffenseMidfielder
-                => new RoleWeights(1.3, 0.5, 1.0),
+            Position.CentralOffenseMidfielder => new RoleWeights(1.3, 0.5, 1.0),
+            // LA/RA are wide forwards, not creative midfielders - weighted close to Forward.
+            Position.LeftOffenseMidfielder or Position.RightOffenseMidfielder => new RoleWeights(1.45, 0.4, 0.8),
             Position.Forward => new RoleWeights(1.5, 0.4, 0.7),
             _ => new RoleWeights(1.0, 1.0, 1.0),
         };

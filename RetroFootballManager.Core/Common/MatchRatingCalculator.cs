@@ -76,7 +76,9 @@ namespace RetroFootballManager.Common
             Position.LeftWingBack or Position.RightWingBack => 1.3,
             Position.DefensiveMidfielder or Position.CentralMidfielder
                 or Position.LeftMidfielder or Position.RightMidfielder => 1.1,
-            Position.CentralOffenseMidfielder or Position.LeftOffenseMidfielder or Position.RightOffenseMidfielder => 1.0,
+            Position.CentralOffenseMidfielder => 1.0,
+            // LA/RA are wide forwards - goals are expected of them almost as much as a Forward.
+            Position.LeftOffenseMidfielder or Position.RightOffenseMidfielder => 0.85,
             Position.Forward => 0.8,
             _ => 1.0,
         };

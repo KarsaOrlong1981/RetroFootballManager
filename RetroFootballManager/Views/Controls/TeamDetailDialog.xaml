@@ -34,6 +34,8 @@
                                        FontSize="16" TextColor="{StaticResource RfmAccentTeal}" />
                                 <Label Grid.Row="1" Grid.Column="1" Text="{Binding MatchesPlayed, StringFormat='Spiele: {0}'}"
                                        FontSize="16" TextColor="{StaticResource RfmText}" />
+                                <Label Grid.Row="2" Grid.Column="0" Text="{Binding FormationName, StringFormat='Formation: {0}'}"
+                                       FontSize="16" TextColor="{StaticResource RfmText}" />
                             </Grid>
                         </Border>
 

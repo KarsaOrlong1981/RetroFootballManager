@@ -43,9 +43,14 @@ namespace RetroFootballManager.Common
                 lines.Add($"Taktik-Tipp: {StyleLabel(report.TacticSuggestion.Style)} / " +
                           $"{OrientationLabel(report.TacticSuggestion.Orientation)} (zielt auf {report.TacticSuggestion.ExploitedCategory})");
 
-            if (ability >= 90 && report.OpponentFormationName is not null)
+            // Formation shape is basic info - shown for any analyst tier; the exact starting XI
+            // and playing style/orientation stay reserved for a top (>=90) analyst below.
+            if (report.OpponentFormationName is not null)
+                lines.Add($"Formation: {report.OpponentFormationName}");
+
+            if (ability >= 90 && report.OpponentPlayingStyle is not null)
             {
-                lines.Add($"Formation: {report.OpponentFormationName} · Stil: {StyleLabel(report.OpponentPlayingStyle!.Value)} · " +
+                lines.Add($"Stil: {StyleLabel(report.OpponentPlayingStyle.Value)} · " +
                           $"Ausrichtung: {OrientationLabel(report.OpponentTacticalOrientation!.Value)}");
                 if (report.OpponentStartingXINames is { Count: > 0 })
                     lines.Add($"Aufstellung: {string.Join(", ", report.OpponentStartingXINames)}");

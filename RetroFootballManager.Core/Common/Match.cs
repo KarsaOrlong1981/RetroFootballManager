@@ -627,13 +627,11 @@ namespace RetroFootballManager.Common
                 // boosted by crossing play" - a strong crosser boosts the header
                 // probability itself, not just the assist credit.
                 double crossQuality = crosser is not null ? 0.7 + (crosser.CrossingAccuracy / 100.0 * 0.6) : 0.85;
-                double headerPower = (shooter is not null ? HeaderPower(shooter) : attackPower) * crossQuality;
+                double shooterHeaderPower = shooter is not null ? HeaderPower(shooter) : attackPower;
                 var bestDefender = BestHeaderDefender(TeamStrengthCalculator.GetLineup(defending));
                 double defenderHeaderPower = bestDefender is not null ? HeaderPower(bestDefender) : defensePower;
                 double keeperAerial = goalkeeper?.GkAerialControl ?? defensePower;
-                double headerDuelRatio = headerPower
-                    / Math.Max(0.001, headerPower + (defenderHeaderPower * 1.1) + (keeperAerial * 0.5));
-                goalProb = GoalBase * ((buildUpRatio * 0.4) + (headerDuelRatio * 0.6));
+                goalProb = HeaderGoalProbability(shooterHeaderPower, crossQuality, defenderHeaderPower, keeperAerial, buildUpRatio);
                 preferredAssist = crosser;
             }
             else
@@ -692,21 +690,23 @@ namespace RetroFootballManager.Common
                   .OrderByDescending(HeaderPower)
                   .FirstOrDefault();
 
-        // Re-tuned twice (see 2026-09-06 realism pass): first raised from 0.05 to 0.07 to
-        // 1.0 as the only lever against a real-world target of ~6/game (~3/team), since the
-        // shot-path check below only rolls for advanced-position shot attempts (headers
-        // excluded) and comparatively few chances per game reach it. Even at 1.0 (max, see the
-        // clamp in OffsideChance) that still landed at just 3.9/game - adding a second,
-        // independent roll on attacks that never became a shot at all
-        // (TryRegisterFizzledAttackOffside, a much larger eligible pool - most real offsides
-        // are flagged before a shot is even attempted) let this come back down to 0.58 while
-        // landing on target across both paths combined.
-        private const double OffsideBaseChance = 0.58;
+        // Re-tuned for a real-world target of ~6/game (~3/team) across both the shot-path
+        // check below and TryRegisterFizzledAttackOffside. Lowered from 0.58 to 0.36 when
+        // AdvancedPositions grew to include LM/RM/ZM (see below) - a much larger share of
+        // shooters now qualify for the check, so the same target rate needs a lower base rate.
+        private const double OffsideBaseChance = 0.36;
 
+        // Offside eligibility - deliberately includes the "plain" midfield positions
+        // (CentralMidfielder/LeftMidfielder/RightMidfielder) alongside the attacking-mid/
+        // forward roles: without them, a team playing a formation whose creative outlet is
+        // LM/RM/ZM (e.g. 4-4-2/4-1-4-1) never risks offside at all, while the same role played
+        // as LA/RA/ZOM (e.g. 4-2-3-1) always does - a formation-driven bias rather than a
+        // realistic one, since both are advanced attacking players making forward runs.
         private static readonly Position[] AdvancedPositions =
         {
             Position.Forward, Position.CentralOffenseMidfielder,
             Position.LeftOffenseMidfielder, Position.RightOffenseMidfielder,
+            Position.LeftMidfielder, Position.RightMidfielder,
         };
 
         private static readonly Position[] DefensivePositions =
@@ -898,6 +898,22 @@ namespace RetroFootballManager.Common
         {
             double duelRatio = takerComposure / Math.Max(0.001, takerComposure + (keeperReflexes * 0.8));
             return Math.Clamp(PenaltyConversionBase + ((duelRatio - 0.55) * 0.4), 0.4, 0.95);
+        }
+
+        // Extracted for the same reason as PenaltyConversionProbability above - a full match
+        // simulation's total goal count is dominated by open-play (non-header) scoring noise,
+        // easily swamping the much smaller header-specific signal (confirmed: a 400-match
+        // comparison flipped direction after an unrelated offside-eligibility change merely
+        // reshuffled the shared RNG sequence). Directly testable and deterministic given its
+        // inputs instead.
+        public static double HeaderGoalProbability(
+            double shooterHeaderPower, double crossQuality, double defenderHeaderPower,
+            double keeperAerialControl, double buildUpRatio)
+        {
+            double effectiveHeaderPower = shooterHeaderPower * crossQuality;
+            double headerDuelRatio = effectiveHeaderPower
+                / Math.Max(0.001, effectiveHeaderPower + (defenderHeaderPower * 1.1) + (keeperAerialControl * 0.5));
+            return GoalBase * ((buildUpRatio * 0.4) + (headerDuelRatio * 0.6));
         }
 
         // A direct free kick from a foul just outside the box - much rarer and harder to

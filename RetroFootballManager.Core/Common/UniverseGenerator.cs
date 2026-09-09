@@ -99,6 +99,11 @@ namespace RetroFootballManager.Common
             double annualStaffWages = employees.Sum(e => e.Salary) + ManagerEffects.AnnualSalary(managerProfile);
             int startBalance = (int)Math.Round(annualPlayerWages + annualStaffWages + stadium.MaintenanceCosts);
 
+            // Every AI trainer decides its own formation/orientation/style on day one, same
+            // recommendation logic as the human-facing "Co-Trainer fragen" button - just asked
+            // of itself, autonomously, against its own freshly generated squad.
+            var (formation, orientation, style) = LineupSelector.RecommendTactics(players);
+
             var team = new Team
             {
                 Name = name,
@@ -106,11 +111,9 @@ namespace RetroFootballManager.Common
                 Nationality = Nationality.Germany,
                 LeagueTier = tier,
                 LogoPath = logoFile, // null = no crest set yet, UI shows an abbreviation placeholder.
-                FormationName = "4-4-2",
-                // Random playing style per team for variety across the league; orientation
-                // starts balanced (the manager/AI adjusts it reactively during matches).
-                PlayingStyle = RandomPlayingStyle(rng),
-                TacticalOrientation = TacticalOrientation.Balanced,
+                FormationName = formation.Name,
+                PlayingStyle = style,
+                TacticalOrientation = orientation,
                 TacklingIntensity = TacklingIntensity.Normal,
                 Players = players,
                 YouthPlayers = youthPlayers,
@@ -181,12 +184,6 @@ namespace RetroFootballManager.Common
                 HomeAdvantage = rng.Next(40, 70),
                 WeatherResistance = rng.Next(40, 80),
             };
-        }
-
-        private static PlayingStyle RandomPlayingStyle(Random rng)
-        {
-            var values = Enum.GetValues<PlayingStyle>();
-            return values[rng.Next(values.Length)];
         }
     }
 }
